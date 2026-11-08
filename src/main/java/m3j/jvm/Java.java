@@ -777,6 +777,8 @@ final class Java {
         cb.aconst_null();
         cb.goto_(done);
         cb.labelBinding(some);
+        // Java may call it from a thread of its own: from now on mutexes must be atomic
+        cb.invokestatic(ClassDesc.of("m3j.rt.Mutex"), "threadsStarted", MethodTypeDesc.of(ConstantDescs.CD_void));
         cb.checkcast(iface);
         Procs.lambda(cb, a.iface, a.samDesc, List.of(iface), c.unit.self, c.unit.bridge(a), a.sam);
         cb.labelBinding(done);

@@ -402,10 +402,10 @@ thread ends.
   re-entrant: locking a mutex the thread already holds is the error of the
   reference, not a second hold count. Readers and writers lock their mutex
   for every character, so locking is cheap: while the program has not
-  forked a thread, the holder is set and cleared with plain writes; after
-  the first `Thread.Fork`, it is taken with a compare-and-set, and a thread
-  that finds it held waits on the mutex's monitor until a release notifies
-  it.
+  forked a thread or given a procedure to Java, which may call it from any
+  thread, the holder is set and cleared with plain writes; after that, it
+  is taken with a compare-and-set, and a thread that finds it held waits
+  on the mutex's monitor until a release notifies it.
 - `LOCK m DO ... END` acquires, runs the body in a `try`, and releases on
   every exit.
 - `Thread.Condition` has its own queue of waiting threads.
@@ -668,7 +668,9 @@ JFR show whether the hot methods are compiled by C2.
   floating-point operations, pickles and pathnames at their edges, and
   threads under load (`check/threads`, and `check/threads-10` with ten
   times the work; their output does not depend on the order in which the
-  threads run), the checked runtime errors (`check/rterrors`: each one
+  threads run), procedures called back from Java threads under load
+  (`check/java-threads`, and `check/java-threads-10` with ten times the
+  work), the checked runtime errors (`check/rterrors`: each one
   caught by a handler for `RuntimeError.E`, and with an argument one of
   them, or an error that the runtime reports, ending the program), and
   set constructors with bounds known only at run time and `=` on arrays

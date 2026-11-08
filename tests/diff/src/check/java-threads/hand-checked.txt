@@ -1,0 +1,19 @@
+counter under a mutex: ok
+closures of a recursion: ok
+Thread.Self is stable: ok
+Thread.Self is distinct: ok
+tasks of a pool: ok
+results of a pool: ok
+forEach of a parallel stream: ok
+map of a parallel stream: ok
+merge of a concurrent map: ok
+parallel sort: ok
+forked threads call Java: ok
+buffer between Java and forked threads: ok
+alerts of Java threads: ok
+exception handled in a callback: ok
+runtime error handled in a callback: ok
+Java exception handled in a callback: ok
+exception out of a task: ok
+exception out of a parallel stream: ok
+runtime error out of a parallel stream: ok

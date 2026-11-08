@@ -51,3 +51,5 @@ check/java tests/diff/src/check/java expected=hand-checked.txt
 check/java-range tests/diff/src/check/java range
 check/java-index tests/diff/src/check/java index
 check/java-uncaught tests/diff/src/check/java uncaught
+check/java-threads tests/diff/src/check/java-threads expected=hand-checked.txt
+check/java-threads-10 tests/diff/src/check/java-threads 10 expected=hand-checked.txt

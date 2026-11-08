@@ -1,0 +1,25 @@
+{
+ "units": [
+  "tests/diff/src/check/java-threads/src/JArrays.i3",
+  "tests/diff/src/check/java-threads/src/JExecutor.i3",
+  "tests/diff/src/check/java-threads/src/JExecutors.i3",
+  "tests/diff/src/check/java-threads/src/JFuture.i3",
+  "tests/diff/src/check/java-threads/src/JIntStream.i3",
+  "tests/diff/src/check/java-threads/src/JInteger.i3",
+  "tests/diff/src/check/java-threads/src/JMap.i3",
+  "tests/diff/src/check/java-threads/src/JThread.i3",
+  "tests/diff/src/check/java-threads/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "java"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "written by hand: cm3 cannot compile <*EXTERNAL ...:JAVA*>\n",
+  "status": 1
+ },
+ "stable": false
+}

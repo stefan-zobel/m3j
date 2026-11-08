@@ -1,0 +1,14 @@
+% Procedures called back from Java threads under load (output checked by
+% hand: cm3 does not know <*EXTERNAL ... :JAVA*>).
+import ("libm3")
+import ("java")
+interface ("JArrays")
+interface ("JExecutor")
+interface ("JExecutors")
+interface ("JFuture")
+interface ("JInteger")
+interface ("JIntStream")
+interface ("JMap")
+interface ("JThread")
+implementation ("Main")
+program ("java-threads")

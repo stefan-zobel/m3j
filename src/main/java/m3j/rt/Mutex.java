@@ -12,13 +12,14 @@ import java.lang.invoke.VarHandle;
  * reports.
  *
  * <p>Readers and writers lock their mutex for every character, so locking
- * must be cheap. As long as the program runs in one thread (no
- * Thread.Fork yet), the holder is set and cleared with plain writes. After
- * the first fork, a mutex is taken with a compare-and-set of the holder, and
- * a thread that finds it held waits on its monitor until a release notifies
- * it. The switch is safe: the forking thread sets the flag before it starts
- * the new thread, so the new thread sees the flag and every holder written
- * before.
+ * must be cheap. As long as the program runs in one thread (no Thread.Fork
+ * yet, and no procedure given to Java, which may call it from any thread),
+ * the holder is set and cleared with plain writes. After that, a mutex is
+ * taken with a compare-and-set of the holder, and a thread that finds it
+ * held waits on its monitor until a release notifies it. The switch is
+ * safe: the thread sets the flag before it starts the new thread or hands
+ * over the procedure, so the other thread sees the flag and every holder
+ * written before.
  */
 public class Mutex extends M3Object {
     private static final VarHandle OWNER;
@@ -31,7 +32,7 @@ public class Mutex extends M3Object {
         }
     }
 
-    /** whether the program has started a thread of its own */
+    /** whether code of the program may run in more than one thread */
     private static boolean threads;
 
     /** the thread that holds the mutex, or null */
@@ -42,7 +43,7 @@ public class Mutex extends M3Object {
 
     public Mutex() {}
 
-    /** Called by Thread.Fork before it starts the first thread of the program. */
+    /** Called by Thread.Fork before it starts a thread, and before a procedure is given to Java. */
     public static void threadsStarted() {
         threads = true;
     }
