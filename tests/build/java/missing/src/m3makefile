@@ -1,0 +1,5 @@
+% A program with a class path that does not exist.
+import ("libm3")
+java_classpath ("../none.jar")
+implementation ("Main")
+program ("missing")

@@ -1,0 +1,28 @@
+{
+ "units": [
+  "tests/diff/src/check/java/src/JArrayList.i3",
+  "tests/diff/src/check/java/src/JArrays.i3",
+  "tests/diff/src/check/java/src/JCollections.i3",
+  "tests/diff/src/check/java/src/JHashMap.i3",
+  "tests/diff/src/check/java/src/JInteger.i3",
+  "tests/diff/src/check/java/src/JList.i3",
+  "tests/diff/src/check/java/src/JMath.i3",
+  "tests/diff/src/check/java/src/JObjects.i3",
+  "tests/diff/src/check/java/src/JString.i3",
+  "tests/diff/src/check/java/src/JStringBuilder.i3",
+  "tests/diff/src/check/java/src/JThread.i3",
+  "tests/diff/src/check/java/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "java"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "\n\n***\n*** runtime error:\n***    An array subscript was out of range.\n***    file \"../src/Main.m3\", line 312\n***\n\n",
+  "status": 4294967295
+ },
+ "stable": true
+}

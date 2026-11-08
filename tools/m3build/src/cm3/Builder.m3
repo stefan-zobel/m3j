@@ -87,6 +87,8 @@ PROCEDURE ProgramFiles (prog: TEXT): ARRAY [0..2] OF TEXT =
     RETURN ARRAY [0..2] OF TEXT {prog & ".jar", prog, prog & ".cmd"};
   END ProgramFiles;
 
+CONST ClassPathVar = "M3J_CLASSPATH";
+
 (*------------------------------------------------------------ compiling ---*)
 
 PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
@@ -101,6 +103,7 @@ PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
     newest  := Utils.ModificationTime (Pathname.Join (home, "m3j.jar", NIL));
     u       := units.head;
     bad     := FALSE;
+    classPath := ClassPath (m);
     file, jar, argFile, all, dir: TEXT;
   BEGIN
     IF Defined (m, "M3J_EXPORTS") THEN RETURN; END;
@@ -141,6 +144,10 @@ PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
     IF bad THEN M3Options.exit_code := 1;  RETURN; END;
 
     IF NOT program THEN args.addhi ("-lib"); END;
+    IF NOT Text.Empty (classPath) THEN
+      args.addhi ("-cp");  args.addhi (classPath);
+      newest := MAX (newest, ClassPathTime (classPath));
+    END;
     FOR i := 0 TO dirs.size () - 1 DO
       args.addhi ("-I");  args.addhi (dirs.get (i));
     END;
@@ -178,7 +185,7 @@ PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
     IF program THEN
       Utils.NoteNewFile (jar);
       WriteText (argFile, all);
-      WriteScripts (name, jar, home);
+      WriteScripts (name, jar, home, classPath);
     END;
   END Compile;
 
@@ -290,6 +297,53 @@ PROCEDURE Defined (m: Quake.Machine;  sym: TEXT): BOOLEAN =
     RETURN (v # NIL) AND NOT Text.Equal (v, "");
   END Defined;
 
+(*------------------------------------------------------ Java class path ---*)
+
+PROCEDURE PathSeparator (): TEXT =
+  BEGIN
+    RETURN ARRAY BOOLEAN OF TEXT {";", ":"}[M3jOS.Posix ()];
+  END PathSeparator;
+
+PROCEDURE ClassPath (m: Quake.Machine): TEXT =
+  (* What java_classpath has collected, separated as in a class path. *)
+  VAR v: TEXT := NIL;
+  BEGIN
+    TRY
+      v := Quake.LookUp (m, ClassPathVar);
+    EXCEPT Quake.Error =>
+    END;
+    IF v = NIL THEN RETURN ""; END;
+    RETURN v;
+  END ClassPath;
+
+PROCEDURE AddClassPath (m: Quake.Machine;  path: TEXT) RAISES {Quake.Error} =
+  VAR old := ClassPath (m);
+  BEGIN
+    IF Text.Empty (old) THEN
+      Quake.Define (m, ClassPathVar, path);
+    ELSE
+      Quake.Define (m, ClassPathVar, old & PathSeparator () & path);
+    END;
+  END AddClassPath;
+
+PROCEDURE ClassPathTime (classPath: TEXT): INTEGER =
+  (* The time of the newest jar of the class path: a program is compiled
+     against what its bindings find there. *)
+  VAR
+    sep := Text.GetChar (PathSeparator (), 0);
+    newest := Utils.NO_TIME;
+    start := 0;  n := Text.Length (classPath);  stop: INTEGER;  e: TEXT;
+  BEGIN
+    WHILE start <= n DO
+      stop := Text.FindChar (classPath, sep, start);
+      IF stop < 0 THEN stop := n; END;
+      e := Text.Sub (classPath, start, stop - start);
+      IF Utils.IsFile (e) THEN newest := MAX (newest, Utils.ModificationTime (e)); END;
+      start := stop + 1;
+    END;
+    RETURN newest;
+  END ClassPathTime;
+
 (*---------------------------------------------------------------- files ---*)
 
 PROCEDURE ReadFile (file: TEXT): TEXT =
@@ -320,24 +374,27 @@ PROCEDURE WriteText (file, text: TEXT) =
     Utils.CloseWriter (wr, file);
   END WriteText;
 
-PROCEDURE WriteScripts (prog, jar, home: TEXT) =
+PROCEDURE WriteScripts (prog, jar, home, classPath: TEXT) =
   (* The scripts that run the program in jar, which is next to them, with
-     the java of m3build and the runtime of m3j. *)
+     the java of m3build, the runtime of m3j and the Java classes of its
+     bindings. *)
   VAR
     java    := M3jCompile.Java ();
     runtime := Pathname.Join (home, "m3j-runtime.jar", NIL);
-    sep     := ARRAY BOOLEAN OF TEXT {";", ":"}[M3jOS.Posix ()];
+    sep     := PathSeparator ();
     files   := ProgramFiles (prog);
+    extra   := "";
   BEGIN
+    IF NOT Text.Empty (classPath) THEN extra := sep & classPath; END;
     WriteText (files[1],
       "#!/bin/sh" & "\n" &
       "# runs the program " & prog & ", compiled by m3j" & "\n" &
       "exec \"" & java & "\" -cp \"" & runtime & sep &
-      "$(dirname \"$0\")/" & jar & "\" m3.Main \"$@\"" & "\n");
+      "$(dirname \"$0\")/" & jar & extra & "\" m3.Main \"$@\"" & "\n");
     WriteText (files[2],
       "@echo off" & "\r\n" &
       "rem runs the program " & prog & ", compiled by m3j" & "\r\n" &
-      "\"" & java & "\" -cp \"" & runtime & ";%~dp0" & jar &
+      "\"" & java & "\" -cp \"" & runtime & ";%~dp0" & jar & extra &
       "\" m3.Main %*" & "\r\n");
   END WriteScripts;
 

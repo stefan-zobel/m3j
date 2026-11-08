@@ -46,6 +46,8 @@ public final class Value {
         /** assigned a traced value */
         public boolean traced;
         public boolean external;
+        /** Port, addition: external, and bound to a Java method or field. */
+        public boolean javaBound;
         public boolean unused;
         public boolean obsolete;
         public boolean up_level;

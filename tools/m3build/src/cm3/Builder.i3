@@ -25,6 +25,10 @@ PROCEDURE BuildCPgm (prog: TEXT;  READONLY units: M3Unit.Set;
                      sys_libs: Arg.List;  shared: BOOLEAN;  m: Quake.Machine);
 (* Build a new C program named "prog" from the C sources in "units" *)
 
+PROCEDURE AddClassPath (m: Quake.Machine;  path: TEXT) RAISES {Quake.Error};
+(* Adds the jar or directory path to the Java classes of the program or
+   library that the machine builds. *)
+
 PROCEDURE CleanUp ();
 (* Last chance to dump state and clean up *)
 

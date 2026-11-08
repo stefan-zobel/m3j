@@ -1,0 +1,57 @@
+$ javac jbind/classes jbind/extra/tool/Extra.java
+$ javac jbind/jarclasses jbind/java/tool/Greeter.java
+$ jar jbind/lib/tool.jar jbind/jarclasses
+$ m3build jbind
+--- building in JVM ---
+
+new sources -> compiling jbind.jar
+exit 0
+$ run jbind/JVM/jbind
+hello, m3build 42
+exit 0
+$ m3build jbind
+--- building in JVM ---
+
+program "jbind.jar" is up to date
+exit 0
+$ touch jbind/lib/tool.jar
+$ m3build jbind
+--- building in JVM ---
+
+new sources -> compiling jbind.jar
+exit 0
+$ run jbind/JVM/jbind
+hello, m3build 42
+exit 0
+$ m3build jbind -ship -root <work>/root
+--- shipping from JVM ---
+
+. => <work>/root/pkg/jbind/JVM
+  .M3EXPORTS      
+../src => <work>/root/pkg/jbind/src
+  Greeter.i3        Extra.i3          Main.m3         
+. => <work>/root/bin
+  jbind.jar         jbind             jbind.cmd       
+exit 0
+$ run root/bin/jbind
+hello, m3build 42
+exit 0
+$ m3build jbind -clean
+--- cleaning JVM ---
+exit 0
+$ absent jbind/JVM/jbind.jar
+yes
+$ m3build missing
+--- building in JVM ---
+
+"<work>/missing\src\m3makefile", line 3: quake runtime error: java_classpath: no such file or directory: ../none.jar
+
+--procedure--  -line-  -file---
+java_classpath      --  <builtin>
+include_dir         3  <work>/missing\src\m3makefile
+                    4  <work>/missing\JVM\m3make.args
+
+Fatal Error: package build failed
+exit 2
+$ absent missing/JVM/missing.jar
+yes

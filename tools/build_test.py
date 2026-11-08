@@ -40,8 +40,10 @@ cases: the packages of tests/build (the cases of tests/build/cases.list),
 built by m3build in a copy: each line is a case, its directory, then the
 commands, separated by ";": a command of m3build (m3build ARGS, in the
 directory of a package of the case), a program that m3build built (run
-PKG PROGRAM ARGS) or a file that must exist or not (exists PATH, absent
-PATH, relative to the copy). The output of the commands, with the
+PKG PROGRAM ARGS), a file that must exist or not (exists PATH, absent
+PATH, relative to the copy), or Java classes for a package (javac DIR
+FILE..., which compiles the files to DIR, and jar FILE DIR, which packs
+DIR; the paths are relative to the copy). The output of the commands, with the
 directory of the copy written as <work>, must be tests/build/expected/
 CASE.txt, written by hand.
 
@@ -231,6 +233,16 @@ def program(copy, path):
     return ["sh", str(prog)]
 
 
+def sort_elements(got):
+    """The output with the elements of each m3bundle command sorted: they come
+    from a table of quake, whose order depends on the numbers of identifiers."""
+    lines = []
+    for line in got.split("\n"):
+        parts = line.split(" -element ")
+        lines.append(" -element ".join(parts[:1] + sorted(parts[1:])))
+    return "\n".join(lines)
+
+
 def text(b):
     return b.decode("latin-1").replace("\r\n", "\n").rstrip("\n")
 
@@ -284,6 +296,13 @@ def cases(args, work, names, counts):
                                    timeout=args.timeout)
                 out.append(text(c.stdout + c.stderr))
                 out.append("exit %d" % c.returncode)
+            elif words[0] == "javac":
+                subprocess.run([str(Path(args.java).with_name("javac")), "-d", str(copy / words[1])]
+                               + [str(copy / w) for w in words[2:]], check=True, capture_output=True)
+            elif words[0] == "jar":
+                (copy / words[1]).parent.mkdir(parents=True, exist_ok=True)
+                subprocess.run([str(Path(args.java).with_name("jar")), "--create", "--file", str(copy / words[1]),
+                                "-C", str(copy / words[2]), "."], check=True, capture_output=True)
             elif words[0] == "pair":
                 pair(args, copy, words[1], out)
             elif words[0] == "touch":
@@ -303,6 +322,7 @@ def cases(args, work, names, counts):
         got = got.replace(str(ROOT), "<m3j>").replace(str(ROOT).replace("\\", "/"), "<m3j>")
         # the java that runs the programs of the templates (M3J_JAVA)
         got = re.sub(r'"[^"\n]*[\\/]bin[\\/]java(\.exe)?"', '"<java>"', got)
+        got = sort_elements(got)
         exp_file = TESTS / "build" / "expected" / (name + ".txt")
         if args.record_cases:
             exp_file.parent.mkdir(exist_ok=True)

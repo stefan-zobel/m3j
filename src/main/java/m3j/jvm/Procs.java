@@ -47,6 +47,9 @@ final class Procs {
         }
         Value.T[] pv = new Value.T[1];
         if (UserProc.isProcedureLiteral(ce.proc, pv) && Value.base(pv[0]) instanceof Procedure.T p) {
+            if (Java.isBound(p)) {
+                return Java.call(c, ce, p);
+            }
             if (c.unit.frames.parent.containsKey(p) && c.frames.linkOf(p) != null) {
                 c.frameOf(c.frames.linkOf(p)).load(cb);
             }
@@ -237,6 +240,11 @@ final class Procs {
     /** Pushes the value of procedure p: an object of its functional interface. */
     static JType procValue(Code c, Procedure.T p) {
         CodeBuilder cb = c.cb;
+        if (Java.isBound(p)) {
+            c.unit.error("a procedure bound to a Java member cannot be used as a value: " + Code.id(p.name), c.origin);
+            cb.aconst_null();
+            return JType.PROC;
+        }
         MethodTypeDesc d = Params.descriptor(p.signature);
         ClassDesc iface = Types.procInterface(d);
         Unit u = c.unit;
@@ -353,11 +361,17 @@ final class Procs {
     /** An object of iface whose call runs owner.name (captured..., params). */
     static void lambda(CodeBuilder cb, ClassDesc iface, MethodTypeDesc d, List<ClassDesc> captured,
                        ClassDesc owner, String name) {
+        lambda(cb, iface, d, captured, owner, name, "call");
+    }
+
+    /** An object of iface whose abstract method sam, of type d, runs owner.name (captured..., params). */
+    static void lambda(CodeBuilder cb, ClassDesc iface, MethodTypeDesc d, List<ClassDesc> captured,
+                       ClassDesc owner, String name, String sam) {
         List<ClassDesc> implParams = new ArrayList<>(captured);
         implParams.addAll(d.parameterList());
         MethodTypeDesc implType = MethodTypeDesc.of(d.returnType(), implParams);
         DirectMethodHandleDesc impl = MethodHandleDesc.ofMethod(DirectMethodHandleDesc.Kind.STATIC, owner,
             name, implType);
-        cb.invokedynamic(DynamicCallSiteDesc.of(BSM_LMF, "call", MethodTypeDesc.of(iface, captured), d, impl, d));
+        cb.invokedynamic(DynamicCallSiteDesc.of(BSM_LMF, sam, MethodTypeDesc.of(iface, captured), d, impl, d));
     }
 }

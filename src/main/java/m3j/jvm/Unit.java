@@ -60,6 +60,8 @@ final class Unit {
     private final Set<String> usedNames = new HashSet<>();
     /** the procedures whose values are taken: accessor method names */
     private final Map<Procedure.T, String> accessors = new LinkedHashMap<>();
+    /** The bridges of the procedures passed to Java, by their adapters. */
+    private final Map<Java.Adapter, String> bridges = new LinkedHashMap<>();
 
     Unit(Module.T module, String sourceFile) {
         this.module = module;
@@ -76,6 +78,9 @@ final class Unit {
         String n = Code.id(Module.name(m));
         return m.interface_ ? ClassDesc.of("m3.i." + n) : ClassDesc.of("m3.m." + n);
     }
+
+    /** The number of errors that the back end reported for this unit. */
+    int errors;
 
     private static final Map<String, Class<?>> providedCache = new HashMap<>();
 
@@ -103,6 +108,15 @@ final class Unit {
 
     void unsupported(String what) {
         unsupported.add(what);
+    }
+
+    /** Reports an error of the back end at the place origin of the source. */
+    void error(String message, long origin) {
+        long save = m3j.front.Scanner.offset;
+        m3j.front.Scanner.offset = origin;
+        m3j.front.Error.msg(message);
+        m3j.front.Scanner.offset = save;
+        errors++;
     }
 
     String methodName(Procedure.T p) {
@@ -245,6 +259,16 @@ final class Unit {
         return accessors.computeIfAbsent(p, q -> "$proc$" + methodName(q));
     }
 
+    /** The name of the method of this class that runs a procedure passed by the adapter a. */
+    String bridge(Java.Adapter a) {
+        String name = bridges.get(a);
+        if (name == null) {
+            name = "$bridge$" + bridges.size();
+            bridges.put(a, name);
+        }
+        return name;
+    }
+
     // ------------------------------------------------------------ the class
 
     byte[] generate() {
@@ -302,6 +326,7 @@ final class Unit {
                             cb.areturn();
                         });
                 }
+                bridges.forEach((a, name) -> Java.bridge(this, clb, name, a));
                 clb.withField("M3$UNIT", ConstantDescs.CD_String,
                     fb -> fb.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC | ClassFile.ACC_FINAL)
                             .with(ConstantValueAttribute.of(metadata())));
@@ -344,7 +369,7 @@ final class Unit {
     /** The static fields of the unit's variables. */
     private void fields(ClassBuilder clb) {
         for (Value.T v = Scope.toList(module.localScope); v != null; v = v.next) {
-            if (v instanceof Variable.T var) {
+            if (v instanceof Variable.T var && !var.javaBound) {
                 clb.withField(Code.id(var.name), Code.varType(var).desc,
                     ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC);
             }

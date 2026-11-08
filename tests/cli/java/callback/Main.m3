@@ -1,0 +1,6 @@
+MODULE Main;
+
+IMPORT B;
+
+BEGIN
+END Main.

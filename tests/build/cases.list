@@ -8,6 +8,8 @@ lib      lib      m3build greet; m3build greet -ship; m3build greet -ship -root 
 
 bundle   bundle   m3build res; run res/JVM/res; exists res/JVM/Res.i3
 
+java     java     javac jbind/classes jbind/extra/tool/Extra.java; javac jbind/jarclasses jbind/java/tool/Greeter.java; jar jbind/lib/tool.jar jbind/jarclasses; m3build jbind; run jbind/JVM/jbind; m3build jbind; touch jbind/lib/tool.jar; m3build jbind; run jbind/JVM/jbind; m3build jbind -ship -root <work>/root; run root/bin/jbind; m3build jbind -clean; absent jbind/JVM/jbind.jar; m3build missing; absent missing/JVM/missing.jar
+
 netobj   netobj   m3build nob; exists nob/JVM/Test_T_v1.m3; exists nob/JVM/Test_U_v2.m3; pair nob/JVM/netobj
 
 errors   errors   m3build bad; absent bad/JVM/bad.jar; m3build noimport; m3build csrc; absent csrc/JVM/csrc.jar; m3build unsafe; absent unsafe/JVM/unsafe.jar

@@ -117,6 +117,8 @@ final class Code {
     /** this procedure's frame, and the frame of the nearest enclosing procedure with one */
     Loc myFrame, staticLink;
     private int lastLine = -1;
+    /** The place of the source being compiled. */
+    long origin;
     /** the plan if the procedure is split in chunks, else null */
     Split split;
     /** the chunk whose method this is, else null */
@@ -151,6 +153,7 @@ final class Code {
     }
 
     void line(long origin) {
+        this.origin = origin;
         int l = lineOf(origin);
         if (l > 0 && l != lastLine) {
             cb.lineNumber(l);
@@ -299,6 +302,9 @@ final class Code {
                 cb.aload(ex);
                 cb.instanceOf(ClassDesc.of("m3.i.RuntimeError$E"));
                 cb.ifne(pass);
+                cb.aload(ex);
+                cb.instanceOf(ClassDesc.of("m3.i.Java$Exception"));
+                cb.ifne(pass);
                 for (ClassDesc c : allowed) {
                     cb.aload(ex);
                     cb.instanceOf(c);
@@ -383,13 +389,14 @@ final class Code {
         // as cm3: constant initial values first (they are static data), then
         // the others in order
         for (Value.T v = Scope.toList(m.localScope); v != null; v = v.next) {
-            if (v instanceof Variable.T var
+            if (v instanceof Variable.T var && !var.javaBound
                     && (var.initExpr == null || Expr.constValue(var.initExpr) != null)) {
                 initVariable(var, loc(var));
             }
         }
         for (Value.T v = Scope.toList(m.localScope); v != null; v = v.next) {
-            if (v instanceof Variable.T var && var.initExpr != null && Expr.constValue(var.initExpr) == null) {
+            if (v instanceof Variable.T var && !var.javaBound
+                    && var.initExpr != null && Expr.constValue(var.initExpr) == null) {
                 initVariable(var, loc(var));
             }
         }
@@ -699,6 +706,9 @@ final class Code {
             return l;
         }
         if (isGlobal(var)) {
+            if (var.javaBound) {
+                return Java.fieldLoc(this, var);
+            }
             Value.T home = Scope.toUnit(var);
             if (home instanceof Module.T m) {
                 JType t = varType(var);

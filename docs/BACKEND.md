@@ -211,6 +211,15 @@ than a few. A constructor in which the front end found a checked runtime
 error (a value out of range, too many or too few elements) raises it
 where it is used, as cm3 does.
 
+**Java classes.** The opaque type `T` of an interface
+`<*EXTERNAL "a.b.C":JAVA*>` is the class a.b.C: `JType.providedClass` asks
+`Java.classOf` first, so that descriptors, `checkcast` and the tests of
+`ISTYPE`, `NARROW` and `TYPECASE` use the class itself, and no class is
+generated for the interface. A Java object is no `M3Object`, so
+`ISTYPE (x, ROOT)` is false for it. The `ClassHierarchyResolver` of the
+verifier uses the class loader of `-cp`, so that stack maps can join Java
+types.
+
 ## 4. Variables and parameters
 
 **Variables.** A local variable is a JVM local, unless an inner procedure
@@ -282,6 +291,25 @@ exporting module itself, and calls inside one unit, use `invokestatic`.
 The indirection is needed because which module exports an interface is
 known only when the program is linked.
 
+**Java members.** A procedure or variable of a bound interface is bound
+to a member by reflection when the interface is compiled (`Java.resolve`,
+`Java.resolveAll`); classes are loaded without being initialized. The
+candidates are the public members with the name and the number of
+parameters whose types fit the formals: if several fit, the only one that
+fits exactly, else the descriptor is required. A call is the JVM
+instruction itself (`invokestatic`, `invokevirtual`, `invokeinterface`,
+`new`, `dup`, `invokespecial`), so `Procs.call` does not reach the
+machinery of external names; the actuals are converted with `Code.exprAs`
+and the range checks of any assignment. `<*EXTERNAL*> VAR` is a static
+field (`Loc.Static`, or `Loc.FinalStatic`, whose store is an error).
+
+**Procedures passed to Java.** For a formal of procedure type at a
+parameter with one abstract method, the call makes an object with
+`invokedynamic` and `LambdaMetafactory`: it captures the procedure value,
+and its method is a bridge in the class of the unit, one for each interface
+and signature (`Java.bridge`, `Unit.bridge`), which converts the arguments,
+calls the value and converts its result. `NIL` stays `null`.
+
 ## 6. Modules and initialization
 
 A module is a class with static fields for its variables, static methods
@@ -305,6 +333,8 @@ the modules follow in the order in which the search finished them.
 `<*EXTERNAL*>` procedures (the safe ones the tests and the library use,
 such as `Cstdlib.exit`) are found by their external name in a registry of
 Java implementations; a name that is not there is a link error.
+Declarations bound to a Java class are not in the registry: they are
+resolved at compile time (section 5).
 
 ## 7. Exceptions and runtime errors
 
@@ -353,6 +383,16 @@ mapped to `RuntimeError.E` wherever Modula-3 code can see them: in
 `EXCEPT ELSE`, `FINALLY`, `LOCK` and at the top of the program. Before the
 program exits, the procedures registered with `Process.RegisterExitor`
 run and `Stdio` is flushed.
+
+**Java exceptions.** Every call of a Java member has a handler of
+`Throwable`, which costs nothing until something is thrown:
+`m3.i.Java.caught` leaves an `M3Exception` as it is (one that a callback
+raised), turns what `Rt.toM3` knows into the checked runtime error, and
+anything else into `Java.Exception` with the throwable as argument. The
+exception is declared `<*IMPLICIT*>`, so the check of `RAISES` passes it.
+An exception that leaves a callback on a thread that Java started has no
+call to return to: the JVM's default handler reports it and only that
+thread ends.
 
 ## 8. Threads
 
@@ -444,7 +484,8 @@ The library is hybrid:
   Modula-3 types are `Object`, except these nested classes of its own
   opaque types (`M3jPickle.NewTable` returns `m3.i.M3jPickle$RefTable`).
   `<*EXTERNAL*>` procedures are methods of
-  `m3j.rt.Externals`, named after their external names.
+  `m3j.rt.Externals`, named after their external names (bindings of Java
+  classes are resolved by the compiler, section 5).
 - **Compiled by m3j**, the other modules of libm3 and m3core: when a
   program imports an interface that the runtime does not provide, the
   driver compiles the module of the same name (or, from a package of a

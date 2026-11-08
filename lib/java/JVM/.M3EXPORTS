@@ -1,0 +1,5 @@
+% exports of java: the bindings of Java classes that m3j brings
+_define_lib("java")
+_map_add_interface("Java.i3", "java", "src", "")
+_map_add_interface("JavaObject.i3", "java", "src", "")
+_map_add_interface("JavaThrowable.i3", "java", "src", "")

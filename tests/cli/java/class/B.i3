@@ -1,0 +1,7 @@
+<*EXTERNAL "no.such.Klass":JAVA*> INTERFACE B;
+
+TYPE T <: REFANY;
+
+PROCEDURE f (self: T): INTEGER;
+
+END B.

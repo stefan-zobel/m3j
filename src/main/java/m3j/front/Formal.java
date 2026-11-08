@@ -1029,7 +1029,7 @@ public final class Formal {
 
     private static boolean isExternalProcedure(Expr.T e) {
         Value.T[] proc = new Value.T[1];
-        return UserProc.isProcedureLiteral(e, proc) && Value.isExternal(proc[0]);
+        return UserProc.isProcedureLiteral(e, proc) && Value.isExternal(proc[0]) && !Value.base(proc[0]).javaBound;
     }
 
     /**

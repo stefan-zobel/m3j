@@ -192,6 +192,7 @@ public final class Procedure {
         t.obsolete  = att.isObsolete;
         if ((att.isExternal)) {
             t.external = true;
+            t.javaBound = att.isJava || Module.isJava();
             if ((att.alias == M3ID.NoID)) {
                 t.extName = t.name;
             } else {
@@ -226,6 +227,7 @@ public final class Procedure {
             if ((att.isExternal)) {
                 Error.warnID(2, id, "external procedure cannot include a body");
                 t.external = false;
+                t.javaBound = false;
                 t.extName  = M3ID.NoID;
             }
             t.syms  = Scope.pushNew(true, id);

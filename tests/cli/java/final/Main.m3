@@ -1,0 +1,7 @@
+MODULE Main;
+
+IMPORT B;
+
+BEGIN
+  B.MAX_VALUE := 1;
+END Main.

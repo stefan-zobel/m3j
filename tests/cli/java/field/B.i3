@@ -1,0 +1,5 @@
+<*EXTERNAL "java.lang.Integer":JAVA*> INTERFACE B;
+
+<*EXTERNAL*> VAR MAX_VALUE: BOOLEAN;
+
+END B.

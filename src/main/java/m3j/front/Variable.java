@@ -257,6 +257,7 @@ public final class Variable {
                 t = new_(Ident.stack[(int) (j + i)], false);
                 t.origin   = Ident.offset[(int) (j + i)];
                 t.external = att.isExternal;
+                t.javaBound = att.isExternal && (att.isJava || Module.isJava());
                 t.unused   = att.isUnused;
                 t.obsolete = att.isObsolete;
                 t.type     = type;

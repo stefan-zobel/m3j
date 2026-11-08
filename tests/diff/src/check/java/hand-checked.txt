@@ -1,0 +1,79 @@
+max: 7
+abs: 12
+sqrt: 1.5
+pi: 3.141592653589793
+MAX_VALUE: 2147483647
+parseInt: -4711
+toString: 255
+length: 11
+charAt: 101
+substring: java
+toUpperCase: HELLO, JAVA
+builder length: 5
+builder: abcde
+add: TRUE
+size: 3
+get 0: one
+get 1: 2
+get 2 is NIL: TRUE
+ISTYPE JList: TRUE
+ISTYPE JArrayList: TRUE
+ISTYPE JStringBuilder: FALSE
+ISTYPE ROOT: FALSE
+TYPECASE list of: 3
+NARROW: An explicit or implicit NARROW() operation failed.
+toString: [one, 2, null]
+caught: For input string: "x"
+class: java.lang.NumberFormatException
+finally: ran
+after finally: For input string: "y"
+NIL to Java: Attempt to reference an illegal memory location.
+index: An array subscript was out of range.
+isNull NIL: TRUE
+list: banana fig pear 
+list: fig pear banana 
+result out of range: An enumeration or subrange value was out of range.
+through Java: For input string: "not a number"
+Thread.Self in a Java thread: TRUE
+thread ran: 1
+NIL procedure: ok
+computeIfAbsent: ABC
+map size: 1
+setAll: [0, 1, 4, 9]
+Modula-3 exception through Java: 7
+ToText: []
+ToText NIL: null
+Equals: TRUE
+Equals NIL: TRUE
+HashCode: 3105
+HashCode NIL: 0
+ClassName: java.lang.StringBuilder
+IsInstance List: TRUE
+IsInstance Object: TRUE
+IsInstance other: FALSE
+IsInstance NIL: FALSE
+IsInstance own: TRUE
+FromInt: -5
+FromLong: -9223372036854775808
+box class: java.lang.Integer
+box class: java.lang.Long
+ToInt: An explicit or implicit NARROW() operation failed.
+Length: 3
+sorted copy: [7, 8, 9]
+original: 9
+GetLongs short: 2
+GetLongs short 1: 8
+GetLongs long: 3
+GetLongs long 2: 9
+bytes: [66]
+GetBytes: 1
+GetBytes 0: 66
+doubles: [0.5, 1.5]
+GetDoubles: 2
+GetDoubles 1: 1.5
+strings: [x, y]
+GetStrings: 2
+GetStrings 1: y
+wrong array: An explicit or implicit NARROW() operation failed.
+not an array: An explicit or implicit NARROW() operation failed.
+REFANY of the wrong class: An explicit or implicit NARROW() operation failed.

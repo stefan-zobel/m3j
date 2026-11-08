@@ -226,6 +226,10 @@ final class JType {
      * runtime provides (Thread.T is m3.i.Thread$T), or null.
      */
     static ClassDesc providedClass(Type.T u) {
+        ClassDesc bound = Java.classOf(u);
+        if (bound != null) {
+            return bound;
+        }
         if (u instanceof OpaqueType.P op && op.declared != null) {
             Value.T home = Scope.toUnit(op.declared);
             if (home instanceof Module.T m && m.interface_) {

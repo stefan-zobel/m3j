@@ -26,6 +26,8 @@ public final class Decl {
     public static final class Attributes {
         public int alias = M3ID.NoID;
         public boolean isExternal = false;
+        /** Port, addition: <*EXTERNAL "name":JAVA*> */
+        public boolean isJava = false;
         public boolean isInline = false;
         public boolean isUnused = false;
         public boolean isObsolete = false;
@@ -39,6 +41,7 @@ public final class Decl {
             Attributes r = new Attributes();
             r.alias = alias;
             r.isExternal = isExternal;
+            r.isJava = isJava;
             r.isInline = isInline;
             r.isUnused = isUnused;
             r.isObsolete = isObsolete;
@@ -74,6 +77,7 @@ public final class Decl {
         boolean[] got_cc = {false};
         att.isInline    = false;
         att.isExternal  = false;
+        att.isJava      = false;
         att.isUnused    = false;
         att.isObsolete  = false;
         att.isImplicit  = false;
@@ -90,10 +94,12 @@ public final class Decl {
                     // Port: att.alias and att.callingConv are VAR parameters.
                     int[] alias = {att.alias};
                     Target.CallingConvention[] cc = {att.callingConv};
-                    parseExternalPragma(alias, cc, got_cc);
+                    boolean[] isJava = {false};
+                    parseExternalPragma(alias, cc, got_cc, isJava);
                     att.alias = alias[0];
                     att.callingConv = cc[0];
                     att.isExternal = true;
+                    att.isJava = isJava[0];
                 }
                 case tINLINE -> {
                     att.isInline = true;
@@ -189,9 +195,12 @@ public final class Decl {
 
     /**
      * Port: the parameters are VAR (OUT) parameters; each is a one-element
-     * array whose element 0 receives the result.
+     * array whose element 0 receives the result. Addition: the language
+     * JAVA is not a calling convention, it binds the declaration to a Java
+     * class or method (isJava).
      */
-    public static void parseExternalPragma(int[] alias, Target.CallingConvention[] cc, boolean[] got_cc) {
+    public static void parseExternalPragma(int[] alias, Target.CallingConvention[] cc, boolean[] got_cc,
+                                           boolean[] isJava) {
         String txt;
         AssertError.check(Scanner.cur.token == Token.T.tEXTERNAL, "Decl");
         Scanner.getToken(); // EXTERNAL
@@ -199,6 +208,7 @@ public final class Decl {
         alias[0]  = M3ID.NoID; // default => use the Modula-3 name
         cc[0]     = M3.target.DefaultCall;
         got_cc[0] = false;
+        isJava[0] = false;
 
         if ((Scanner.cur.token == Token.T.tIDENT) || (Scanner.cur.token == Token.T.tTEXTCONST)) {
             if ((Scanner.cur.token == Token.T.tIDENT)) {
@@ -217,7 +227,10 @@ public final class Decl {
                 } else {
                     txt = null;
                 }
-                if ((txt != null)) {
+                if ("JAVA".equals(txt)) {
+                    isJava[0] = true;
+                    Scanner.getToken(); // IDENT/TEXTCONST
+                } else if ((txt != null)) {
                     cc[0] = Target.findConvention(M3.target, txt);
                     got_cc[0] = true;
                     if ((cc[0] == null)) {

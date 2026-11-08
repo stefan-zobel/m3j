@@ -211,6 +211,10 @@ final class Refs {
                 loc.load(cb);
                 cb.invokespecial(cd, "<init>", MethodTypeDesc.of(ConstantDescs.CD_void, valueDesc(t)));
             }
+            case Loc.FinalStatic f -> {
+                f.reject();
+                cb.aconst_null();
+            }
             default -> c.unsupported("VAR actual " + l.getClass().getSimpleName());
         }
     }

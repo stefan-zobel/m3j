@@ -11,8 +11,8 @@ interface in NAMEWin32.m3 by its EXPORTS, and in the modules of a source
 package (-pkg) by their EXPORTS, without a warning for an interface of
 variables alone, and with the module of the name of an interface the other
 modules of its directory that export it too (not those of another
-directory). The programs are in tests/cli; the expected results are below,
-checked by hand.
+directory), and the errors of bindings of Java classes. The programs are
+in tests/cli; the expected results are below, checked by hand.
 
   python3 tools/cli_test.py [--java JAVA] [--jar JAR] [--keep] [--jvm-arg=ARG]...
 """
@@ -47,6 +47,26 @@ CASES = [
     ("exports", "exports", ["Main.m3", "-run"], 0, "FooWin32 Bar\n", None),
     ("package", "package", ["-pkg", "pkg", "Main.m3", "-run"], 0, "Impl / 7\n", None),
     ("split", "split", ["-pkg", "pkg", "Main.m3", "-run"], 0, "A B\n", None),
+    ("java-class", "java/class", ["Main.m3"], 1, None, "line 1: Java class not found: no.such.Klass"),
+    ("java-method", "java/method", ["Main.m3"], 1, None, "line 4: no public Java method java.lang.Math.nope"),
+    ("java-ambiguous", "java/ambiguous", ["Main.m3"], 1, None,
+     "line 6: ambiguous Java method java.lang.Math.max: give the descriptor, one of max(JJ)J, max(II)I"),
+    ("java-mismatch", "java/mismatch", ["Main.m3"], 1, None,
+     "line 4: no overload of Java method java.lang.Math.max fits this declaration"),
+    ("java-callback", "java/callback", ["Main.m3"], 1, None,
+     "line 6: no overload of Java method java.util.Collections.sort fits this declaration"),
+    ("java-final", "java/final", ["Main.m3"], 1, None,
+     '"Main.m3", line 6: cannot assign to the final Java field MAX_VALUE'),
+    ("java-module", "java/module", ["Main.m3"], 1, None, '"Main.m3", line 3: External declarations only allowed in interfaces'),
+    ("java-var", "java/var", ["Main.m3"], 1, None, "line 4: Java procedures take VALUE parameters only"),
+    ("java-field", "java/field", ["Main.m3"], 1, None,
+     "line 3: the type of Java field java.lang.Integer.MAX_VALUE is int: declare it as Java.Int"),
+    ("java-abstract", "java/abstract", ["Main.m3"], 1, None,
+     "line 5: Java class java.util.AbstractList is abstract"),
+    ("java-value", "java/value", ["Main.m3"], 1, None,
+     '"Main.m3", line 7: a procedure bound to a Java member cannot be used as a value: Abs'),
+    ("java-as-method", "java/method2", ["Main.m3"], 1, None,
+     '"Main.m3", line 5: a procedure bound to a Java member cannot be a method: Hash'),
 ]
 
 

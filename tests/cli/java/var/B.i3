@@ -1,0 +1,6 @@
+INTERFACE B;
+
+<*EXTERNAL "java.lang.Math.abs":JAVA*>
+PROCEDURE Abs (VAR a: INTEGER): INTEGER;
+
+END B.

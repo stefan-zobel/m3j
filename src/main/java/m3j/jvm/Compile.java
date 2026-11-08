@@ -59,6 +59,9 @@ import m3j.middle.TargetMap;
  *                found there
  *   -d OUT       writes the classes to the directory OUT, or to the jar
  *                OUT if it ends with .jar
+ *   -cp PATH     the directories and jars of the Java classes that the
+ *                bindings of the program name, separated as on the class
+ *                path of the JVM
  *   -wd DIR      relative pathnames that follow are relative to DIR (the
  *                working directory of m3build); diagnostics name the
  *                files given and those of the directories of -I as given
@@ -111,6 +114,8 @@ public final class Compile {
     int mcCount;
     /** -lib: the modules that are not given are optional, as those of libraries */
     boolean library;
+    /** -cp: the directories and jars of the Java classes of the bindings */
+    List<Path> classPath = List.of();
     Path currentFile;
     int failed;
     int unsupported;
@@ -142,6 +147,7 @@ public final class Compile {
     /** Runs the compiler with the arguments of its command line: its exit code. */
     public static int run(String[] args) throws IOException {
         PrintStream err = new PrintStream(System.err, true, StandardCharsets.ISO_8859_1);
+        Java.reset();
         Compile c = new Compile(err);
         List<Path> files = new ArrayList<>();
         List<Path> dirs = new ArrayList<>();
@@ -170,6 +176,16 @@ public final class Compile {
                     pkgs.add(root.resolve("pkg").resolve("libm3").resolve(BUILD));
                 }
                 case "-pkg" -> pkgs.add(resolve(wd, args[++i]));
+                case "-cp" -> {
+                    List<Path> entries = new ArrayList<>();
+                    for (String e : args[++i].split(java.io.File.pathSeparator)) {
+                        if (!e.isEmpty()) {
+                            entries.add(resolve(wd, e));
+                        }
+                    }
+                    Java.setClassPath(entries);
+                    c.classPath = entries;
+                }
                 case "-d" -> out = resolve(wd, args[++i]).toString();
                 case "-v" -> c.verbose = true;
                 case "-mc" -> c.mcDir = resolve(wd, args[++i]);
@@ -195,7 +211,7 @@ public final class Compile {
             }
         }
         if (files.isEmpty()) {
-            err.println("usage: m3j.jvm.Compile [-I DIR] [-cm3 DIR] [-pkg DIR] [-d OUT] [-v] [-lib] FILE.m3... [-run ARG...]");
+            err.println("usage: m3j.jvm.Compile [-I DIR] [-cm3 DIR] [-pkg DIR] [-cp PATH] [-d OUT] [-v] [-lib] FILE.m3... [-run ARG...]");
             err.println("       m3j.jvm.Compile -version");
             return 2;
         }
@@ -331,7 +347,10 @@ public final class Compile {
             }
             return;
         }
-        if (!(m.interface_ && Unit.provided(u.name) != null)) {
+        if (m.interface_) {
+            Java.resolveAll(m, u);
+        }
+        if (!(m.interface_ && (Unit.provided(u.name) != null || m.javaClass != null))) {
             byte[] b = u.generate();
             classes.put(u.self.descriptorString(), b);
             unsupported += u.unsupported.size();
@@ -344,6 +363,7 @@ public final class Compile {
                 }
             }
         }
+        failed += u.errors;
         // an interface that declares procedures needs a module (or a class
         // of the runtime); one that declares variables has a module if one
         // was found
@@ -887,11 +907,36 @@ public final class Compile {
         return descriptor.substring(1, descriptor.length() - 1) + ".class";
     }
 
+    /**
+     * The Class-Path of the manifest of the jar: URLs relative to the jar
+     * where that is possible, so that the jar and its classes can move
+     * together.
+     */
+    private String manifestClassPath(Path jar) {
+        Path dir = jar.toAbsolutePath().normalize().getParent();
+        java.util.StringJoiner out = new java.util.StringJoiner(" ");
+        for (Path e : classPath) {
+            Path p = e.toAbsolutePath().normalize();
+            String url;
+            try {
+                url = new java.net.URI(null, null, dir.relativize(p).toString().replace(java.io.File.separatorChar, '/'),
+                                       null).toASCIIString();
+            } catch (IllegalArgumentException | java.net.URISyntaxException x) {
+                url = p.toUri().toString(); // on another drive, or not a relative URL
+            }
+            out.add(Files.isDirectory(p) && !url.endsWith("/") ? url + "/" : url);
+        }
+        return out.toString();
+    }
+
     void write(Path out) throws IOException {
         if (out.toString().endsWith(".jar")) {
             Manifest mf = new Manifest();
             mf.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             mf.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "m3.Main");
+            if (!classPath.isEmpty()) {
+                mf.getMainAttributes().put(Attributes.Name.CLASS_PATH, manifestClassPath(out));
+            }
             try (OutputStream os = Files.newOutputStream(out);
                  JarOutputStream jar = new JarOutputStream(os, mf)) {
                 for (Map.Entry<String, byte[]> e : classes.entrySet()) {
@@ -916,7 +961,7 @@ public final class Compile {
             String d = e.getKey();
             byName.put(d.substring(1, d.length() - 1).replace('/', '.'), e.getValue());
         }
-        ClassLoader loader = new ClassLoader("m3j", Compile.class.getClassLoader()) {
+        ClassLoader loader = new ClassLoader("m3j", Java.loader) {
             @Override
             protected Class<?> findClass(String name) throws ClassNotFoundException {
                 byte[] b = byName.get(name);

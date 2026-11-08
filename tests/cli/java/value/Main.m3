@@ -1,0 +1,11 @@
+MODULE Main;
+
+IMPORT B;
+
+TYPE P = PROCEDURE (a: INTEGER): INTEGER;
+
+VAR p: P := B.Abs;
+
+BEGIN
+  EVAL p (1);
+END Main.

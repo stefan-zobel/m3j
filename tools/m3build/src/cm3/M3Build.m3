@@ -26,7 +26,7 @@ IMPORT Quake, QValue, QCode, QMachine, QVal, QVSeq, QVTbl, M3Timers;
 IMPORT Arg, Builder, M3Loc, M3Options, M3Path, M3Unit, Msg, Utils;
 FROM QMachine IMPORT PushBool, PushText, PopText, PopID, PopBool;
 IMPORT MxConfig;
-IMPORT OSError, Process, Dirs, TextUtils;
+IMPORT FS, OSError, Process, Dirs, TextUtils;
 
 TYPE
   UK = M3Unit.Kind;
@@ -440,6 +440,7 @@ CONST
     Builtin {"import_version",                DoImportVersion,   2, FALSE},
     Builtin {"import_obj",                    DoImportObj,       1, FALSE},
     Builtin {"import_lib",                    DoImportLib,       2, FALSE},
+    Builtin {"java_classpath",                DoJavaClasspath,   1, FALSE},
 
     (* objects *)
     Builtin {"pgm_object",                    DoPgmObject,       2, FALSE},
@@ -1155,6 +1156,23 @@ PROCEDURE ImportVersion (t: T;  pkg, vers: M3ID.T)
       Include (t, file);
     END;
   END ImportVersion;
+
+PROCEDURE DoJavaClasspath (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
+  RAISES {Quake.Error} =
+  (* m3j: java_classpath ("a.jar") adds a jar or a directory, relative to
+     the file that says so, to the Java classes of the bindings of this
+     package and of the program that is built. *)
+  VAR t := Self (m);  x := PopText (t);  path: TEXT;
+  BEGIN
+    IF t.mode # MM.Build THEN RETURN; END;
+    TRY
+      path := FS.GetAbsolutePathname (PathOf (t, x));
+      EVAL FS.Status (path);
+      Builder.AddClassPath (t, path);
+    EXCEPT OSError.E =>
+      t.error ("java_classpath: no such file or directory: " & x);
+    END;
+  END DoJavaClasspath;
 
 PROCEDURE DoImportObj (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
   RAISES {Quake.Error} =

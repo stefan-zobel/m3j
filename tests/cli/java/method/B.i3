@@ -1,0 +1,6 @@
+INTERFACE B;
+
+<*EXTERNAL "java.lang.Math.nope":JAVA*>
+PROCEDURE Nope (a: INTEGER): INTEGER;
+
+END B.

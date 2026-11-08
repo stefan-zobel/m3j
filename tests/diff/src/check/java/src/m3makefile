@@ -1,0 +1,17 @@
+% Calls of Java from Modula-3 (output checked by hand: cm3 does not know
+% <*EXTERNAL ... :JAVA*>).
+import ("libm3")
+import ("java")
+interface ("JArrayList")
+interface ("JArrays")
+interface ("JCollections")
+interface ("JHashMap")
+interface ("JInteger")
+interface ("JList")
+interface ("JMath")
+interface ("JObjects")
+interface ("JString")
+interface ("JStringBuilder")
+interface ("JThread")
+implementation ("Main")
+program ("java")

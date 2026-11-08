@@ -43,6 +43,8 @@ public final class Module {
         public boolean safe;
         public boolean interface_;
         public boolean external;
+        /** Port, addition: the class of <*EXTERNAL "class":JAVA*> INTERFACE, or null. */
+        public String javaClass;
         public boolean has_errors;
         public int genericBase;
         public String genericFile;
@@ -352,6 +354,7 @@ public final class Module {
         long[] n_errs = new long[1], n_warns = new long[1], n_initial_errs = new long[1];
         Target.CallingConvention[] cc = new Target.CallingConvention[1];
         boolean[] got_cc = new boolean[1];
+        boolean[] isJava = new boolean[1];
         // ETimer.Push (M3Timers.parse);
         Error.count(n_initial_errs, n_warns);
 
@@ -360,8 +363,10 @@ public final class Module {
         save = switch_(t);
 
         if ((Scanner.cur.token == Token.T.tEXTERNAL)) {
-            Decl.parseExternalPragma(id, cc, got_cc);
-            if ((id[0] != M3ID.NoID)) {
+            Decl.parseExternalPragma(id, cc, got_cc, isJava);
+            if (isJava[0]) {
+                t.javaClass = M3ID.toText(M3.ids, id[0]);
+            } else if ((id[0] != M3ID.NoID)) {
                 Error.ID(id[0], "external module name ignored");
             }
             t.external = true;
@@ -1051,6 +1056,11 @@ public final class Module {
 
     public static boolean isExternal() {
         return (curModule != null) && (curModule.external);
+    }
+
+    /** Port, addition: the current unit is bound to a Java class. */
+    public static boolean isJava() {
+        return (curModule != null) && (curModule.javaClass != null);
     }
 
     public static boolean lazyAlignmentOn() {

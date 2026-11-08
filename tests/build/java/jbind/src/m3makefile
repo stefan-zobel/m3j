@@ -1,0 +1,9 @@
+% A program with bindings of Java classes of a jar and of a directory.
+import ("libm3")
+import ("java")
+java_classpath ("../lib/tool.jar")
+java_classpath ("../classes")
+interface ("Greeter")
+interface ("Extra")
+implementation ("Main")
+Program ("jbind")

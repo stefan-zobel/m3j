@@ -180,7 +180,7 @@ final class Types {
     static ClassHierarchyResolver resolver() {
         return ClassHierarchyResolver.defaultResolver()
             .orElse(Types::known)
-            .orElse(ClassHierarchyResolver.ofClassLoading(Types.class.getClassLoader()));
+            .orElse(ClassHierarchyResolver.ofClassLoading(Java.loader));
     }
 
     /**
@@ -570,6 +570,13 @@ final class Types {
         MethodTypeDesc d = methodDescriptor(declaring(m));
         clb.withMethodBody(name, d, ClassFile.ACC_PUBLIC, cb -> {
             Value.T p = m.dfault == null ? null : Value.base(m.dfault);
+            if (p instanceof Procedure.T bound && Java.isBound(bound)) {
+                if (currentUnit != null) {
+                    currentUnit.error("a procedure bound to a Java member cannot be a method: "
+                                      + Code.id(bound.name), m.origin);
+                }
+                p = null;
+            }
             if (p instanceof Procedure.T proc) {
                 // the procedure takes the object first
                 cb.aload(0);

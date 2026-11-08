@@ -128,7 +128,9 @@ def m3tests_case(d, work):
 def lib_case(work):
     w = work / "lib"
     w.mkdir(parents=True, exist_ok=True)
-    files = sorted(str(f) for f in (ROOT / "lib").rglob("*") if f.suffix in (".i3", ".m3"))
+    # lib/java: the bindings of Java classes use a language that cm3 does not have
+    files = sorted(str(f) for f in (ROOT / "lib").rglob("*")
+                   if f.suffix in (".i3", ".m3") and "java" not in f.relative_to(ROOT / "lib").parts[:1])
     return Case("lib", w, files)
 
 

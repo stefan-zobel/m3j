@@ -104,18 +104,12 @@ final class FrontEnv extends M3Compiler.Environment {
         }
     }
 
-    /**
-     * Adds the library that m3j brings (the resource directory lib of its
-     * jar): the packages m3core, libm3, tcp, netobj and sysutils of cm3 without their UNSAFE
-     * modules and the modules that the runtime implements in Java, with
-     * some modules changed for m3j, and the units of m3j's own (m3j).
-     */
-    void addBundled() throws IOException {
+    /** The resource directory lib of the jar of m3j, null if there is none. */
+    static Path bundledRoot() throws IOException {
         java.net.URL u = FrontEnv.class.getResource("/lib/");
         if (u == null) {
-            return;
+            return null;
         }
-        Path dir;
         try {
             java.net.URI uri = u.toURI();
             if ("jar".equals(uri.getScheme())) {
@@ -125,12 +119,24 @@ final class FrontEnv extends M3Compiler.Environment {
                 } catch (java.nio.file.FileSystemNotFoundException e) {
                     fs = java.nio.file.FileSystems.newFileSystem(uri, Map.of());
                 }
-                dir = fs.getPath("/lib");
-            } else {
-                dir = Path.of(uri);
+                return fs.getPath("/lib");
             }
+            return Path.of(uri);
         } catch (java.net.URISyntaxException e) {
             throw new IOException(e);
+        }
+    }
+
+    /**
+     * Adds the library that m3j brings (the resource directory lib of its
+     * jar): the packages m3core, libm3, tcp, netobj and sysutils of cm3 without their UNSAFE
+     * modules and the modules that the runtime implements in Java, with
+     * some modules changed for m3j, and the units of m3j's own (m3j).
+     */
+    void addBundled() throws IOException {
+        Path dir = bundledRoot();
+        if (dir == null) {
+            return;
         }
         List<Path> pkgs = new ArrayList<>();
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir)) {

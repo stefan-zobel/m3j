@@ -170,6 +170,16 @@ into an array of characters (`Buf`), and texts built in memory (`Wx`).
 | `libbuf/src/Buf.m3` | safe: `FromFile` reads the file into bytes and copies them to the characters, instead of reading into the characters through a `LOOPHOLE` |
 | `libbuf/src/Wx.m3` | `ToText` makes the text with `Text.FromChars` instead of `Text8.Create` |
 
+## java
+
+m3j's own package for the bindings of Java classes (see "Java APIs" in the
+README of m3j). `Java` has the Java types as Modula-3 types
+(`Java.Int`, ...), the implicit exception `Java.Exception` and the helpers
+for any reference, boxes and arrays, implemented by the class
+`m3.i.Java`. `JavaObject` and `JavaThrowable` bind `java.lang.Object` and
+`java.lang.Throwable`; they are the types that other bindings extend. cm3
+cannot compile these interfaces, so `m3front_test.py` leaves them out.
+
 ## m3j
 
 The units of m3j's own: interfaces of `<*EXTERNAL*>` procedures that the

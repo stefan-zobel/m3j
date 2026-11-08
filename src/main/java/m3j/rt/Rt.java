@@ -211,7 +211,7 @@ public final class Rt {
     }
 
     /** Sets the place of e to the innermost frame of compiled Modula-3 code. */
-    static void locate(M3Exception e) {
+    public static void locate(M3Exception e) {
         StackWalker.getInstance().walk(s -> s.filter(f -> isM3(f.getFileName())).findFirst())
             .ifPresent(f -> e.at(f.getFileName(), f.getLineNumber()));
     }
@@ -347,6 +347,9 @@ public final class Rt {
             if (e.line != 0) {
                 sb.append(", line ").append(e.line);
             }
+        }
+        if (e instanceof m3.i.Java.Exception && e.arg != null) {
+            sb.append("\n***    ").append(e.arg);
         }
         sb.append("\n***\n\n");
         err.print(sb);
