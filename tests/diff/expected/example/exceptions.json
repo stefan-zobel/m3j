@@ -1,0 +1,18 @@
+{
+ "units": [
+  "tests/diff/src/examples/exceptions/src/FakeOS.i3",
+  "tests/diff/src/examples/exceptions/src/FakeOS.m3",
+  "tests/diff/src/examples/exceptions/src/Copy.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Syntax: copy <source> <destination>\n",
+  "stderr": "",
+  "status": 2
+ },
+ "stable": true
+}

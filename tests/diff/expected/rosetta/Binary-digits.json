@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Binary-digits/src/Binary.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "1010\n10010110\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

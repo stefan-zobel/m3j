@@ -1,0 +1,20 @@
+--- a/m3-sys/cm3/src/Builder.m3
++++ b/m3-sys/cm3/src/Builder.m3
+@@ -1983,6 +1983,9 @@
+     source  : M3Front.SourceFile;
+     options : REF ARRAY OF TEXT;
+     input   : File.T      := NIL;
++    (* PushOneM3 sets the name of the side IR file (-keep) before calling
++       us, but ResetEnv clears it; keep it for the code generator. *)
++    sideIRName := s.m3env.sideIRName;
+   BEGIN
+     ETimer.Push (M3Timers.pass_0);
+ 
+@@ -2022,6 +2025,7 @@
+     (* do the compilation *)
+     IF (ok) THEN
+       ResetEnv (s, u, UnitPath (u), object);
++      s.m3env.sideIRName := sideIRName;
+       Pass0_Trace (UnitPath (u), s.m3_front_flags, s.m3_options);
+       ok := M3Front.Compile (source, s.m3env, options^);
+     END;

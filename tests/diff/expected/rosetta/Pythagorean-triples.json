@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Pythagorean-triples/src/PyTriple64.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "100: 17 Triples, 7 Primitives\n1000: 325 Triples, 70 Primitives\n10000: 4858 Triples, 703 Primitives\n100000: 64741 Triples, 7026 Primitives\n1000000: 808950 Triples, 70229 Primitives\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

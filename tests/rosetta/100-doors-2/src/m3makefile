@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("DoorsOpt")
+program ("100_doors_2")

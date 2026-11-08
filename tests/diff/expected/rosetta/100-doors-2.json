@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/100-doors-2/src/DoorsOpt.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "1 is Open.\n2 is Closed.\n3 is Closed.\n4 is Open.\n5 is Closed.\n6 is Closed.\n7 is Closed.\n8 is Closed.\n9 is Open.\n10 is Closed.\n11 is Closed.\n12 is Closed.\n13 is Closed.\n14 is Closed.\n15 is Closed.\n16 is Open.\n17 is Closed.\n18 is Closed.\n19 is Closed.\n20 is Closed.\n21 is Closed.\n22 is Closed.\n23 is Closed.\n24 is Closed.\n25 is Open.\n26 is Closed.\n27 is Closed.\n28 is Closed.\n29 is Closed.\n30 is Closed.\n31 is Closed.\n32 is Closed.\n33 is Closed.\n34 is Closed.\n35 is Closed.\n36 is Open.\n37 is Closed.\n38 is Closed.\n39 is Closed.\n40 is Closed.\n41 is Closed.\n42 is Closed.\n43 is Closed.\n44 is Closed.\n45 is Closed.\n46 is Closed.\n47 is Closed.\n48 is Closed.\n49 is Open.\n50 is Closed.\n51 is Closed.\n52 is Closed.\n53 is Closed.\n54 is Closed.\n55 is Closed.\n56 is Closed.\n57 is Closed.\n58 is Closed.\n59 is Closed.\n60 is Closed.\n61 is Closed.\n62 is Closed.\n63 is Closed.\n64 is Open.\n65 is Closed.\n66 is Closed.\n67 is Closed.\n68 is Closed.\n69 is Closed.\n70 is Closed.\n71 is Closed.\n72 is Closed.\n73 is Closed.\n74 is Closed.\n75 is Closed.\n76 is Closed.\n77 is Closed.\n78 is Closed.\n79 is Closed.\n80 is Closed.\n81 is Open.\n82 is Closed.\n83 is Closed.\n84 is Closed.\n85 is Closed.\n86 is Closed.\n87 is Closed.\n88 is Closed.\n89 is Closed.\n90 is Closed.\n91 is Closed.\n92 is Closed.\n93 is Closed.\n94 is Closed.\n95 is Closed.\n96 is Closed.\n97 is Closed.\n98 is Closed.\n99 is Closed.\n100 is Open.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

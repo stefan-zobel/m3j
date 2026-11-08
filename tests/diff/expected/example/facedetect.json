@@ -1,0 +1,24 @@
+{
+ "units": [
+  "tests/diff/src/examples/facedetect/src/Image.i3",
+  "tests/diff/src/examples/facedetect/src/Image.m3",
+  "tests/diff/src/examples/facedetect/src/Rectangles.i3",
+  "tests/diff/src/examples/facedetect/src/Rectangles.m3",
+  "tests/diff/src/examples/facedetect/src/Classifier.i3",
+  "tests/diff/src/examples/facedetect/src/Classifier.m3",
+  "tests/diff/src/examples/facedetect/src/Haar.i3",
+  "tests/diff/src/examples/facedetect/src/Haar.m3",
+  "tests/diff/src/examples/facedetect/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Usage: haar imagefile.pgm\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

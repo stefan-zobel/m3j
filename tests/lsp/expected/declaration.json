@@ -1,0 +1,193 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 7,
+     "line": 8
+    },
+    "start": {
+     "character": 2,
+     "line": 8
+    }
+   },
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 14,
+     "line": 12
+    },
+    "start": {
+     "character": 10,
+     "line": 12
+    }
+   },
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 3,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 13,
+     "line": 7
+    },
+    "start": {
+     "character": 10,
+     "line": 7
+    }
+   },
+   "uri": "file:<work>/app/src/Util.i3"
+  }
+ },
+ {
+  "id": 4,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 6,
+     "line": 100
+    },
+    "start": {
+     "character": 5,
+     "line": 100
+    }
+   },
+   "uri": "file:<m3j>/lib/libm3/src/rw/Wr.i3"
+  }
+ },
+ {
+  "id": 5,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 19,
+     "line": 17
+    },
+    "start": {
+     "character": 10,
+     "line": 17
+    }
+   },
+   "uri": "file:<work>/shapes/src/Shapes.i3"
+  }
+ },
+ {
+  "id": 6,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 17,
+     "line": 36
+    },
+    "start": {
+     "character": 10,
+     "line": 36
+    }
+   },
+   "uri": "file:<m3j>/lib/libm3/src/rw/IO.i3"
+  }
+ },
+ {
+  "id": 7,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 16,
+     "line": 5
+    },
+    "start": {
+     "character": 10,
+     "line": 5
+    }
+   },
+   "uri": "file:<work>/app/src/Util.i3"
+  }
+ },
+ {
+  "id": 8,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 19,
+     "line": 9
+    },
+    "start": {
+     "character": 13,
+     "line": 9
+    }
+   },
+   "uri": "file:<work>/shapes/src/Shapes.i3"
+  }
+ },
+ {
+  "id": 9,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 16,
+     "line": 8
+    },
+    "start": {
+     "character": 9,
+     "line": 8
+    }
+   },
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 10,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 7,
+     "line": 8
+    },
+    "start": {
+     "character": 2,
+     "line": 8
+    }
+   },
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 11,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

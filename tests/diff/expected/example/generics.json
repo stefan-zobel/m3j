@@ -1,0 +1,21 @@
+{
+ "units": [
+  "tests/diff/src/examples/generics/src/Action.i3",
+  "tests/diff/src/examples/generics/src/Action.m3",
+  "tests/diff/src/examples/generics/src/Generics.m3"
+ ],
+ "generated": [
+  "AtomActionTbl.i3",
+  "AtomActionTbl.m3"
+ ],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Welcome to the atomic database.\nTry any of commands: show quit reset help.\nAny other string will be entered into the database.\n\natom-db > ",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

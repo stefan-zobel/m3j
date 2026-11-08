@@ -1,0 +1,134 @@
+[
+ {
+  "error": {
+   "code": -32700,
+   "message": "the message is not JSON"
+  },
+  "id": null,
+  "jsonrpc": "2.0"
+ },
+ {
+  "error": {
+   "code": -32600,
+   "message": "no method"
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
+ },
+ {
+  "error": {
+   "code": -32600,
+   "message": "the id is not a number or a string"
+  },
+  "id": null,
+  "jsonrpc": "2.0"
+ },
+ {
+  "error": {
+   "code": -32601,
+   "message": "unknown method workspace/symbol"
+  },
+  "id": 2,
+  "jsonrpc": "2.0"
+ },
+ {
+  "error": {
+   "code": -32602,
+   "message": "textDocument/uri and position are needed"
+  },
+  "id": 3,
+  "jsonrpc": "2.0"
+ },
+ {
+  "error": {
+   "code": -32602,
+   "message": "textDocument/uri and position are needed"
+  },
+  "id": 4,
+  "jsonrpc": "2.0"
+ },
+ {
+  "error": {
+   "code": -32602,
+   "message": "textDocument/uri and position are needed"
+  },
+  "id": 5,
+  "jsonrpc": "2.0"
+ },
+ {
+  "id": 6,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "id": 7,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "Identifier 'c' not declared",
+     "range": {
+      "end": {
+       "character": 16,
+       "line": 4
+      },
+      "start": {
+       "character": 15,
+       "line": 4
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'b' is not used",
+     "range": {
+      "end": {
+       "character": 19,
+       "line": 2
+      },
+      "start": {
+       "character": 18,
+       "line": 2
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/app/src/Util.m3"
+  }
+ },
+ {
+  "id": "the-hover",
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "a : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 12,
+     "line": 4
+    },
+    "start": {
+     "character": 11,
+     "line": 4
+    }
+   }
+  }
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

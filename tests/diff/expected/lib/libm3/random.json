@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/random/src/RandomTest.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "\n\nDone.\n\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

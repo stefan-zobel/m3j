@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Loops-For/src/Stars.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "*\n**\n***\n****\n*****\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

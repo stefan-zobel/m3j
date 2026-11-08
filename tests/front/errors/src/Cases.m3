@@ -1,0 +1,10 @@
+MODULE Cases EXPORTS Main;
+
+PROCEDURE Q (x: INTEGER): INTEGER;
+  BEGIN
+    RETURN x;
+  END Q;
+
+BEGIN
+  EVAL Q (3);
+END Cases.

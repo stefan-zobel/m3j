@@ -1,0 +1,75 @@
+$ m3build greet
+--- building in JVM ---
+
+checking library "greet"
+exit 0
+$ m3build greet -ship
+
+Fatal Error: -ship needs an installation: the option -root DIR or the environment variable M3J_ROOT
+exit 1
+$ m3build greet -ship -root <work>/root
+--- shipping from JVM ---
+
+. => <work>/root/pkg/greet/JVM
+  .M3EXPORTS      
+../JVM => <work>/root/pkg/greet/JVM
+  WordSeq.i3        WordSeq.m3        WordSeqRep.i3   
+../src => <work>/root/pkg/greet/src
+  greet.tmpl        Greet.i3          Greet.m3        
+exit 0
+$ exists root/pkg/greet/JVM/.M3EXPORTS
+yes
+$ exists root/pkg/greet/JVM/WordSeq.m3
+yes
+$ exists root/pkg/greet/src/Greet.m3
+yes
+$ exists root/pkg/greet/src/greet.tmpl
+yes
+$ m3build user -root <work>/root
+--- building in JVM ---
+
+new sources -> compiling user.jar
+exit 0
+$ run user/JVM/user
+hello, library
+hello, template
+exit 0
+$ m3build user -ship -root <work>/root
+--- shipping from JVM ---
+
+. => <work>/root/pkg/user/JVM
+  .M3EXPORTS      
+../JVM => <work>/root/pkg/user/JVM
+  HiSeq.i3          HiSeq.m3          HiSeqRep.i3     
+../src => <work>/root/pkg/user/src
+  Hi.i3             Hi.m3             Main.m3         
+. => <work>/root/bin
+  user.jar          user              user.cmd        
+exit 0
+$ run root/bin/user
+hello, library
+hello, template
+exit 0
+$ m3build user2
+--- building in JVM ---
+
+ignoring ../src\m3overrides
+
+"<work>/user2\src\m3makefile", line 2: quake runtime error: package "greet" not found: it has no .M3EXPORTS in no installation (-root DIR or M3J_ROOT), the packages of m3j (<m3j>/lib), no packages of cm3 (-cm3 DIR or CM3_ROOT)
+
+--procedure--  -line-  -file---
+import             --  <builtin>
+include_dir         2  <work>/user2\src\m3makefile
+                    4  <work>/user2\JVM\m3make.args
+
+Fatal Error: package build failed
+exit 2
+$ m3build user2 -override
+--- building in JVM ---
+
+new sources -> compiling user2.jar
+exit 0
+$ run user2/JVM/user2
+hello, library
+hello, template
+exit 0

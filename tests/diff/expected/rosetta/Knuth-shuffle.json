@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Knuth-shuffle/src/Shuffle.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "8 10 3 5 7 2 4 6 1 9 \n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": false
+}

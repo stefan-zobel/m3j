@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("LucasLehmer")
+program ("Lucas_Lehmer_test")

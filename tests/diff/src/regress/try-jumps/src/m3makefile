@@ -1,0 +1,4 @@
+% EXIT and RETURN out of nested TRY statements whose FINALLY part raises.
+import ("libm3")
+implementation ("Main")
+program ("try-jumps")

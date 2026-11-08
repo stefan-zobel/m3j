@@ -1,0 +1,5 @@
+% The same program, which finds the library greet through m3overrides.
+import ("greet")
+greeting ("Hi")
+implementation ("Main")
+program ("user2")

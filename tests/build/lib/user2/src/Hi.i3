@@ -1,0 +1,5 @@
+INTERFACE Hi;
+
+PROCEDURE Words (): TEXT;
+
+END Hi.

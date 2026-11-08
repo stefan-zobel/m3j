@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/examples/enum/src/ExtensionLookup.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "\n\nA sample extension mapping program.\n\n.....Current Extension Mappings....\n        m3 Module\n        i3 Interface\n        mg Generic Module\n        ig Generic Interface\n         c C Program\n         h C Header\n       cpp C++ Program\n       pdf Acrobat PDF\n        ps PostScript\n       txt Text File\n       exe Windows Executable\n       bat Windows Batch\n        sh Unix Shell\n      html HTML Document\n       gif GIF Image\n      jpeg JPEG Image\n      text Text File\n       htm HTML Document\n       CPP C++ Program\n       jpg JPEG Image\n\n....Type in extension to lookup....\n.......Press Control-C to exit.....\n\nExtension> ",
+  "stderr": "\n\n***\n*** runtime error:\n***    Exception \"IO.Error\" not in RAISES list\n***    file \"../src/rw/IO.m3\", line 61\n***\n\n",
+  "status": 4294967295
+ },
+ "stable": true
+}

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Sort-an-integer-array/src/ArraySort.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("MultiArray")
+program ("Loop_over_multiple_arrays_simultaneously")

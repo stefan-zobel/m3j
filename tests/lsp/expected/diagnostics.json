@@ -1,0 +1,257 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "Identifier 'totl' not declared",
+     "range": {
+      "end": {
+       "character": 6,
+       "line": 19
+      },
+      "start": {
+       "character": 2,
+       "line": 19
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 31,
+       "line": 19
+      },
+      "start": {
+       "character": 26,
+       "line": 19
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "Identifier 'Main' not declared",
+     "range": {
+      "end": {
+       "character": 8,
+       "line": 23
+      },
+      "start": {
+       "character": 4,
+       "line": 23
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "identifier expected, end of stream found",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 24
+      },
+      "start": {
+       "character": 0,
+       "line": 24
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "';' expected, identifier 'Main' found",
+     "range": {
+      "end": {
+       "character": 8,
+       "line": 23
+      },
+      "start": {
+       "character": 4,
+       "line": 23
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "Expression expected, EVAL found",
+     "range": {
+      "end": {
+       "character": 9,
+       "line": 20
+      },
+      "start": {
+       "character": 5,
+       "line": 20
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "warning: 'unused2' is not used",
+     "range": {
+      "end": {
+       "character": 9,
+       "line": 10
+      },
+      "start": {
+       "character": 2,
+       "line": 10
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'unused1' is not used",
+     "range": {
+      "end": {
+       "character": 9,
+       "line": 9
+      },
+      "start": {
+       "character": 2,
+       "line": 9
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "y : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 5,
+     "line": 19
+    },
+    "start": {
+     "character": 4,
+     "line": 19
+    }
+   }
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

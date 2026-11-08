@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Variable-size-Get/src/Size.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Integer in bits: 64\nInteger in bytes: 8\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

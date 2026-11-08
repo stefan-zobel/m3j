@@ -1,0 +1,21 @@
+{
+ "units": [
+  "tests/diff/src/examples/pickles/src/Action.i3",
+  "tests/diff/src/examples/pickles/src/Action.m3",
+  "tests/diff/src/examples/pickles/src/PickleExample.m3"
+ ],
+ "generated": [
+  "AtomActionTbl.i3",
+  "AtomActionTbl.m3"
+ ],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Welcome to the atomic database.\nTry any of commands: show quit reset help.\nAny other string will be entered into the database.\n\npersistent atom-db > Commands: show, reset, help, quit, load, save.\nOtherwise: insert into the list.\npersistent atom-db > persistent atom-db > persistent atom-db > banana apple \npersistent atom-db > persistent atom-db > persistent atom-db > \npersistent atom-db > persistent atom-db > banana apple \npersistent atom-db > persistent atom-db > persistent atom-db > cherry banana apple \npersistent atom-db > persistent atom-db > persistent atom-db > persistent atom-db > cherry banana apple \npersistent atom-db > ",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

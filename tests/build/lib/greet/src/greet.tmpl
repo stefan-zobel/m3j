@@ -1,0 +1,8 @@
+% The quake procedures of the library greet: greeting(NAME) adds the
+% module NAME of the importing package and an instance NAMESeq of
+% Sequence of TEXT.
+
+readonly proc greeting (nm) is
+  module (nm)
+  sequence (nm, "Text")
+end

@@ -1,0 +1,7 @@
+% A program with an interface of its own, the library libm3 of m3j and
+% the library shapes (tests/lsp/pkgs/shapes, through m3overrides).
+import ("libm3")
+import ("shapes")
+Module ("Util")
+implementation ("Main")
+program ("app")

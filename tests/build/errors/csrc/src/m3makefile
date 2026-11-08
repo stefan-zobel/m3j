@@ -1,0 +1,5 @@
+% A C source, which m3j does not compile.
+import ("libm3")
+c_source ("Hello")
+implementation ("Main")
+program ("csrc")

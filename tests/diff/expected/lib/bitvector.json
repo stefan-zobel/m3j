@@ -1,0 +1,17 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/bitvector/test/src/TestBitVector.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "bitvector"
+ ],
+ "result": {
+  "stdout": "*** Set/Reset Bit Test ***\n\nTesting upward...\n  Passed!\n\nTesting downward...\n  Passed!\n\n*** Iterator Test ***\n  Passed!\n\n*** LeastUnset() Test ***\n\nTesting upward...\n  Passed!\n\nTesting downward by squares...\n  Passed!\n\n*** LeastUnsetExcept() Test ***\n\nTest 1...\n  Passed!\n\nTest 2...\n  Passed!\n\n*** Read/Write Interval Test ***\n\nTesting intra-words...\n  Passed!\n\nTesting inter-words...\n  Passed!\n\n*** Set Interval Test ***\n\nAll intra-word intervals:\n  Passed!\n\nInter-word intervals:\n  Pased!\n\n*** Copy Test ***\n  Passed!\n\n*** Cardinality Test ***\n  Passed!\n\n*** Bitwise Test 1 ***\n\nTesting against empty vectors...\n  Passed!\n\n*** Bitwise Test 2 ***\n  Passed!\n\nAll tests passed!\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

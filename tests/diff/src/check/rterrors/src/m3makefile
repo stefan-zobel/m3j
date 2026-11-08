@@ -1,0 +1,5 @@
+% Checked runtime errors, caught by handlers for RuntimeError.E or ending
+% the program.
+import ("libm3")
+implementation ("Main")
+program ("rterrors")

@@ -1,0 +1,50 @@
+$ m3build hello
+--- building in JVM ---
+
+new sources -> compiling hello.jar
+exit 0
+$ run hello/JVM/hello
+hello, world
+two = 2
+sum of squares = 55
+names: 3, last cy
+1 first
+2 second
+3 third
+swapped: 2 1
+exit 0
+$ run hello/JVM/hello again
+hello, again
+two = 2
+sum of squares = 55
+names: 3, last cy
+1 first
+2 second
+3 third
+swapped: 2 1
+exit 0
+$ m3build hello
+--- building in JVM ---
+
+program "hello.jar" is up to date
+exit 0
+$ touch hello/src/Greet.m3
+$ m3build hello
+--- building in JVM ---
+
+new sources -> compiling hello.jar
+exit 0
+$ exists hello/JVM/WordTbl.i3
+yes
+$ m3build hello -clean
+--- cleaning JVM ---
+exit 0
+$ absent hello/JVM/hello.jar
+yes
+$ absent hello/JVM/WordTbl.i3
+yes
+$ m3build hello -realclean
+--- purging derived files from JVM ---
+exit 0
+$ absent hello/JVM
+yes

@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Yule")
+program ("Day_of_the_week")

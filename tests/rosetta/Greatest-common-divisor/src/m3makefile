@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("GCD")
+program ("Greatest_common_divisor")

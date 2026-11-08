@@ -1,0 +1,26 @@
+# Random program tests (written by tools/prog_fuzz.py --write)
+fuzz/p1 tests/diff/src/fuzz/p1
+fuzz/p2 tests/diff/src/fuzz/p2
+fuzz/p3 tests/diff/src/fuzz/p3
+fuzz/p4 tests/diff/src/fuzz/p4
+fuzz/p5 tests/diff/src/fuzz/p5
+fuzz/p6 tests/diff/src/fuzz/p6
+fuzz/p7 tests/diff/src/fuzz/p7
+fuzz/p8 tests/diff/src/fuzz/p8
+fuzz/p9 tests/diff/src/fuzz/p9
+fuzz/p10 tests/diff/src/fuzz/p10
+fuzz/p11 tests/diff/src/fuzz/p11
+fuzz/p12 tests/diff/src/fuzz/p12
+fuzz/p13 tests/diff/src/fuzz/p13
+fuzz/p14 tests/diff/src/fuzz/p14
+fuzz/p15 tests/diff/src/fuzz/p15
+fuzz/p16 tests/diff/src/fuzz/p16
+fuzz/p17 tests/diff/src/fuzz/p17
+fuzz/p18 tests/diff/src/fuzz/p18
+fuzz/p19 tests/diff/src/fuzz/p19
+fuzz/p20 tests/diff/src/fuzz/p20
+fuzz/p21 tests/diff/src/fuzz/p21
+fuzz/p22 tests/diff/src/fuzz/p22
+fuzz/p23 tests/diff/src/fuzz/p23
+fuzz/p24 tests/diff/src/fuzz/p24
+fuzz/p25 tests/diff/src/fuzz/p25

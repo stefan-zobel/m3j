@@ -1,0 +1,5 @@
+INTERFACE Foo;
+
+PROCEDURE Name (): TEXT;
+
+END Foo.

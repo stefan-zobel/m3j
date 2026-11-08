@@ -1,0 +1,10 @@
+port chosen: ok
+msg: 1:x
+msg: 3:abc
+msg: 12:hello, world
+msg big: ok
+msg big in parts: ok
+msg: 0:
+match: T T T F F T F T
+busy: IP.Error [ IP.PortBusy # ]
+end

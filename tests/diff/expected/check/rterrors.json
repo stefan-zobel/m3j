@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/rterrors/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "0 INTEGER to [0..9]: An enumeration or subrange value was out of range.\n1 [0..100000] to [0..9]: An enumeration or subrange value was out of range.\n2 INTEGER to [-1..2^39-1]: An enumeration or subrange value was out of range.\n3 VAL to an enumeration: An enumeration or subrange value was out of range.\n4 VAL to CHAR: An enumeration or subrange value was out of range.\n5 LONGINT to [0L..9L]: An enumeration or subrange value was out of range.\n6 parameter and result: An enumeration or subrange value was out of range.\n7 packed field: An enumeration or subrange value was out of range.\n8 set element: An enumeration or subrange value was out of range.\n9 subscript of a fixed array: An array subscript was out of range.\n10 subscript of an open array: An array subscript was out of range.\n11 SUBARRAY: An enumeration or subrange value was out of range.\n12 open array to a fixed READONLY parameter: An open array had the wrong shape.\n13 open array to a fixed VAR parameter: An open array had the wrong shape.\n14 array constructor to an open array: An open array had the wrong shape.\n15 NEW with a negative size: An enumeration or subrange value was out of range.\n16 NARROW: An explicit or implicit NARROW() operation failed.\n17 implicit NARROW: An explicit or implicit NARROW() operation failed.\n18 CASE without a match: No handler specified for the current CASE value.\n19 TYPECASE without a match: No handler specified for the current type in a TYPECASE statement.\n20 function without RETURN: A function failed to return a value.\n21 ASSERT: <*ASSERT*> failed.\n22 method that is NIL: A NIL-valued method was invoked.\n23 subscript of a two-dimensional open array: An array subscript was out of range.\nsink 101 9 7 2 255 549755813887 1\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

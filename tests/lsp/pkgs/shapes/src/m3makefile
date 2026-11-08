@@ -1,0 +1,4 @@
+% A library that the package app imports through its m3overrides.
+import ("libm3")
+Module ("Shapes")
+Library ("shapes")

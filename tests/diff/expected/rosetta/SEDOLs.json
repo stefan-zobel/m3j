@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/SEDOLs/src/SEDOL.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "7108899\nB0YBKJ7\n4065663\nB0YBLH2\n2282765\nB0YBKL9\n5579107\nB0YBKR5\n5852842\nB0YBKT7\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

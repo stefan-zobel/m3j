@@ -1,0 +1,36 @@
+[
+ {
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+   "capabilities": {
+    "codeActionProvider": false,
+    "codeLensProvider": false,
+    "completionProvider": false,
+    "declarationProvider": true,
+    "definitionProvider": true,
+    "documentFormattingProvider": false,
+    "documentRangeFormattingProvider": false,
+    "documentSymbolProvider": false,
+    "foldingRangeProvider": false,
+    "hoverProvider": true,
+    "implementationProvider": false,
+    "renameProvider": false,
+    "textDocumentSync": 2,
+    "typeDefinitionProvider": true,
+    "workspaceSymbolProvider": false
+   },
+   "serverInfo": {
+    "name": "m3_lang_server"
+   }
+  }
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

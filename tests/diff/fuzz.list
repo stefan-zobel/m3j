@@ -1,0 +1,11 @@
+# Random expression tests (written by tools/expr_fuzz.py --write)
+fuzz/e1 tests/diff/src/fuzz/e1
+fuzz/e2 tests/diff/src/fuzz/e2
+fuzz/e3 tests/diff/src/fuzz/e3
+fuzz/e4 tests/diff/src/fuzz/e4
+fuzz/e5 tests/diff/src/fuzz/e5
+fuzz/e6 tests/diff/src/fuzz/e6
+fuzz/e7 tests/diff/src/fuzz/e7
+fuzz/e8 tests/diff/src/fuzz/e8
+fuzz/e9 tests/diff/src/fuzz/e9
+fuzz/e10 tests/diff/src/fuzz/e10

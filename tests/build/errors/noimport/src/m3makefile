@@ -1,0 +1,4 @@
+% Imports a package that is nowhere.
+import ("nosuchpackage")
+implementation ("Main")
+program ("noimport")

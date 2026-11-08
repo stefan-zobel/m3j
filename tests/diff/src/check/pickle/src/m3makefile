@@ -1,0 +1,4 @@
+% Pickles of values of every kind, read back, and texts that cm3 wrote.
+import ("libm3")
+implementation ("Main")
+program ("pickle")

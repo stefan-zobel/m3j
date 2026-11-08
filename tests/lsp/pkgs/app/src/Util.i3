@@ -1,0 +1,10 @@
+INTERFACE Util;
+
+CONST Limit = 42;
+
+TYPE
+  Point = RECORD x, y: INTEGER END;
+
+PROCEDURE Add (a, b: INTEGER): INTEGER;
+
+END Util.

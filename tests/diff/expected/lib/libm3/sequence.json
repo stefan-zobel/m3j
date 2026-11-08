@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/sequence/src/Test.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "IntSeq.T test passed\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/examples/hello/src/Hello.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Hello World!\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

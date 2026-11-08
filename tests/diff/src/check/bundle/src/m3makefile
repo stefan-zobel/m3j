@@ -1,0 +1,9 @@
+% Bundle and Rsrc: resources bundled into the program by m3bundle, and
+% resources in a directory.
+import ("libm3")
+resource ("hello.txt")
+resource_named ("big", "big.txt")
+resource ("bytes.dat")
+bundle ("TestBundle")
+implementation ("Main")
+program ("bundle")

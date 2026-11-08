@@ -1,0 +1,17 @@
+{
+ "units": [
+  "tests/diff/src/check/sysutils/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "sysutils"
+ ],
+ "result": {
+  "stdout": "SkipLeft [ab c  ] SkipRight [  ab c] Compress [ab c][][x]\nSubstChar [a\\b\\c][same] SubstChars [heLL0 w0rLd]\nSubstitute [a--b--c--][abcX][abc]\nRemoveChars [abc] Squeeze [a\\n\\nb\\nc\\n\\n]\nMemberOfTextSeq TRUE FALSE\nTextSeqToText [pear apple Fig banana apple] [pear, apple, \\\\n, banana, \\\\n\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000] [x+`NIL'+y][one][]\nAddPrefix 2: [pre-a] [pre-b] AddSuffix 1: [a.m3]\nSplit 4: [a] [] [b] [c] | 1: [abc] | 3: [x] [y] []\nTokenize 3: [a] [b] [c] | 3: [a] [] [b]\nLower [mixed 1][low]NIL Upper [MIXED 1]\nPos 6 -1 0 Contains TRUE CountChar 3 3\nStartsWith TRUE FALSE FALSE EndsWith TRUE TRUE\nBoolVal TRUE FALSE TRUE TRUE\nSort 5: [Fig] [apple] [apple] [banana] [pear]\nSubstEnvVars [home=/h, ux $ $1  end]\nSubstituteVariables [x=1 y= z=def w=1 v=const r=<1>]\nTextUtils.Error [mandatory variable missing undefined]\nTextUtils.Error [mandatory variable c is empty]\nTextUtils.Error [syntax error: no matching } in `open {:a']\nGetToken [token1]\nGetTokenOrString [quoted string]\nGetTokenOrString [dq]\nGetStringOrLine [rest of line]\nGetString [str2]\nGetToken [next]\nGetToken: EndOfFile\nTokenize 3: [a] [b] [c]\nFastLex.Scan [abc]\nFastLex.Scan [123]\nFastLex.Scan [def] EOF TRUE\nProcessEnv TRUE FALSE [two words] NIL\nNames 2: [A] [B]\nSystemRepr 2: [A=1] [B=two words]\nCopy [changed] original [1] Add 3: [A] [B] [D]\nCurrent ComSpec TRUE Names TRUE\nEnvUtils 36 2: [A=1] [B=two]\nEnvUtils.Error [conversion error in text resource]\nFingerprintFmt.Hex C6399D73F40DD56A Scan TRUE TRUE FALSE\nTextTextSeqTbl TRUE 2: [v1] [v2] FALSE\nPathRepr [a\\b\\c] [a/b/c] [a\\b\\c] [\\] [\\] [C:\\] NIL RootDir TRUE\nOSSpecials [\\r\\n] [\"a b\"]\nFileContents [hello\\nworld\\n]\nExists TRUE FALSE IsFile TRUE FALSE IsDir TRUE FALSE\nIsReadable TRUE FALSE FALSE IsWritable TRUE FALSE IsExecutable FALSE TRUE FALSE TRUE\nno.txt still missing TRUE\nSubFiles 3: [a.txt] [run.bat] [t] SubDirs 2: [made] [sub]\nSubFiles 2: [sysdir\\sub\\b.txt] [sysdir\\sub\\t2]\ncopy [hello\\nworld\\n] touched []\nCanonicalPathname absolute TRUE [a.txt] [sysdir]\nRm FALSE\nRm no.txt: no error\nRmdir sub: FSUtils.E\nFileContents no.txt: FSUtils.E\nPushDir [sysdir] a.txt TRUE\nPushDir [sub] t2 TRUE\nPopDir TRUE\nDirStack.Error [cannot change directory to no-such-dir]\nMsgX [verbose 1\\n *** error: an error\\n !!! warning in Proc: a warning\\n]\nConnectRdWr [copied by a thread]\nHostname TRUE\nworld\nExecute: 0\nExecute no match: 1\nExec > file: 0 [world\\nhello]\nExec >> file: 0 [world\\nhello\\nhello]\nExec < file: 0 [hello\\nhello\\nworld]\nExec 2> file: 1 TRUE\nExec &> file: 0 TRUE\nExec in wd: 0 [world\\nhello]\nExec $< file: 0 [world]\nhello\nExecuteList ||: 0\nExecuteList &&: 1\nworld\nExecuteList ;: 1\nworld\nhello\nExecuteList |: 0\nExecuteList > file: 0 [world\\nhello]\nRdExecute [1:hello\\n2:world] 0\nRdExecute in wd [1:hello\\n2:world] 0\nFilter [apple\\nfig\\npear] 0\nant\nzebra\nPipeTo 0\nExecute no-such-program: ExecuteError\nExec >: [missing redirection argument]\nExec < no.txt: [open failed on C]\nRmRec FALSE\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

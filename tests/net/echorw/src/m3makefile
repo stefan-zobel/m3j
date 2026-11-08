@@ -1,0 +1,9 @@
+% The test echorw of the network objects of cm3
+% (m3-comm/netobj/tests/echorw), for tools/net_test.py.
+import ("libm3")
+import ("tcp")
+import ("netobj")
+interface ("EchoRW")
+netobj ("EchoRW", "T")
+implementation ("Main")
+program ("echorw")

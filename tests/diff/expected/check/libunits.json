@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/libunits/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Boolean: -1 TRUE 1\nInt32: -1 TRUE -1\nInt64: 1 FALSE -1\nWideChar: -1 TRUE 4660\nUnicode: 61:TRUE,FALSE,FALSE,FALSE,41,61 5a:TRUE,FALSE,TRUE,FALSE,5a,7a 35:FALSE,TRUE,FALSE,FALSE,35,35=5 20:FALSE,FALSE,FALSE,TRUE,20,20 e9:TRUE,FALSE,FALSE,FALSE,c9,e9 3a9:TRUE,FALSE,TRUE,FALSE,3a9,3c9 663:FALSE,TRUE,FALSE,FALSE,663,663=3 4e00:TRUE,FALSE,FALSE,FALSE,4e00,4e00\nFmtTime: Tue Feb 29 00:00:00 UTC 2000\nFmtTime: Apr  4 00:03\nFmtTime: Mon Feb 28 17:00:00 UTC 2000\nFmtTime: Fri Nov  7 01:46:40 UTC 2031 / Nov  7 01:46\nPoint: (2,6) (9,12) 25\nRect: [5,10,2,5] [0,20,0,8] 10x5 TRUE FALSE (12,5) [6,19,3,7]\nInterval: 3..9 size 6 member TRUEFALSE\nRegion: 3 [0,10,0,2] [0,20,2,5] [5,20,5,8] box [0,20,0,8] FALSETRUE\nRegion difference: [10,20,2,5] [5,20,5,8]\nTransform: (22,8) hash of equal TRUE TRUE\nSx: (define (f x) (* x 2.5))\nSx: \"str\"\nSx: 42\nSx: (a . b)\nSx: -17\nSx: sym\nSx: (nested (list (3)))\nIntPQ: -1 0 2 3 4 5 6 7 8 9\nTextPQ: apple date fig kiwi pear\nMProperty: 17 seventeen\nMProperty after Remove: TRUE\nNullRd: eof TRUE length 0\nNullWr: closed\nRdCopy: 12 0123456789ab rest cdefghij\nRdUtils.Find: 17 -1\nRdUtils.Find canonical: 26\nRdUtils.FailureText: NIL disk:full\nRealFloatExtras.Round: 3 -4 LongFloatExtras.Round: 4 0\nCapability: TRUE FALSE hash in 32 bits TRUE\nTextTextTbl: 6 echo=ec\nSortedTextIntTbl: alpha=5 bravo=5 charlie=7 delta=5 echo=4 foxtrot=7\nIntTextTbl: 16=bravo\nAtomSeq: 6 echo\nIntListSort: 42 50 51 54 73 75\nTextArraySort: alpha bravo charlie delta echo foxtrot\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

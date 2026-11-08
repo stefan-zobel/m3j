@@ -1,0 +1,5 @@
+% Errors of the front end of CM3 that m3j fixes (output checked by hand:
+% cm3 cannot compile the program).
+import ("libm3")
+implementation ("Main")
+program ("frontend-fixes")

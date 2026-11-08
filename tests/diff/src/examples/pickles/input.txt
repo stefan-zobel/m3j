@@ -1,0 +1,16 @@
+help
+apple
+banana
+show
+save
+reset
+show
+load
+show
+cherry
+apple
+show
+save
+reset
+load
+show

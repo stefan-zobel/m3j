@@ -1,0 +1,5 @@
+% Process and Pipe: child processes, their exit codes, file handles,
+% environment and working directory (Windows: cmd.exe and sort.exe).
+import ("libm3")
+implementation ("Main")
+program ("process")

@@ -1,0 +1,6 @@
+% Units of m3core and libm3 that the library of m3j brings for programs
+% (types, FmtTime, geometry, Sx, priority queues, properties, readers and
+% writers, generic instances).
+import ("libm3")
+implementation ("Main")
+program ("libunits")

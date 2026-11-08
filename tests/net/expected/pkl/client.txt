@@ -1,0 +1,9 @@
+Located target at private port
+text test ... ok
+two text test ... ok
+text array test ... ok
+self test ... ok
+site test ... ok
+file info test ... ok
+card test ... ok
+char test ... ok

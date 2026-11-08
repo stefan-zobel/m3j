@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Damm-algorithm/src/DammAlgorithm.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "5724 is valid\n5727 is invalid\n112946 is valid\n112949 is invalid\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

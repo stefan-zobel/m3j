@@ -1,0 +1,49 @@
+# Differential tests against cm3 (tools/diff_test.py): programs that test one
+# area at its edges, each in a package of tests/diff/src/check.
+# NAME DIR [arg ...] [stdin=FILE] [exe=PROGRAM] [os=OS] [result=NAME2]
+
+check/float-fmt tests/diff/src/check/float-fmt
+check/float-ops tests/diff/src/check/float-ops
+check/float-math tests/diff/src/check/float-math approx=1e-14
+check/backend tests/diff/src/check/backend
+check/pickle tests/diff/src/check/pickle
+check/pathname tests/diff/src/check/pathname
+check/pathname-posix tests/diff/src/check/pathname-posix
+check/pathname-on-posix tests/diff/src/check/pathname os=POSIX result=check/pathname-posix
+check/threads tests/diff/src/check/threads
+check/threads-10 tests/diff/src/check/threads 10
+check/rterrors tests/diff/src/check/rterrors
+check/rterrors-range tests/diff/src/check/rterrors 0
+check/rterrors-subscript tests/diff/src/check/rterrors 9
+check/rterrors-open-subscript tests/diff/src/check/rterrors 10
+check/rterrors-subarray tests/diff/src/check/rterrors 11
+check/rterrors-shape tests/diff/src/check/rterrors 13
+check/rterrors-new tests/diff/src/check/rterrors 15
+check/rterrors-narrow tests/diff/src/check/rterrors 17
+check/rterrors-case tests/diff/src/check/rterrors 18
+check/rterrors-typecase tests/diff/src/check/rterrors 19
+check/rterrors-return tests/diff/src/check/rterrors 20
+check/rterrors-assert tests/diff/src/check/rterrors 21
+check/rterrors-join tests/diff/src/check/rterrors join
+check/rterrors-lock tests/diff/src/check/rterrors lock
+check/rterrors-release tests/diff/src/check/rterrors release
+check/rterrors-crash tests/diff/src/check/rterrors crash
+check/rterrors-thread tests/diff/src/check/rterrors thread
+check/sets-arrays tests/diff/src/check/sets-arrays
+check/rterrors-traps tests/diff/src/check/rterrors traps expected=traps.txt
+check/sets-arrays-hand tests/diff/src/check/sets-arrays hand-checked expected=hand-checked.txt
+check/filesystem tests/diff/src/check/filesystem
+check/filesystem-time tests/diff/src/check/filesystem modification-time expected=modification-time.txt
+check/tcp tests/diff/src/check/tcp
+check/tcp-hand tests/diff/src/check/tcp hand-checked expected=hand-checked.txt
+check/text-forall tests/diff/src/check/text-forall
+check/floatmode tests/diff/src/check/floatmode expected=hand-checked.txt
+check/process tests/diff/src/check/process
+check/libunits tests/diff/src/check/libunits
+check/runtime-hand tests/diff/src/check/runtime-hand expected=hand-checked.txt
+check/sysutils tests/diff/src/check/sysutils
+check/bundle tests/diff/src/check/bundle
+check/weakref tests/diff/src/check/weakref
+check/weakref-hand tests/diff/src/check/weakref hand-checked expected=hand-checked.txt
+check/pickle2 tests/diff/src/check/pickle2
+check/json tests/diff/src/check/json

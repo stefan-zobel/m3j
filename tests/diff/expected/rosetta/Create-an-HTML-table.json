@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Create-an-HTML-table/src/Table.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "<table style=\"text-align:center; border: 1px solid\"><th></th><th>X</th><th>Y</th><th><Z</th><tr><th>0</th><td>585</td><td>689</td><td>117</td></tr><tr><th>1</th><td>689</td><td>192</td><td>368</td></tr><tr><th>2</th><td>844</td><td>241</td><td>940</td></tr><tr><th>3</th><td>272</td><td>413</td><td>703</td></tr>",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": false
+}

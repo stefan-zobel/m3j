@@ -1,0 +1,5 @@
+% Set constructors with bounds known only at run time, changes of large
+% sets, and = on arrays of every kind of element.
+import ("libm3")
+implementation ("Main")
+program ("setsarrays")

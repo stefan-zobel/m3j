@@ -1,0 +1,7 @@
+% Files of the package bundled into the program (m3bundle).
+import ("libm3")
+resource_named ("a.txt", "data/a.txt")
+resource ("b.txt")
+bundle ("Res")
+implementation ("Main")
+program ("res")

@@ -1,0 +1,15 @@
+% Parts of the safe language that CM3's libraries and m3tests do not use.
+% Build it twice: as is, and with "cm3 -DNOCHECKS", which turns off the
+% run-time checks.
+
+if defined ("NOCHECKS")
+  M3_OPTIONS = ["-NoChecks"]
+end
+
+import ("libm3")
+module ("IsTypeVal")
+module ("ArrayAssign")
+module ("RaiseArgs")
+module ("Misc")
+implementation ("Main")
+program ("safetest")

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Array-length/src/ArrayLength.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "2",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

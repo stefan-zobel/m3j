@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/filesystem/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "-- directories\ncreated fsdir\ncreate again: OSError\ncreated sub and sub/inner\ncreate in a missing directory: OSError\nstatus fsdir: directory\nstatus fsdir\\missing: OSError\n-- files\nstatus fsdir\\a.txt: regular 6\na.txt: hello\n\nrenamed a.txt to b.txt\nstatus fsdir\\a.txt: OSError\nrenamed b.txt onto c.txt: hello\n\nstatus fsdir\\b.txt: OSError\nrename a missing file: OSError\nrenamed sub to sub2\nstatus fsdir\\sub2\\inner: directory\n-- absolute names\nabsolute TRUE c.txt fsdir TRUE TRUE\nabsolute TRUE nothing.txt TRUE\nabsolute of absolute TRUE\n-- listing\nentry c.txt\nentry e.txt\nentry sub2\nentry z.txt\nentry c.txt regular 6\nentry e.txt regular 3\nentry sub2 directory\nentry z.txt regular 2\niterate a missing directory: OSError\n-- handles\nopen Never, missing: OSError\nseek end 10\nseek begin 3\nread 7 3456789\nseek current 6\nread 10 012345ab89\nread at the end 0\nhandle size 10 regular\nopen Always, exists: OSError\nappended: 012345ab89XYZ\ntruncated size 0\nrewritten: new\nreadonly read 3 new\nwrite to a readonly handle: An exception was blocked by a RAISES clause.\nopen readonly, missing: OSError\nopen a directory: OSError\n-- deleting\ndelete a directory as a file: OSError\ndelete a file as a directory: OSError\ndelete a directory that is not empty: OSError\ndelete a missing file: OSError\ndelete a missing directory: OSError\ndeleted the files\ndeleted fsdir\nstatus fsdir: OSError\n17 errors\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

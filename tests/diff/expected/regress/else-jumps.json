@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/else-jumps/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "a else\na after try\na end\nb else\nb after try\nc else\nc after try\nc end\nd else\nd after try\nd else\nd after try\nd end\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

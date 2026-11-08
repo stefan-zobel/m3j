@@ -1,0 +1,19 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/arith/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "unittest",
+  "arithmetic",
+  "unittest-numeric"
+ ],
+ "result": {
+  "stdout": "Test set: Standard real functions\n  Check exponential\n------\n   1 tests ran successfully.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

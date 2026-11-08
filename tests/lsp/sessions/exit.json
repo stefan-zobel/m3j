@@ -1,0 +1,7 @@
+{
+ "comment": "exit without shutdown: the server ends with exit code 1",
+ "end": false,
+ "steps": [
+  {"send": {"method": "exit"}}
+ ]
+}

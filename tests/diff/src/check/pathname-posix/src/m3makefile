@@ -1,0 +1,7 @@
+% The program of check/pathname on cm3's module of Pathname for POSIX, in
+% the form that m3j's library has it (exporting PathnamePosix), so that
+% cm3 on Windows gives the results of POSIX pathnames.
+import ("libm3")
+module ("PathnamePosix")
+implementation ("Main")
+program ("pathname-posix")

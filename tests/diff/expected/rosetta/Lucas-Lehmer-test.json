@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Lucas-Lehmer-test/src/LucasLehmer.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "M2 M3 M5 M7 M13 M17 M19 M31 \n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

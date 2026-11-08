@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/String-length-1/src/ByteLength.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Byte length of s: 88\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,53 @@
+# Differential tests against cm3 (tools/diff_test.py), the tests of the libraries and the examples: NAME DIR [arg ...] [stdin=FILE] [exe=PROGRAM]
+# DIR is a cm3 package (with src/m3makefile), relative to the root of m3j.
+
+# the test programs of cm3's libraries
+lib/libm3/arith tests/diff/src/m3-libs/libm3/tests/arith
+# lib/libm3/fmtlex/lex cm3-src/m3-libs/libm3/tests/fmtlex/lex  -- cm3 does not build it (an m3makefile of an older quake)
+lib/libm3/fmtlex/scan-good tests/diff/src/m3-libs/libm3/tests/fmtlex/scan good.txt.in
+lib/libm3/fmtlex/scan-intOverflow4 tests/diff/src/m3-libs/libm3/tests/fmtlex/scan intOverflow4.txt.in
+lib/libm3/fmtlex/scan-lexErrs tests/diff/src/m3-libs/libm3/tests/fmtlex/scan lexErrs.txt.in
+lib/libm3/fmtlex/scan-realInfNan tests/diff/src/m3-libs/libm3/tests/fmtlex/scan realInfNan.txt.in
+lib/libm3/fmtlex/scan-realPrec tests/diff/src/m3-libs/libm3/tests/fmtlex/scan realPrec.txt.in
+lib/libm3/hash tests/diff/src/m3-libs/libm3/tests/hash data=tests/diff/data/hash
+# lib/libm3/pqueue/heapsort1 cm3-src/m3-libs/libm3/tests/pqueue/heapsort1  -- cm3 does not build it (it includes a file outside the package)
+# lib/libm3/pqueue/heapsort2 cm3-src/m3-libs/libm3/tests/pqueue/heapsort2  -- cm3 does not build it (it includes a file outside the package)
+lib/libm3/random tests/diff/src/m3-libs/libm3/tests/random
+# lib/libm3/rw/autotest cm3-src/m3-libs/libm3/tests/rw/autotest  -- cm3 does not build it (an m3makefile of an older quake)
+lib/libm3/sequence tests/diff/src/m3-libs/libm3/tests/sequence
+lib/libm3/sortedtable tests/diff/src/m3-libs/libm3/tests/sortedtable
+# lib/libm3/sqrt cm3-src/m3-libs/libm3/tests/sqrt  -- cm3 does not compile it
+lib/libm3/swap tests/diff/src/m3-libs/libm3/tests/swap
+# no src/m3makefile: cm3-src/m3-libs/libm3/test/osconfig
+lib/m3core/thread tests/diff/src/m3-libs/m3core/tests/thread
+# numerical derivatives: a difference of one bit in sin or exp shows
+lib/arithmetic tests/diff/src/m3-libs/arithmetic/test approx=1e-5
+lib/bitvector tests/diff/src/m3-libs/bitvector/test
+# no src/m3makefile: cm3-src/m3-libs/deepcopy/test
+# lib/m3crypto cm3-src/m3-libs/m3crypto/test  -- cm3 does not build it (it overrides the package from outside)
+# lib/slisp cm3-src/m3-libs/slisp/tests  -- cm3 does not build it
+lib/sortedtableextras/intperf tests/diff/src/m3-libs/sortedtableextras/tests/intperf
+lib/sortedtableextras/leveltest tests/diff/src/m3-libs/sortedtableextras/tests/leveltest
+lib/sortedtableextras/randtest tests/diff/src/m3-libs/sortedtableextras/tests/randtest
+lib/sortedtableextras/rbtest tests/diff/src/m3-libs/sortedtableextras/tests/rbtest
+lib/sortedtableextras/sltest tests/diff/src/m3-libs/sortedtableextras/tests/sltest
+# lib/db cm3-src/m3-db/db/test: needs the PostgreSQL modules of db
+
+# the examples of cm3
+example/copy tests/diff/src/examples/copy
+example/enum tests/diff/src/examples/enum
+example/exceptions tests/diff/src/examples/exceptions
+example/facedetect tests/diff/src/examples/facedetect
+# example/files cm3-src/examples/files  -- cm3 does not compile it
+# example/fingerprint cm3-src/examples/fingerprint  -- cm3 does not compile it
+example/generics tests/diff/src/examples/generics
+example/hello tests/diff/src/examples/hello
+example/m3sh tests/diff/src/examples/m3sh
+# no src/m3makefile: cm3-src/examples/objects
+# example/opaque cm3-src/examples/opaque  -- cm3 does not link it (incomplete program)
+example/partially-opaque tests/diff/src/examples/partially-opaque
+example/pickles tests/diff/src/examples/pickles stdin=input.txt
+example/sieve-1 tests/diff/src/examples/sieve-1
+example/sieve-2 tests/diff/src/examples/sieve-2
+example/sudoku tests/diff/src/examples/sudoku
+example/threads tests/diff/src/examples/threads

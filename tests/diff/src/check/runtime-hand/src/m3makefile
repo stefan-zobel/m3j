@@ -1,0 +1,6 @@
+% RTIO, RTProcess, RuntimeError and Swap: the procedures that cm3 on
+% Windows does not have (RTIO.PutE, PutF, PutG, PutBytes: its C file is
+% empty there, so cm3 cannot link the program); output checked by hand.
+import ("libm3")
+implementation ("Main")
+program ("runtime-hand")

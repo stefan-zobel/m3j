@@ -1,0 +1,20 @@
+{
+ "units": [
+  "tests/diff/src/examples/partially-opaque/src/Person.i3",
+  "tests/diff/src/examples/partially-opaque/src/Person.m3",
+  "tests/diff/src/examples/partially-opaque/src/Employee.i3",
+  "tests/diff/src/examples/partially-opaque/src/Employee.m3",
+  "tests/diff/src/examples/partially-opaque/src/PartiallyOpaque.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Modanna is a pop icon.\nMr. John Doe is a resident at 123 Main Street.\nMs. Jane Doe, employee #1 at ACME Ltd, is a resident at 123 Main Street.\nMs. June Doe, employee #1 at Mass. State, is a resident at 123 Main Street.\nMr. Jack Smith, employee #2 at ACME Ltd, is Mr. John Doe's brother..\nMs. June Doe, employee #1 at Mass. State, is called Ms. June Doe outside work.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

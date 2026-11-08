@@ -1,0 +1,9 @@
+{
+ "comment": "the end of the input without shutdown and exit: the server ends with exit code 1",
+ "steps": [
+  {"send": {"method": "textDocument/didOpen",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Util.m3"}, "languageId": "modula3",
+                                        "version": 1, "text": {"$text": "app/src/Util.m3"}}}}},
+  {"eof": true}
+ ]
+}

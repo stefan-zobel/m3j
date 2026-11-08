@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Empty-program/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

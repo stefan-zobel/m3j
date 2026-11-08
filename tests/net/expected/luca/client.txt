@@ -1,0 +1,6 @@
+Located target at private port
+Opening luca.txt ... ok
+Read 27462 chars, same text: TRUE
+Opening luca.txt ... ok
+Read 27462 chars, same text: TRUE
+Opening missing.txt ... OSError.E(1 atoms)

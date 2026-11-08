@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/fmtlex/scan/src/ScanTest.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "b true\t\t# => TRUE\n-> TRUE\n\nb TRUE\t\t# => TRUE\n-> TRUE\n\nb TrUe\t\t# => TRUE\n-> TRUE\n\nb false\t\t# => FALSE\n-> FALSE\n\nb FALSE\t\t# => FALSE\n-> FALSE\n\nb FaLsE\t\t# => FALSE\n-> FALSE\n\ni +5\t\t# => 5\n-> 5\n\ni -52\t\t# => -52\n-> -52\n\ni 2_101\t\t# => 5\n-> 5\n\nI 3 10_12\t# => 3_110\n-> 3_110\n\ni -2_1010\t# => -10\n-> -10\n\nI 2 -1010\t# => -2_1010\n-> -2_1010\n\ni 8_000377\t# => 255\n-> 255\n\ni 15_789ABC\t# => 5753427\n-> 5753427\n\nI 15 789ABC     # => 15_789abc\n-> 15_789abc\n\ni 16_00Ff\t# => 255\n-> 255\n\nu 00fF\t\t# => ff\n-> ff\n\nu 100\t\t# => 100\n-> 100\n\nu A\t\t# => a\n-> a\n\nu 2_1010\t# => a\n-> a\n\nu 10_255\t# => ff\n-> ff\n\nr 1\t\t# => 1.E0\n-> 1.0\n\nr -1\t\t# => -1.E0\n-> -1.0\n\nr .5\t\t# => 5.E-1\n-> 0.5\n\nr .0\t\t# => 0.E0\n-> 0.0\n\nr 0.0\t\t# => 0.E0\n-> 0.0\n\nr 0.\t\t# => 0.E0\n-> 0.0\n\nr 1.0e2 \t# => 1.E2\n-> 100.0\n\nr 0.5\t\t# => 0.5\n-> 0.5\n\nl 1.5e20\n-> 1.5d20\n\nl -1.5e20\n-> -1.5d20\n\nl -1.5e-20\n-> -1.5d-20\n\nr 1.5e3\t\t# => 1.5E3\n-> 1500.0\n\nr 1.5E3\t\t# => 1.5E3\n-> 1500.0\n\nr 1.5d3\t\t# => 1.5E3\n-> 1500.0\n\nr 1.5D3\t\t# => 1.5E3\n-> 1500.0\n\nr 1.5x3\t\t# => 1.5E3\n-> 1500.0\n\nr 1.5X3\t\t# => 1.5E3\n-> 1500.0\n\nl 1.5e3\t\t# => 1.5D3\n-> 1500.0d0\n\nl 1.5E3\t\t# => 1.5D3\n-> 1500.0d0\n\nl 1.5d3\t\t# => 1.5D3\n-> 1500.0d0\n\nl 1.5D3\t\t# => 1.5D3\n-> 1500.0d0\n\nl 1.5x3\t\t# => 1.5D3\n-> 1500.0d0\n\nl 1.5X3\t\t# => 1.5D3\n-> 1500.0d0\n\ne 1.5e3\t\t# => 1.5D3\n-> 1500.0x0\n\ne 1.5E3\t\t# => 1.5D3\n-> 1500.0x0\n\ne 1.5d3\t\t# => 1.5D3\n-> 1500.0x0\n\ne 1.5D3\t\t# => 1.5D3\n-> 1500.0x0\n\ne 1.5x3\t\t# => 1.5D3\n-> 1500.0x0\n\ne 1.5X3\t\t# => 1.5D3\n-> 1500.0x0\n\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

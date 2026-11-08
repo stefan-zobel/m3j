@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/runtime-hand/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "written by hand: cm3 cannot link the program (procedure m3_link fails: m3core on Windows has no RTIO__PutE, RTIO__PutF, RTIO__PutG and RTIO__PutBytes); the test is compared with hand-checked.txt\n",
+  "status": 1
+ },
+ "stable": false
+}

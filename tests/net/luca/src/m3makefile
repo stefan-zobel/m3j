@@ -1,0 +1,9 @@
+% The test luca of the network objects of cm3
+% (m3-comm/netobj/tests/luca), for tools/net_test.py.
+import ("libm3")
+import ("tcp")
+import ("netobj")
+interface ("Test")
+netobj ("Test", "T")
+implementation ("Main")
+program ("luca")

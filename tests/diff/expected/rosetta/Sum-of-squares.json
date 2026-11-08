@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Sum-of-squares/src/SumSquares.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "133\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

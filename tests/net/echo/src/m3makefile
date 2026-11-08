@@ -1,0 +1,5 @@
+% A server and a client of TCP, for tests between programs of cm3 and m3j.
+import ("libm3")
+import ("tcp")
+implementation ("Main")
+program ("echo")

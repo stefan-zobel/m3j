@@ -1,0 +1,5 @@
+INTERFACE Pub;
+
+PROCEDURE Name (): TEXT;
+
+END Pub.

@@ -1,0 +1,4 @@
+% The functions of Math across their domains and at their edges.
+import ("libm3")
+implementation ("Main")
+program ("float-math")

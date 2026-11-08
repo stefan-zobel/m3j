@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/try-jumps/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "a inner\nA raised 2\nB raised 3\nc inner\nC raised 4\nd fin\nD 7\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

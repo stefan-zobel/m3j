@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Greatest-common-divisor/src/GCD.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "GCD of 100, 5 is 5\nGCD of 5, 100 is 5\nGCD of 7, 23 is 1\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

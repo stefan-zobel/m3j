@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Logical-operations/src/Logical.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "a AND b is FALSE\na OR b is TRUE\nNOT a is FALSE\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

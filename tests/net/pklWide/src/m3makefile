@@ -1,0 +1,9 @@
+% The test pklWide of the network objects of cm3
+% (m3-comm/netobj/tests/pklWide), for tools/net_test.py.
+import ("libm3")
+import ("tcp")
+import ("netobj")
+interface ("Test")
+netobjv2 ("Test", "T")
+implementation ("Main")
+program ("pklwide")

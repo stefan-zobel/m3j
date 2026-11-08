@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/frontend-fixes/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "written by hand: cm3 cannot compile the program (errors of its front end that m3j fixes); the test is compared with hand-checked.txt\n",
+  "status": 1
+ },
+ "stable": false
+}

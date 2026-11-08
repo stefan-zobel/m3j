@@ -1,0 +1,31 @@
+(* Rosetta Code, task String-case: https://rosettacode.org/wiki/String_case (GNU Free Documentation License 1.3) *)
+MODULE TextCase EXPORTS Main;
+
+IMPORT IO, Text, ASCII;
+
+PROCEDURE Upper(txt: TEXT): TEXT =
+  VAR
+    len := Text.Length(txt);
+    res := "";
+  BEGIN
+    FOR i := 0 TO len - 1 DO
+      res := Text.Cat(res, Text.FromChar(ASCII.Upper[Text.GetChar(txt, i)]));
+    END;
+    RETURN res;
+  END Upper;
+
+PROCEDURE Lower(txt: TEXT): TEXT =
+  VAR
+    len := Text.Length(txt);
+    res := "";
+  BEGIN
+    FOR i := 0 TO len - 1 DO
+      res := Text.Cat(res, Text.FromChar(ASCII.Lower[Text.GetChar(txt, i)]));
+    END;
+    RETURN res;
+  END Lower;
+
+BEGIN
+  IO.Put(Upper("alphaBETA\n"));
+  IO.Put(Lower("alphaBETA\n"));
+END TextCase.

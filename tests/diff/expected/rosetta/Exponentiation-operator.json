@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Exponentiation-operator/src/Expt.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "2 ^ 4 = 16\n2.5 ^ 4 = 39.0625\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

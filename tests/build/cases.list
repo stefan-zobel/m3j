@@ -1,0 +1,13 @@
+# The cases of tools/build_test.py cases: NAME DIRECTORY COMMAND; ...
+# (the commands are described in tools/build_test.py; <work> is the
+# directory of the copy of the case)
+
+prog     prog     m3build hello; run hello/JVM/hello; run hello/JVM/hello again; m3build hello; touch hello/src/Greet.m3; m3build hello; exists hello/JVM/WordTbl.i3; m3build hello -clean; absent hello/JVM/hello.jar; absent hello/JVM/WordTbl.i3; m3build hello -realclean; absent hello/JVM
+
+lib      lib      m3build greet; m3build greet -ship; m3build greet -ship -root <work>/root; exists root/pkg/greet/JVM/.M3EXPORTS; exists root/pkg/greet/JVM/WordSeq.m3; exists root/pkg/greet/src/Greet.m3; exists root/pkg/greet/src/greet.tmpl; m3build user -root <work>/root; run user/JVM/user; m3build user -ship -root <work>/root; run root/bin/user; m3build user2; m3build user2 -override; run user2/JVM/user2
+
+bundle   bundle   m3build res; run res/JVM/res; exists res/JVM/Res.i3
+
+netobj   netobj   m3build nob; exists nob/JVM/Test_T_v1.m3; exists nob/JVM/Test_U_v2.m3; pair nob/JVM/netobj
+
+errors   errors   m3build bad; absent bad/JVM/bad.jar; m3build noimport; m3build csrc; absent csrc/JVM/csrc.jar; m3build unsafe; absent unsafe/JVM/unsafe.jar

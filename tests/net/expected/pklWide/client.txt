@@ -1,0 +1,20 @@
+Test program for netobj, using pickles.
+Compiled with:
+BITSIZE(INTEGER) = 64
+BITSIZE(WIDECHAR) = 16
+Located target at private port
+text test ... ok
+two text test ... ok
+wide text test ... ok
+two wide text test ... ok
+text array in record test ... ok
+wide text array in record test ... ok
+NIL array of text test ... ok
+empty array of text test ... ok
+text array test ... ok
+wide text array test ... ok
+self test ... ok
+site test ... ok
+file info test ... ok
+card test ... ok
+char test ... ok

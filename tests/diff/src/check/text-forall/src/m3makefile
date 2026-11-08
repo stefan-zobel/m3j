@@ -1,0 +1,4 @@
+% Text.ForAllDo: the characters of texts given to callbacks.
+import ("libm3")
+implementation ("Main")
+program ("text-forall")

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/word-alias/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "608\n12345f7f\n12345977\n12346587\n11222221908\n1234567800\n123456\n67\n123456ab\nFALSE\nf00\nff000\n78\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

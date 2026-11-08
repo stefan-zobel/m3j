@@ -1,0 +1,13 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Util.m3"
+  }
+ },
+ {
+  "exit": 1
+ }
+]

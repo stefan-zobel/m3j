@@ -1,0 +1,9 @@
+MODULE FooWin32 EXPORTS Foo;
+
+PROCEDURE Name (): TEXT =
+  BEGIN
+    RETURN "FooWin32";
+  END Name;
+
+BEGIN
+END FooWin32.

@@ -1,0 +1,6 @@
+% The package sysutils: texts, environments, files and directories,
+% pathnames, and child processes (Windows: cmd.exe and sort.exe).
+import ("libm3")
+import ("sysutils")
+implementation ("Main")
+program ("sysutils")

@@ -1,0 +1,17 @@
+{
+ "units": [
+  "tests/diff/src/check/tcp/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "tcp"
+ ],
+ "result": {
+  "stdout": "port chosen: ok\nmsg: 1:x\n",
+  "stderr": "\n\n***\n*** runtime error:\n***    An enumeration or subrange value was out of range.\n***    file \"../src/rw/Rd.m3\", line 146\n***\n\n\n\n***\n*** runtime error:\n***    Exception \"Rd.Failure\" not in RAISES list\n***    file \"../src/WIN32/TCP.m3\", line 333\n***\n\n",
+  "status": 4294967295
+ },
+ "stable": true
+}

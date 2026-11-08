@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Apply-a-callback-to-an-array/src/Callback.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "array[0] = 25\narray[1] = 16\narray[2] = 9\narray[3] = 4\narray[4] = 1\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

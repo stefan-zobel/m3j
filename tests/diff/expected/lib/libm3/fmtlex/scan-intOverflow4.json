@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/fmtlex/scan/src/ScanTest.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "i  16_7fffffff\t \t# => 2147483647\n-> 2147483647\n\ni   2147483647\t\t# => 2147483647\n-> 2147483647\n\ni  16_80000000\t\t# => Integer Overflow\n-> 2147483648\n\ni   2147483648\t\t# => Integer Overflow\n-> 2147483648\n\ni  21474836400\t\t# => Integer Overflow\n-> 21474836400\n\ni -16_80000000\t\t# => -2147483648\n-> -2147483648\n\ni  -2147483648\t\t# => -2147483648\n-> -2147483648\n\ni -16_80000001\t\t# => Integer Overflow\n-> -2147483649\n\ni  -2147483649\t\t# => Integer Overflow\n-> -2147483649\n\ni -21474836400\t\t# => Integer Overflow\n-> -21474836400\n\nu  ffffffff\t\t# => ffffffff\n-> ffffffff\n\nu 100000000\t\t# => Integer Overflow\n-> 100000000\n\ni 999999999999999999999\t\t# => Integer Overflow, \"ABCDEFGHIJ\"\n-> ** Integer Overflow\n\nu 999999999999999999999ABCDEF\t# => Integer Overflow, \"GHIJ\"\n-> ** Integer Overflow\n\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

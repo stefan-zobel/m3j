@@ -1,0 +1,4 @@
+% A module with an error of types.
+import ("libm3")
+implementation ("Main")
+program ("bad")

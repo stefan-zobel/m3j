@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Mandelbrot")
+program ("Mandelbrot_set")

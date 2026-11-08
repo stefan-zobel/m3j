@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/weakref/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "live: TRUE\nsecond: TRUE\ncopy equal: TRUE\ntwo differ: TRUE\nnode: 1\nREF cleaned up\nweak only, dead: FALSE\nREF INTEGER, dead: TRUE\nfirst cleanup: TRUE\nsame weak reference: TRUE\ndead after cleanup: TRUE\nsecond cleanup: FALSE\ncleanups: 1\nall cleaned: TRUE\ncleaned: 100\nsum: 4950\nsame weak references: TRUE\nREF with cleanup, alive: FALSE\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

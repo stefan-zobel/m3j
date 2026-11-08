@@ -1,0 +1,63 @@
+{
+  "name": "modula3",
+  "displayName": "Modula-3 (m3j)",
+  "description": "Modula-3: syntax highlighting, and errors, hovers and declarations from the language server of m3j",
+  "version": "0.1.0",
+  "publisher": "m3j",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "workspaceContains:**/m3makefile"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "modula3",
+        "aliases": [
+          "Modula-3",
+          "modula3"
+        ],
+        "extensions": [
+          ".i3",
+          ".m3",
+          ".ig",
+          ".mg"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "modula3",
+        "scopeName": "source.modula3",
+        "path": "./syntaxes/modula3.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Modula-3 (m3j)",
+      "properties": {
+        "m3j.home": {
+          "type": "string",
+          "default": "",
+          "description": "The directory of m3j, with m3_lang_server.jar, m3j.jar and m3build.jar (empty: the environment variable M3J_HOME)."
+        },
+        "m3j.java": {
+          "type": "string",
+          "default": "",
+          "description": "The java program (JDK 25 or later) that runs the language server (empty: JAVA_HOME/bin/java, else java from the PATH)."
+        },
+        "m3j.server": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the language server (errors and warnings, hovers, declarations). Without it there is only syntax highlighting."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/examples/m3sh/src/M3sh.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "m3sh> ",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

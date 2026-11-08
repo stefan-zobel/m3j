@@ -1,0 +1,2 @@
+# Known differences of the differential tests: NAME, a tab, the reason.
+rosetta/File-modification-time-2	an unhandled OSError.E: cm3 names the place in its OSErrorWin32.m3, m3j in its M3jFile.m3

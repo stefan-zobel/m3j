@@ -1,0 +1,5 @@
+# Packages of cm3 whose .M3EXPORTS of m3build differs from cm3's for a
+# reason (tools/build_test.py exports): PACKAGE REASON
+m3core   its m3makefile chooses by TARGET_OS and M3_BACKEND_MODE: cm3 on AMD64_NT (TARGET_OS NT, C back end) adds the modules of the Win32 GUI and uses no_grisu, m3j (JVM) uses grisu
+odbc     its m3makefile builds the library only if SYSTEM_LIBS has ODBC, a library of C that the JVM does not have
+db       imports odbc only if SYSTEM_LIBS has ODBC (see odbc)

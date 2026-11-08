@@ -1,0 +1,41 @@
+$ m3build bad
+--- building in JVM ---
+
+new sources -> compiling bad.jar
+"../src/Main.m3", line 4: Types are not assignable in assignment (2.3.1).
+1 error encountered
+compilation failed => not building program "bad"
+Fatal Error: package build failed
+exit 1
+$ absent bad/JVM/bad.jar
+yes
+$ m3build noimport
+--- building in JVM ---
+
+"<work>/noimport\src\m3makefile", line 2: quake runtime error: package "nosuchpackage" not found: it has no .M3EXPORTS in no installation (-root DIR or M3J_ROOT), the packages of m3j (<m3j>/lib), no packages of cm3 (-cm3 DIR or CM3_ROOT)
+
+--procedure--  -line-  -file---
+import             --  <builtin>
+include_dir         2  <work>/noimport\src\m3makefile
+                    4  <work>/noimport\JVM\m3make.args
+
+Fatal Error: package build failed
+exit 2
+$ m3build csrc
+--- building in JVM ---
+
+m3j compiles only Modula-3 sources: ../src/Hello.c
+Fatal Error: package build failed
+exit 1
+$ absent csrc/JVM/csrc.jar
+yes
+$ m3build unsafe
+--- building in JVM ---
+
+new sources -> compiling unsafe.jar
+"../src/Main.m3": UNSAFE modules are not supported
+compilation failed => not building program "unsafe"
+Fatal Error: package build failed
+exit 1
+$ absent unsafe/JVM/unsafe.jar
+yes

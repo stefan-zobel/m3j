@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/filesystem/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "set time: OSError\nset time of a missing file: OSError\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

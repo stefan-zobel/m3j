@@ -1,0 +1,14 @@
+{
+ "units": [
+  "tests/rosetta/Dining-philosophers/src/DiningPhilosophers.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "timeout": true
+ },
+ "stable": false
+}

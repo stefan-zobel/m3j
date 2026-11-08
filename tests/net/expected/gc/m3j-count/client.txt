@@ -1,0 +1,11 @@
+made 100 objects of the server, sum of ids 4950
+the 10 objects kept answer, sum of ids 45
+live on the server after the client dropped 90: 10
+the same object twice is the same surrogate: TRUE
+objects got again after they were dropped answer: TRUE
+live on the server after the client dropped all: 0
+the server called back the objects of the client: 210
+and again after it dropped them: 210
+new objects of the client that the server called back: 210
+live on the client after the server dropped them: 0
+client done

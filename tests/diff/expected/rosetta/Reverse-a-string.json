@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Reverse-a-string/src/Reverse.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "zabrabooF\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,6 @@
+% A program that imports the library greet, from the installation, and
+% uses its template; Program installs it in the directory bin.
+import ("greet")
+greeting ("Hi")
+implementation ("Main")
+Program ("user")

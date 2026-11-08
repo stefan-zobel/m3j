@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Tokenize-a-string/src/Tokenize.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Hello.How.Are.You.Today.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

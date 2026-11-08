@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Singly-linked-list-Element-insertion/src/SinglyLinkedList.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

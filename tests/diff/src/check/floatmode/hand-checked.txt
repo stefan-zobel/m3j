@@ -1,0 +1,31 @@
+IEEE TRUE, default NearestElseEven
+rounding NearestElseEven
+  set NearestElseEven ok
+  set TowardMinusInfinity Failure
+  set TowardPlusInfinity Failure
+  set TowardZero Failure
+  set NearestElseAwayFromZero Failure
+  set IBM370 Failure
+  set Other Failure
+rounding NearestElseEven
+flags {}
+  set {} ok, old {}
+  set {Invalid} Failure
+  set {Inexact} Failure
+  set {Overflow} Failure
+  set {Underflow} Failure
+  set {DivByZero} Failure
+  set {IntOverflow} Failure
+  set {IntDivByZero} Failure
+flags {}
+Invalid Ignore, set Trap Failure, set SetFlag Failure, set Ignore ok
+Inexact Ignore, set Trap Failure, set SetFlag Failure, set Ignore ok
+Overflow Ignore, set Trap Failure, set SetFlag Failure, set Ignore ok
+Underflow Ignore, set Trap Failure, set SetFlag Failure, set Ignore ok
+DivByZero Ignore, set Trap Failure, set SetFlag Failure, set Ignore ok
+IntOverflow Ignore, set Trap Failure, set SetFlag Failure, set Ignore ok
+IntDivByZero Trap, set Trap ok, set SetFlag Failure, set Ignore Failure
+after conditions: flags {}, x 0.3333333333333333, i = FIRST TRUE
+DIV by zero: RuntimeError Attempt to DIV or MOD by zero.
+flags {}
+thread: rounding NearestElseEven, flags {}, Ignore

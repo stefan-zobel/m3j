@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Bogo")
+program ("Sorting_algorithms_Bogosort")

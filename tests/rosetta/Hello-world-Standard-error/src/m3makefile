@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Stderr")
+program ("Hello_world_Standard_error")

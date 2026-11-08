@@ -1,0 +1,10 @@
+% The distributed collection of network objects, for tests between
+% programs of cm3 and m3j.
+import ("libm3")
+import ("tcp")
+import ("netobj")
+interface ("Test")
+netobj ("Test", "T")
+netobj ("Test", "Obj")
+implementation ("Main")
+program ("gc")

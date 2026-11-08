@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/fmtlex/scan/src/ScanTest.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "b tru\n** Raised \"Lex.Error\"\n\nb truXYZ\n** Raised \"Lex.Error\"\n\ni\n-> ** Raised \"Lex.Error\"\n\ni + 5\n-> ** Raised \"Lex.Error\"\n\ni -ABC\n-> ** Raised \"Lex.Error\"\n\ni -3_1234ABC\n-> ** Raised \"Lex.Error\"\n\nI 3 -1234ABC\n-> ** Raised \"Lex.Error\"\n\ni 9_789012ABC\n-> ** Raised \"Lex.Error\"\n\nI 9 789012ABC\n-> ** Raised \"Lex.Error\"\n\ni 11_789ABCXYZ\n-> ** Raised \"Lex.Error\"\n\nI 11 789ABCXYZ\n-> ** Raised \"Lex.Error\"\n\ni 5_ABC\t\n-> ** Raised \"Lex.Error\"\n\ni 02_101ABC\n-> ** Raised \"Lex.Error\"\n\ni 016_ABC\n-> ** Raised \"Lex.Error\"\n\ni 1_0000\n-> ** Raised \"Lex.Error\"\n\ni 17_1234\n-> ** Raised \"Lex.Error\"\n\nu\t\n-> ** Raised \"Lex.Error\"\n\nu -2\t\n-> ** Raised \"Lex.Error\"\n\nu 5_ABC \n-> ** Raised \"Lex.Error\"\n\nr ..\t\n** Raised \"Lex.Error\"\n\nr .\t\n** Raised \"Lex.Error\"\n\nr 1x  \n** Raised \"Lex.Error\"\n\nr -1x  \n** Raised \"Lex.Error\"\n\nr .5.\t\n** Raised \"Lex.Error\"\n\nr .0.\t\n** Raised \"Lex.Error\"\n\nr 0.0.\t\n** Raised \"Lex.Error\"\n\nr 0..\t\n** Raised \"Lex.Error\"\n\nr 1.0e2. \n** Raised \"Lex.Error\"\n\nr 0.5.\t\n** Raised \"Lex.Error\"\n\nr 1 .\t\n** Raised \"Lex.Error\"\n\nr -1 .\t\n** Raised \"Lex.Error\"\n\nr .5 .\t\n** Raised \"Lex.Error\"\n\nr .0 .\t\n** Raised \"Lex.Error\"\n\nr 0.0 .\t\n** Raised \"Lex.Error\"\n\nr 0. .\t\n** Raised \"Lex.Error\"\n\nr 1.0e2 . \n** Raised \"Lex.Error\"\n\nr 0.5 .\t\n** Raised \"Lex.Error\"\n\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

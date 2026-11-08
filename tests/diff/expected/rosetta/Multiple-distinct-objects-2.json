@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Multiple-distinct-objects-2/src/DistinctObjects.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "3 , -9 , 100 ; 4 , 2 , 100 ; 2 , 6 , 100 ; \n-7 , -9 , 0 ; -5 , 2 , 0 ; -7 , 6 , 0 ; \n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": false
+}

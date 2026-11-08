@@ -1,0 +1,4 @@
+% A variable assigned references of types that the module is the first to use, on different paths.
+import ("libm3")
+implementation ("Main")
+program ("merge-types")

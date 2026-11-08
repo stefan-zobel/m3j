@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/merge-types/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "char q\ninteger 5\nlist 7\nm m\na 1\nb 2\nc 4\narray 4\nnil\nb 2 c 4\nchar \u0000; list 1; b 2; b 2\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

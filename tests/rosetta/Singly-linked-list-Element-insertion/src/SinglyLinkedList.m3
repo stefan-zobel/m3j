@@ -1,0 +1,27 @@
+(* Rosetta Code, task Singly-linked-list-Element-insertion: https://rosettacode.org/wiki/Singly_linked_list_Element_insertion (GNU Free Documentation License 1.3) *)
+MODULE SinglyLinkedList EXPORTS Main;
+
+TYPE
+  Link = REF LinkRcd;
+  LinkRcd = RECORD
+    Next: Link;
+    Data: INTEGER
+  END;
+
+  PROCEDURE InsertAppend(anchor, next: Link) =
+  BEGIN
+    IF anchor # NIL AND next # NIL THEN
+      next.Next := anchor.Next;
+      anchor.Next := next
+    END
+  END InsertAppend;
+
+VAR
+  a: Link := NEW(Link, Next := NIL, Data := 1);
+  b: Link := NEW(Link, Next := NIL, Data := 2);
+  c: Link := NEW(Link, Next := NIL, Data := 3);
+
+BEGIN
+  InsertAppend(a, b);
+  InsertAppend(a, c)
+END SinglyLinkedList.

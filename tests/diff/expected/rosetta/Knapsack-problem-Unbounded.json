@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Knapsack-problem-Unbounded/src/Knapsack.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Maximum value achievable is 54500\nThis is achieved by carrying 0 panacea, 15 ichor and 11 gold items\nThe weight of this carry is 25 and the volume used is 0.247\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

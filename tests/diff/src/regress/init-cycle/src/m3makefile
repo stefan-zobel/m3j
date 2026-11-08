@@ -1,0 +1,8 @@
+% Variables of an interface and modules in a cycle of imports.
+import ("libm3")
+interface ("A")
+module ("G")
+implementation ("B")
+implementation ("AImpl")
+implementation ("Main")
+program ("init-cycle")

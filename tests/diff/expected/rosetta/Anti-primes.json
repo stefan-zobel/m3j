@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Anti-primes/src/AntiPrimes.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "    1    2    4    6   12   24   36   48   60  120\n  180  240  360  720  840 1260 1680 2520 5040 7560\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Empty-string/src/EmptyString.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Str is empty!\nStr is empty!\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

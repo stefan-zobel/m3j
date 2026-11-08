@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Host-introspection/src/Host.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Word Size: 64\nEndianness: Little\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

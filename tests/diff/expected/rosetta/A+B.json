@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/A+B/src/Ab.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "5\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,5 @@
+INTERFACE IsTypeVal;
+
+PROCEDURE Run (): INTEGER;
+
+END IsTypeVal.

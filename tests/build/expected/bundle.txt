@@ -1,0 +1,13 @@
+$ m3build res
+--- building in JVM ---
+
+"<java>" -jar "<m3j>/m3bundle.jar" -name Res -element b.txt ../src\b.txt -element a.txt ../src\data/a.txt
+new sources -> compiling res.jar
+exit 0
+$ run res/JVM/res
+line one
+line two
+second file
+exit 0
+$ exists res/JVM/Res.i3
+yes

@@ -1,0 +1,5 @@
+% Constant floating-point expressions inside computed ones, ABS of -0.0
+% and the NaN of IEEESpecial.
+import ("libm3")
+implementation ("Main")
+program ("real-fold")

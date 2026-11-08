@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Day-of-the-week/src/Yule.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "25th of December 2011 is Sunday\n25th of December 2016 is Sunday\n25th of December 2022 is Sunday\n25th of December 2033 is Sunday\n25th of December 2039 is Sunday\n25th of December 2044 is Sunday\n25th of December 2050 is Sunday\n25th of December 2061 is Sunday\n25th of December 2067 is Sunday\n25th of December 2072 is Sunday\n25th of December 2078 is Sunday\n25th of December 2089 is Sunday\n25th of December 2095 is Sunday\n25th of December 2101 is Sunday\n25th of December 2107 is Sunday\n25th of December 2112 is Sunday\n25th of December 2118 is Sunday\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

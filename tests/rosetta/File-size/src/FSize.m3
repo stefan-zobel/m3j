@@ -1,0 +1,17 @@
+(* Rosetta Code, task File-size: https://rosettacode.org/wiki/File_size (GNU Free Documentation License 1.3) *)
+MODULE FSize EXPORTS Main;
+
+IMPORT IO, Fmt, FS, File, OSError;
+
+VAR fstat: File.Status;
+
+BEGIN
+  TRY
+    fstat := FS.Status("input.txt");
+    IO.Put("Size of input.txt: " & Fmt.LongInt(fstat.size) & "\n");
+    fstat := FS.Status("/input.txt");
+    IO.Put("Size of /input.txt: " & Fmt.LongInt(fstat.size) & "\n");
+  EXCEPT
+  | OSError.E => IO.Put("ERROR: Could not get file status.\n");
+  END;
+END FSize.

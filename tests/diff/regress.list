@@ -1,0 +1,15 @@
+# Differential tests against cm3 (tools/diff_test.py): small programs for
+# errors that were found in m3j, each in a package of tests/diff/src/regress.
+# NAME DIR [arg ...] [stdin=FILE] [exe=PROGRAM]
+
+regress/word-alias tests/diff/src/regress/word-alias
+regress/new-defaults tests/diff/src/regress/new-defaults
+regress/real-fold tests/diff/src/regress/real-fold
+regress/for-limits tests/diff/src/regress/for-limits
+regress/with-finally tests/diff/src/regress/with-finally
+regress/try-jumps tests/diff/src/regress/try-jumps
+regress/else-jumps tests/diff/src/regress/else-jumps
+regress/uncle-calls tests/diff/src/regress/uncle-calls
+regress/init-cycle tests/diff/src/regress/init-cycle
+regress/merge-types tests/diff/src/regress/merge-types
+regress/frontend-fixes tests/diff/src/regress/frontend-fixes expected=hand-checked.txt

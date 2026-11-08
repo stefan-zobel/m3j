@@ -1,0 +1,5 @@
+% Calls of the built-in procedures of Word and Long through constants
+% whose values are these procedures.
+import ("libm3")
+implementation ("Main")
+program ("word-alias")

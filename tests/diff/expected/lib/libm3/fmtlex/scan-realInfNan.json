@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/fmtlex/scan/src/ScanTest.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "r inf\t\t# =>  Infinity\n-> 1.0/0.0\n\nr -inf\t\t# => -Infinity\n-> -1.0/0.0\n\nr INFINITY\t# =>  Infinity\n-> 1.0/0.0\n\nr -INFINITY\t# => -Infinity\n-> -1.0/0.0\n\nr nan\t\t# => NaN\n-> 0.0/0.0\n\nr NaN\t\t# => NaN\n-> 0.0/0.0\n\nl inf\t\t# =>  Infinity\n-> 1.0d0/0.0d0\n\nl -inf\t\t# => -Infinity\n-> -1.0d0/0.0d0\n\nl INFINITY\t# =>  Infinity\n-> 1.0d0/0.0d0\n\nl -INFINITY\t# => -Infinity\n-> -1.0d0/0.0d0\n\nl nan\t\t# => NaN\n-> 0.0d0/0.0d0\n\nl NaN\t\t# => NaN\n-> 0.0d0/0.0d0\n\ne inf\t\t# =>  Infinity\n-> 1.0x0/0.0x0\n\ne -inf\t\t# => -Infinity\n-> -1.0x0/0.0x0\n\ne INFINITY\t# =>  Infinity\n-> 1.0x0/0.0x0\n\ne -INFINITY\t# => -Infinity\n-> -1.0x0/0.0x0\n\ne nan\t\t# => NaN\n-> 0.0x0/0.0x0\n\ne NaN\t\t# => NaN\n-> 0.0x0/0.0x0\n\nr in\t\t# => Lexical Error\n** Raised \"Lex.Error\"\n\nr infi\t\t# => Lexical Error\n** Raised \"Lex.Error\"\n\nr na\t\t# => Lexical Error\n** Raised \"Lex.Error\"\n\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

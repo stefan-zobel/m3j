@@ -1,0 +1,20 @@
+(* Rosetta Code, task File-input-output: https://rosettacode.org/wiki/File_input_output (GNU Free Documentation License 1.3) *)
+MODULE FileIO EXPORTS Main;
+
+IMPORT IO, Rd, Wr;
+
+<*FATAL ANY*>
+
+VAR
+  infile: Rd.T;
+  outfile: Wr.T;
+  txt: TEXT;
+
+BEGIN
+  infile := IO.OpenRead("input.txt");
+  outfile := IO.OpenWrite("output.txt");
+  txt := Rd.GetText(infile, LAST(CARDINAL));
+  Wr.PutText(outfile, txt);
+  Rd.Close(infile);
+  Wr.Close(outfile);
+END FileIO.

@@ -1,0 +1,7 @@
+GENERIC INTERFACE Pair (Elem);
+
+TYPE T = RECORD a, b: Elem.T END;
+
+PROCEDURE Swap (READONLY p: T): T;
+
+END Pair.

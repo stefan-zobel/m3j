@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Roots-of-a-quadratic-function/src/Quad.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "X1 = 999999.999999 X2 = 1.000000000001e-6\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

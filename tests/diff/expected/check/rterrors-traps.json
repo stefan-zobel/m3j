@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/rterrors/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "\n\n***\n*** runtime error:\n***    Integer divide by zero\n***    pc = 0x7ff7f24e5860 = Ends + 0x540 in ../src/Main.m3\n***\n\n",
+  "status": 3221225620
+ },
+ "stable": true
+}

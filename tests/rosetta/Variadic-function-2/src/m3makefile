@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Varargs")
+program ("Variadic_function_2")

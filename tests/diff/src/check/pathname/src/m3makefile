@@ -1,0 +1,4 @@
+% Pathnames of POSIX and of Windows through every procedure of Pathname.
+import ("libm3")
+implementation ("Main")
+program ("pathname")

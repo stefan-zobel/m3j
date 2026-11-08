@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Rand")
+program ("Random_numbers")

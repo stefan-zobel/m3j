@@ -1,0 +1,18 @@
+% A program of several modules, with generic instances of the library
+% (Table, Sequence, List, SortedTable) and of a generic of its own.
+import ("libm3")
+
+Table ("Word", "Text", "Integer")
+Sequence ("Num", "Integer")
+List ("Name", "Text")
+Table ("Rank", "Integer", "Text")
+Sorted_table ("Rank", "Integer", "Text")
+
+generic_interface ("Pair")
+generic_module ("Pair")
+build_generic_intf ("IntPair", "Pair", ["Integer"], VISIBLE)
+build_generic_impl ("IntPair", "Pair", ["Integer"])
+
+module ("Greet")
+implementation ("Main")
+program ("hello")

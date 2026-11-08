@@ -1,0 +1,4 @@
+% An UNSAFE module, which m3j does not compile.
+import ("libm3")
+implementation ("Main")
+program ("unsafe")

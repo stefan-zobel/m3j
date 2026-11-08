@@ -1,0 +1,5 @@
+exit 1
+--- stdout
+--- stderr
+stubgen: Processing ObjectSpace.T
+stubgen: INTERNAL ERROR: AstToVal.ProcessExp: unsupported value: M3CBackEnd_C.Array_or_record_constructor_value

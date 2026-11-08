@@ -1,0 +1,5 @@
+INTERFACE Priv;
+
+VAR Sep: CHAR;
+
+END Priv.

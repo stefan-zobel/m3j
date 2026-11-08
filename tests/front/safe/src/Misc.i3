@@ -1,0 +1,5 @@
+INTERFACE Misc;
+
+PROCEDURE Run (): INTEGER;
+
+END Misc.

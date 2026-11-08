@@ -1,0 +1,9 @@
+{
+ "comment": "initialize with rootPath and rootUri null: the capabilities of the server",
+ "init": false,
+ "steps": [
+  {"send": {"id": 1, "method": "initialize",
+            "params": {"processId": null, "rootPath": null, "rootUri": null, "capabilities": {}}}},
+  {"send": {"method": "initialized", "params": {}}}
+ ]
+}

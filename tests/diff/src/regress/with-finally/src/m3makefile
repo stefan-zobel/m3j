@@ -1,0 +1,4 @@
+% WITH names bound to variables and used in a FINALLY clause.
+import ("libm3")
+implementation ("Main")
+program ("with-finally")

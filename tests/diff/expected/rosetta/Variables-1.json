@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Variables-1/src/Foo.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "foo + bar = 15\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

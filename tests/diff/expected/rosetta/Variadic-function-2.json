@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Variadic-function-2/src/Varargs.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Rosetta\n1\n3.1415\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

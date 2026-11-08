@@ -1,0 +1,15 @@
+# A case of tools/bundle_test.py: its name, then the parameters of
+# m3bundle (in the manner of a POSIX shell). It runs in a directory with a
+# copy of tests/bundle/data in data.
+small          -name Small -element hello.txt data/hello.txt -element empty data/empty.txt
+blocks         -name Blocks -element big data/big.txt -element bytes data/bytes.dat -element block data/block.txt -element block1 data/block1.txt
+names          -name Names -element 'we"ird\name' data/hello.txt -element 'with space' data/empty.txt -element big data/big.txt
+many           -name Many -element e1 data/empty.txt -element e2 data/hello.txt -element e3 data/empty.txt -element e4 data/hello.txt -element e5 data/empty.txt -element e6 data/hello.txt -element e7 data/empty.txt -element e8 data/hello.txt -element e9 data/empty.txt -element e10 data/hello.txt -element e11 data/empty.txt -element e12 data/hello.txt -element e13 data/empty.txt -element e14 data/hello.txt -element e15 data/empty.txt -element e16 data/hello.txt -element e17 data/empty.txt -element e18 data/hello.txt -element e19 data/empty.txt -element e20 data/hello.txt -element e21 data/block1.txt -element e22 data/hello.txt
+none           -name None
+options        -Fdata/options.txt
+options-more   -Fdata/options.txt -element third data/block.txt
+missing        -name Missing -element x data/no-such-file -element y data/hello.txt
+usage
+usage-name     -name
+usage-element  -name E -element x
+usage-option   -name Bad -bogus

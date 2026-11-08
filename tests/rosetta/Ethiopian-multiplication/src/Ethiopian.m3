@@ -1,0 +1,39 @@
+(* Rosetta Code, task Ethiopian-multiplication: https://rosettacode.org/wiki/Ethiopian_multiplication (GNU Free Documentation License 1.3) *)
+MODULE Ethiopian EXPORTS Main;
+
+IMPORT IO, Fmt;
+
+PROCEDURE IsEven(n: INTEGER): BOOLEAN =
+  BEGIN
+    RETURN n MOD 2 = 0;
+  END IsEven;
+
+PROCEDURE Double(n: INTEGER): INTEGER =
+  BEGIN
+    RETURN n * 2;
+  END Double;
+
+PROCEDURE Half(n: INTEGER): INTEGER =
+  BEGIN
+    RETURN n DIV 2;
+  END Half;
+
+PROCEDURE Multiply(a, b: INTEGER): INTEGER =
+  VAR
+    temp := 0;
+    plier := a;
+    plicand := b;
+  BEGIN
+    WHILE plier >= 1 DO
+      IF NOT IsEven(plier) THEN
+        temp := temp + plicand;
+      END;
+      plier := Half(plier);
+      plicand := Double(plicand);
+    END;
+    RETURN temp;
+  END Multiply;
+
+BEGIN
+  IO.Put("17 times 34 = " & Fmt.Int(Multiply(17, 34)) & "\n");
+END Ethiopian.

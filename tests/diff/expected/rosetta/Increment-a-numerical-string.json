@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Increment-a-numerical-string/src/StringInt.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "1234 + 1 = 1235\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

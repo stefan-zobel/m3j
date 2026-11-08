@@ -1,0 +1,5 @@
+% Floating-point operations at the edges (conversions, signed zeros,
+% infinities, NaN, LongFloat, RealFloat).
+import ("libm3")
+implementation ("Main")
+program ("float-ops")

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Create-a-file/src/FileCreation.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "Error creating file or directory.\n",
+  "status": 0
+ },
+ "stable": true
+}

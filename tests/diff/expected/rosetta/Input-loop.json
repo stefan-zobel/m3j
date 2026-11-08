@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Input-loop/src/Output.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "first linesecond linethird",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

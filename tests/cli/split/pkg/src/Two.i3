@@ -1,0 +1,6 @@
+INTERFACE Two;
+
+PROCEDURE A (): TEXT;
+PROCEDURE B (): TEXT;
+
+END Two.

@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("NonSquare")
+program ("Sequence_of_non_squares")

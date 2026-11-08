@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Odd-and-square-numbers/src/OddSquare.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "121\n169\n225\n289\n361\n441\n529\n625\n729\n841\n961\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

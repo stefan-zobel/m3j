@@ -1,0 +1,4 @@
+% Pickles of version 2 (Pickle2), read back, and pickles that cm3 wrote.
+import ("libm3")
+implementation ("Main")
+program ("pickle2")

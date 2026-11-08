@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Loops-Break/src/Break.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "2\n15\n19\n7\n14\n5\n16\n17\n4\n18\n2\n3\n11\n18\n0\n7\n10\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": false
+}

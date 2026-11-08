@@ -1,0 +1,18 @@
+client: HELLO, WORLD
+client: long line ok
+client: ABC [] done
+client: end of lines
+client: bytes 123432 141086545 48 fragments 12 messages, 0 left
+client: message of 0 in 1 ok
+client: message of 1 in 1 ok
+client: message of 7 in 2 ok
+client: message of 8 in 1 ok
+client: message of 9 in 3 ok
+client: message of 100 in 4 ok
+client: message of 8183 in 1 ok
+client: message of 8184 in 1 ok
+client: message of 8185 in 2 ok
+client: message of 8192 in 5 ok
+client: message of 20000 in 7 ok
+client: message of 70000 in 3 ok
+client: end

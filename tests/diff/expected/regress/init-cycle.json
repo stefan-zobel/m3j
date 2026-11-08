@@ -1,0 +1,23 @@
+{
+ "units": [
+  "tests/diff/src/regress/init-cycle/src/A.i3",
+  "tests/diff/src/regress/init-cycle/src/G.i3",
+  "tests/diff/src/regress/init-cycle/src/G.m3",
+  "tests/diff/src/regress/init-cycle/src/B.m3",
+  "tests/diff/src/regress/init-cycle/src/AImpl.m3",
+  "tests/diff/src/regress/init-cycle/src/Main.m3",
+  "tests/diff/src/regress/init-cycle/src/A.i3",
+  "tests/diff/src/regress/init-cycle/src/G.i3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "init 5\narr 7\nr 30\nx 5\narr 12\nr 30\nx 5\nsum 47\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

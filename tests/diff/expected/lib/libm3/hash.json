@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/hash/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "900150983cd24fb0d6963f7d28e17f72\n9e107d9d372bb6826bd81d3542a419d6\ne4d909c290d0fb1ca068ffaddf22cbd0\n0d7006cd055e94cf614587e1d2ae0c8e\nba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\nd7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

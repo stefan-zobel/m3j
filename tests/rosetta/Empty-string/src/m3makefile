@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("EmptyString")
+program ("Empty_string")

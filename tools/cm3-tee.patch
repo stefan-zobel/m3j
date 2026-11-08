@@ -1,0 +1,60 @@
+--- a/m3-sys/m3middle/src/M3CG_Tee.m3
++++ b/m3-sys/m3middle/src/M3CG_Tee.m3
+@@ -180,7 +180,7 @@
+ TYPE ProcPair = Proc OBJECT p1, p2: Proc END;
+ TYPE LabelPair = RECORD l1, l2: Label END;
+ TYPE LabelPairsRef = REF ARRAY OF LabelPair;
+-VAR nextLabel:Label := No_label;
++VAR nextLabel:Label := 0;  (* not No_label: next_label adds n to it before its first use *)
+ VAR Labels: LabelPairsRef := NIL;
+ CONST initLabelsSize = 250;
+ 
+@@ -375,6 +375,9 @@
+     xx.child.declare_object (t, super, brand, traced, n_fields, n_methods,
+                              field_size, field_offset,
+                              method_offset, super_typename);
++    xx.child2.declare_object (t, super, brand, traced, n_fields, n_methods,
++                              field_size, field_offset,
++                              method_offset, super_typename);
+   END declare_object;
+ 
+ PROCEDURE declare_method (xx: U;  n: Name;  signature: TypeUID) =
+@@ -581,12 +584,16 @@
+                              return_typeid: TypeUID;
+                              return_typename: Name): Proc =
+   VAR result := NEW(ProcPair);
++      (* Each child gets its own half of the parent's pair. *)
++      pp: ProcPair := parent;
++      parent1, parent2: Proc := NIL;
+   BEGIN
++    IF pp # NIL THEN parent1 := pp.p1;  parent2 := pp.p2;  END;
+     result.p1 := xx.child.declare_procedure
+-      (n, n_params, return_type, lev, cc, exported, parent,
++      (n, n_params, return_type, lev, cc, exported, parent1,
+        return_typeid, return_typename);
+     result.p2 := xx.child2.declare_procedure
+-      (n, n_params, return_type, lev, cc, exported, parent,
++      (n, n_params, return_type, lev, cc, exported, parent2,
+        return_typeid, return_typename);
+     RETURN result;
+   END declare_procedure;
+@@ -657,9 +664,16 @@
+   END if_compare;
+ 
+ PROCEDURE case_jump (xx: U;  t: IType;  READONLY labels: ARRAY OF Label) =
+-  BEGIN
+-    xx.child.case_jump (t, labels);
+-    xx.child2.case_jump (t, labels);
++  (* Each child gets its own labels, as in jump. *)
++  VAR l1 := NEW (REF ARRAY OF Label, NUMBER (labels));
++      l2 := NEW (REF ARRAY OF Label, NUMBER (labels));
++  BEGIN
++    FOR i := FIRST (labels) TO LAST (labels) DO
++      l1[i] := Labels^[labels[i]].l1;
++      l2[i] := Labels^[labels[i]].l2;
++    END;
++    xx.child.case_jump (t, l1^);
++    xx.child2.case_jump (t, l2^);
+   END case_jump;
+ 
+ PROCEDURE exit_proc (xx: U;  t: Type) =

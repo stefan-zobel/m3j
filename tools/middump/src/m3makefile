@@ -1,0 +1,6 @@
+% Reference program for the m3middle test (see Main.m3).
+
+import ("libm3")
+import ("m3middle")
+implementation ("Main")
+program ("middump")

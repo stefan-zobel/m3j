@@ -1,0 +1,4 @@
+exit 0
+--- stdout
+--- stderr
+<m3bundle>: cannot read file: data/no-such-file

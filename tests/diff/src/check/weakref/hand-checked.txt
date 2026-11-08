@@ -1,0 +1,18 @@
+live: TRUE
+second: TRUE
+copy equal: TRUE
+two differ: TRUE
+node: 1
+weak only, dead: TRUE
+REF INTEGER, dead: TRUE
+first cleanup: TRUE
+same weak reference: TRUE
+dead after cleanup: TRUE
+second cleanup: TRUE
+kept: 5 6
+cleanups: 2
+all cleaned: TRUE
+cleaned: 100
+sum: 4950
+same weak references: TRUE
+REF with cleanup, alive: TRUE

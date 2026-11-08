@@ -1,0 +1,5 @@
+% FloatMode as its specification describes it (output checked by hand:
+% cm3 fails an assertion in every procedure but GetRounding).
+import ("libm3")
+implementation ("Main")
+program ("floatmode")

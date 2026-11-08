@@ -1,0 +1,4 @@
+% m3tk and m3tk-misc: the source packages in tests/stubgen of m3j
+% (path () is this directory)
+override ("m3tk", path () & "/../../../tests/stubgen")
+override ("m3tk-misc", path () & "/../../../tests/stubgen")

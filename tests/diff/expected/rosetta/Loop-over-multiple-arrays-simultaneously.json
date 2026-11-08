@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Loop-over-multiple-arrays-simultaneously/src/MultiArray.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "aA1\nbB2\ncC3\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

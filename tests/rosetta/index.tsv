@@ -1,0 +1,180 @@
+100-doors-1	program
+100-doors-2	program
+99-bottles-of-beer	program
+A+B	program
+Ackermann-function	program
+Additive-primes	program
+Anti-primes	program
+Apply-a-callback-to-an-array	program
+Arithmetic-Integer	program
+Array-length	program
+Arrays-1	fragment
+Arrays-2	fragment
+Arrays-3	fragment
+Arrays-4	fragment
+Arrays-5	fragment
+Arrays-6	fragment
+Assertions	fragment
+Binary-digits	program
+Bitmap-1	no program
+Bitmap-2	no program
+Bitmap-Midpoint-circle-algorithm-1	no program
+Bitmap-Midpoint-circle-algorithm-2	no program
+Bitmap-Midpoint-circle-algorithm-3	program
+Bitmap-Write-a-PPM-file-1	no program
+Bitmap-Write-a-PPM-file-2	no program
+Bitmap-Write-a-PPM-file-3	fragment
+Bitmap-Write-a-PPM-file-4	fragment
+Bitwise-operations	program
+Boolean-values	fragment
+Caesar-cipher	program
+Call-a-foreign-language-function	unsafe
+Character-codes	fragment
+Check-that-file-exists	program
+Command-line-arguments	excluded: prints the path of the program
+Compound-data-type	fragment
+Conditional-structures-1	fragment
+Conditional-structures-2	fragment
+Conditional-structures-3	fragment
+Conditional-structures-4	fragment
+Copy-a-string	fragment
+Create-a-file	program
+Create-an-HTML-table	program
+Damm-algorithm	program
+Day-of-the-week	program
+Define-a-primitive-data-type	fragment
+Determine-if-a-string-is-numeric	program
+Digital-root	program
+Dining-philosophers	program
+Empty-program	program
+Empty-string	program
+Enumerations-1	fragment
+Enumerations-2	fragment
+Enumerations-3	fragment
+Environment-variables	excluded: prints the environment
+Ethiopian-multiplication	program
+Exceptions-1	fragment
+Exceptions-2	fragment
+Exceptions-3	fragment
+Exceptions-4	fragment
+Execute-a-system-command	unsafe
+Exponentiation-operator	program
+Factorial-1	fragment
+Factorial-2	fragment
+Fibonacci-sequence-1	fragment
+Fibonacci-sequence-2	fragment
+File-input-output	program
+File-modification-time-1	program
+File-modification-time-2	program
+File-size	program
+FizzBuzz	program
+Formatted-numeric-output	fragment
+Function-definition	fragment
+Gamma-function	program
+Gaussian-elimination-1	no program
+Gaussian-elimination-2	no program
+Gaussian-elimination-3	no program
+Gaussian-elimination-4	program
+Generic-swap-1	no program
+Generic-swap-2	no program
+Generic-swap-3	no program
+Generic-swap-4	no program
+Generic-swap-5	program
+Greatest-common-divisor	program
+Greatest-element-of-a-list-1	no program
+Greatest-element-of-a-list-2	no program
+Greatest-element-of-a-list-3	no program
+Greatest-element-of-a-list-4	no program
+Greatest-element-of-a-list-5	program
+Hello-world-Graphical	program
+Hello-world-Standard-error	program
+Hello-world-Text	program
+Higher-order-functions	program
+Host-introspection	program
+Hostname	excluded: prints the name of the machine
+Include-a-file	fragment
+Increment-a-numerical-string	program
+Infinity	program
+Input-loop	program
+Integer-comparison	program
+Knapsack-problem-Unbounded	program
+Knuth-shuffle	program
+Literals-Integer	program
+Literals-String-1	fragment
+Literals-String-2	fragment
+Literals-String-3	fragment
+Logical-operations	program
+Loop-over-multiple-arrays-simultaneously	program
+Loops-Break	program
+Loops-Continue	fragment
+Loops-Do-while	fragment
+Loops-Downward-for	fragment
+Loops-For-with-a-specified-step	fragment
+Loops-For	program
+Loops-Infinite	fragment
+Loops-N-plus-one-half	program
+Loops-While	fragment
+Lucas-Lehmer-test	program
+Man-or-boy-test	program
+Mandelbrot-set	program
+MD5-Implementation-1	no program
+MD5-Implementation-2	no program
+MD5-Implementation-3	program
+Multiple-distinct-objects-1	fragment
+Multiple-distinct-objects-2	program
+Named-parameters-1	fragment
+Named-parameters-2	fragment
+Non-decimal-radices-Output	program
+Null-object-1	fragment
+Null-object-2	fragment
+Null-object-3	fragment
+Odd-and-square-numbers	program
+One-dimensional-cellular-automata	program
+Palindrome-detection	no program
+Pascals-triangle	program
+Pointers-and-references-1	fragment
+Pointers-and-references-2	fragment
+Pointers-and-references-3	fragment
+Pythagorean-triples	program
+Random-numbers	program
+Real-constants-and-functions	fragment
+Reverse-a-string	program
+Roots-of-a-quadratic-function	program
+Rot-13	program
+SEDOLs	program
+Sequence-of-non-squares	program
+Sieve-of-Eratosthenes-1	program
+Sieve-of-Eratosthenes-2	program
+Simple-windowed-application	program
+Singly-linked-list-Element-definition	fragment
+Singly-linked-list-Element-insertion	program
+Sort-an-integer-array	program
+Sorting-algorithms-Bogosort	program
+Sorting-algorithms-Bubble-sort	no program
+Sorting-algorithms-Counting-sort	program
+Sorting-algorithms-Insertion-sort	no program
+Sorting-algorithms-Quicksort-1	no program
+Sorting-algorithms-Quicksort-2	no program
+Sorting-algorithms-Quicksort-3	no program
+Sorting-algorithms-Quicksort-4	no program
+Sorting-algorithms-Quicksort-5	program
+String-case	program
+String-concatenation-1	program
+String-concatenation-2	fragment
+String-length-1	program
+String-length-2	program
+Sum-and-product-of-an-array	program
+Sum-of-a-series	program
+Sum-of-squares	program
+System-time	excluded: prints the time
+Tokenize-a-string	program
+Towers-of-Hanoi	program
+User-input-Text	program
+Variable-size-Get	program
+Variable-size-Set	fragment
+Variables-1	program
+Variables-2	fragment
+Variables-3	fragment
+Variadic-function-1	program
+Variadic-function-2	program
+Zig-zag-matrix	program

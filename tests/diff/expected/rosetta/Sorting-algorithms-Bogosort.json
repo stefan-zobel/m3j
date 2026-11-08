@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Sorting-algorithms-Bogosort/src/Bogo.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "1 2 3 4 5 \nRequired 173 shuffles\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": false
+}

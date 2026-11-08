@@ -1,0 +1,16 @@
+(* Rosetta Code, task Variables: https://rosettacode.org/wiki/Variables (GNU Free Documentation License 1.3) *)
+MODULE Foo EXPORTS Main;
+
+IMPORT IO, Fmt;
+
+VAR foo: INTEGER := 5; (* foo is global (to the module). *)
+
+PROCEDURE Foo() =
+  VAR bar: INTEGER := 10; (* bar is local to the procedure Foo. *)
+  BEGIN
+    IO.Put("foo + bar = " & Fmt.Int(foo + bar) & "\n");
+  END Foo;
+
+BEGIN
+  Foo();
+END Foo.

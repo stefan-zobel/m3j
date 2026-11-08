@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Determine-if-a-string-is-numeric/src/Numeric.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "isNumeric(152) = TRUE\nisNumeric(-3.1415926) = TRUE\nisNumeric(Foo123) = FALSE\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

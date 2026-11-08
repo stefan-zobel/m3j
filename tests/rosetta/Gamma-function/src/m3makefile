@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Gamma")
+program ("Gamma_function")

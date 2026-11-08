@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Integer-comparison/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "\n\n***\n*** runtime error:\n***    Unhandled exception: IO.Error\n***    file \"../src/rw/IO.m3\", line 88\n***\n\n",
+  "status": 4294967295
+ },
+ "stable": true
+}

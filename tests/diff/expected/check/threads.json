@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/threads/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "first fork: ok 0 20000\ncounters: ok 8x20000: 160000 40000 40000 40000 40000\nbank: ok 0 9252 89 -3748 4777 11452 -10647 -3420 -2714 7737 5864 5714 -1228 -7749 -7043 4459 3205\nbuffer: ok 10000 25012505000\nbarrier: ok 0 300\nexits: 135041 75025\nturns: 100 150\nself alerts: TF T alertedF alertedF alertedF T T alerted paused\nother alerts: alerted alerted alerted blocker locked T\nalert storm: 80\nalert races: 200 0, 50 0\nmany threads: ok 1000 333833500\ntypecodes: ok 0\natoms: ok 0\nwriter: ok 120000 0\ndeep: 100000\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

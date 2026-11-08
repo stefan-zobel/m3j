@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/String-concatenation-1/src/Concat.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "String literal.\nString literal.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

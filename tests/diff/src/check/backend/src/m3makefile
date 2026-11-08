@@ -1,0 +1,4 @@
+% Paths of the code generation that the other tests do not reach.
+import ("libm3")
+implementation ("Main")
+program ("backend")

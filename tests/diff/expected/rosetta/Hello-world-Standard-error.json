@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Hello-world-Standard-error/src/Stderr.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "Goodbye, World!\n",
+  "status": 0
+ },
+ "stable": true
+}

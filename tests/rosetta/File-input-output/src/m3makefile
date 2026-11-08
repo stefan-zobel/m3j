@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("FileIO")
+program ("File_input_output")

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/text-forall/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "literal: narrow 1 wide 0 empty 0 [abc]\none char: narrow 1 wide 0 empty 0 [z]\nempty: narrow 1 wide 0 empty 1 []\nnil: narrow 0 wide 0 empty 0 []\nwide literal: narrow 0 wide 1 empty 0 [a<1234>b]\nhigh chars: narrow 1 wide 0 empty 0 [<0><7f><80><ff>]\ncat: 6 [abcdef] TRUE\ncat empty: 3 [abc] TRUE\ncat wide: 5 [ab<100>cd] TRUE\nsub: 4 [3456] TRUE\nsub of cat: 4 [3456] TRUE\nsub to end: 3 [789] TRUE\nsub empty: 0 [] TRUE\nfrom chars: 5 [hello] TRUE\nfrom sub chars: 3 [ell] TRUE\nfrom wide chars: 4 [w<2603>i<ffff>] TRUE\nfrom char: 1 [<ff>] TRUE\nfrom wide char: 1 [<ff>] TRUE\nlong: 46 [abcd<103>efghijk<10a>lmnopqr<111>stuvwxy<118>zabcdef<11f>ghijklm<126>n] TRUE\nsub of long: 20 [ijk<10a>lmnopqr<111>stuvwxy<118>] TRUE\nnested: 532005 584006 2030046\nraise narrow: Stop 2 [ab]\nraise wide: Stop 3 [ab<400>]\nraise cat: Stop 5 [abcde]\nraise none: no exception, 3\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

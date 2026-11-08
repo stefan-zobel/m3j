@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/uncle-calls/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "p3 13\np0 11\nq4 15\nq4 20\nq0 5\nr4 9\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

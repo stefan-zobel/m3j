@@ -1,0 +1,29 @@
+# build results (build.sh)
+/out/
+/out.mf
+/out.log
+/m3j.jar
+/m3j-runtime.jar
+/m3j.aot
+/m3j.cfg
+/m3bundle.jar
+/m3build.jar
+/stubgen.jar
+/m3_lang_server.jar
+/tools/langserver/JVM/
+
+# programs built with cm3 to record expected outputs (tools/fpdump,
+# tools/middump)
+/tools/*/AMD64_NT/
+
+# where m3build installs packages when no installation is given
+/no-installation/
+
+# the reference installation and sources of cm3, and downloads (outside the tree)
+/cm3/
+/cm3-src/
+/download/
+
+# Python
+__pycache__/
+*.pyc

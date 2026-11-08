@@ -1,0 +1,13 @@
+Located target at private port
+Null call test ... done.
+Ten integer call test ... done.
+Same surrogate object argument test ... done.
+Same concrete object argument test ... done.
+Unique object argument test ... done.
+Same surrogate object result test ... done.
+Same concrete object result test ... done.
+Unique object result test ... done.
+REF CHAR pickle call test  ... done.
+Linked list pickle call test  ... done.
+Reader test ... done, other bytes than X: 0.
+Writer test ... done.

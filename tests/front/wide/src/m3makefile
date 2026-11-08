@@ -1,0 +1,6 @@
+% Wide character and wide text literals, wide brands.
+
+import ("libm3")
+module ("WideLit")
+implementation ("Main")
+program ("widetest")

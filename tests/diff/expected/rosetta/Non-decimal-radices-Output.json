@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Non-decimal-radices-Output/src/Conv.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "1 1 1 \n2 2 2 \n3 3 3 \n4 4 4 \n5 5 5 \n6 6 6 \n7 7 7 \n8 8 10 \n9 9 11 \n10 a 12 \n11 b 13 \n12 c 14 \n13 d 15 \n14 e 16 \n15 f 17 \n16 10 20 \n17 11 21 \n18 12 22 \n19 13 23 \n20 14 24 \n21 15 25 \n22 16 26 \n23 17 27 \n24 18 30 \n25 19 31 \n26 1a 32 \n27 1b 33 \n28 1c 34 \n29 1d 35 \n30 1e 36 \n31 1f 37 \n32 20 40 \n33 21 41 \n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Higher-order-functions/src/Proc.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Second procedure.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

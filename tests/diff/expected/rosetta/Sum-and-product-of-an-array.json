@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Sum-and-product-of-an-array/src/Sumprod.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Sum of array: 15\nProduct of array: 120\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

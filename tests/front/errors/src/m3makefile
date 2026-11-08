@@ -1,0 +1,10 @@
+% Diagnostics of the scanner and the parser that m3tests does not cover.
+
+import ("libm3")
+implementation ("WideErrors")
+implementation ("Pragmas")
+implementation ("Cases")
+implementation ("CaseLabels")
+implementation ("PragmaEof")
+implementation ("Main")
+program ("errortest")

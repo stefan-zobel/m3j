@@ -1,0 +1,9 @@
+% The test longcall of the network objects of cm3
+% (m3-comm/netobj/tests/longcall), for tools/net_test.py.
+import ("libm3")
+import ("tcp")
+import ("netobj")
+interface ("LongCall")
+netobj ("LongCall", "T")
+implementation ("Main")
+program ("longcall")

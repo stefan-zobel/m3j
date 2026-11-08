@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/with-finally/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "p 14\np 26\np 38\ng 38\nx 1\nq 7\nq 8\nq 9\nx 20\nf 1\nf 2\nx 21\na 22\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

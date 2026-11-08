@@ -1,0 +1,6 @@
+% Reference program for the fingerprint test (see Main.m3).
+
+import ("libm3")
+import ("m3middle")
+implementation ("Main")
+program ("fpdump")

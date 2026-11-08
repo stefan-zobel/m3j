@@ -1,0 +1,5 @@
+INTERFACE RaiseArgs;
+
+PROCEDURE Run (): INTEGER;
+
+END RaiseArgs.

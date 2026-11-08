@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/process/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "exit 0: 0\nexit 1: 1\nexit 3: 3\nexit 255: 255\nexit 65536: 65536\nids: TRUE TRUE TRUE\nstandard handles: TRUE\ninherited\nto stderr\ncode 0\ninherited\nto stderr\ncode 0\nno handles: code 1\nfilter: apple|fig|pear\ncode 0\nbig: 20000 lines, 200000 chars, ordered TRUE, last line019999\ncode 0\ncode 0\nout.txt: first|middle|last\ninput from position 2: |a|b, code 0\nenv: forty-two, code 0\nown env: %M3TEST%, code 0\nwd: procdir, code 0\nnow in: procdir, parent the old one: TRUE\nabsolute: TRUE\nchild in: procdir\nchild reads: relative, code 0\nback: TRUE\nrel.txt there: relative\npipe types: TRUE TRUE\nread: through the pipe, eof TRUE\nmissing program: OSError.E\nmissing wd: OSError.E\nSetWorkingDirectory: OSError.E\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/new-defaults/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "open 7 1 0\nopen2 7 1 0\nopenf 7 1 0\nopens 7 1 0\nfixed 7 1 0\no.x 7 1 0\no.r 7 1 0\np.q 7 1 0\np.r 7 1 0\np.s 5\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

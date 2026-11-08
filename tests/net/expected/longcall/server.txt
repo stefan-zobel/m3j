@@ -1,0 +1,5 @@
+Exported target at private port
+Test server running, type <CR> to terminate
+Blocking seqno=1
+Blocking seqno=2
+Blocking seqno=3

@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Proc")
+program ("Higher_order_functions")

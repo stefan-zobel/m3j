@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Bitwise-operations/src/Bitwise.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "a AND b: 5\na OR b: 255\na XOR b: 250\nNOT a: -256\nc LeftShift b: 1fe0\nc RightShift b: 7\nc LeftRotate b: 1fe0\nc RightRotate b: f800000000000007\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

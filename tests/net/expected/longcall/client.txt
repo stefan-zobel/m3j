@@ -1,0 +1,10 @@
+Located target at private port
+Forking call
+Call raised NetObj.Error(NetObj.Alerted), alerted: TRUE
+Joined call
+Forking call
+Call raised NetObj.Error(NetObj.Alerted), alerted: TRUE
+Joined call
+Forking call
+Call raised NetObj.Error(NetObj.Alerted), alerted: TRUE
+Joined call

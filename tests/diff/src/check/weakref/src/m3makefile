@@ -1,0 +1,6 @@
+% Weak references: the node of a live weak reference; with the argument
+% hand-checked: dead weak references, cleanup procedures, a node that its
+% cleanup makes reachable again, a weak reference made in a cleanup.
+import ("libm3")
+implementation ("Main")
+program ("weakref")

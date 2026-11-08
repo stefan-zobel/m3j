@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Sum-of-a-series/src/Sum.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Sum of F(x) from 1 to 1000 is 1.6439345666815615\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

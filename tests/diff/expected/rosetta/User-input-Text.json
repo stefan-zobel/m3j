@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/User-input-Text/src/Input.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Enter a string: Enter a number: You entered: hello and 75000\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

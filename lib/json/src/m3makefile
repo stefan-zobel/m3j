@@ -1,0 +1,14 @@
+% Changed for m3j: json does not import the package table-list, whose
+% units it does not use.
+
+import ("libm3")
+
+import ("sysutils")
+
+Module ("JsonScanner")
+Module ("JsonKeyword")
+Module ("Json")
+
+Library ("json")
+
+

@@ -1,0 +1,7 @@
+% A library with a generic instance and a quake template, which the
+% packages that import it use.
+import ("libm3")
+Module ("Greet")
+Sequence ("Word", "Text")
+template ("greet")
+Library ("greet")

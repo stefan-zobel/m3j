@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/m3-libs/libm3/tests/swap/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "0x12f3\n0xfffffffff3120000\n\n0x1283\n0xffffffff83120000\n\n0x1273\n0x73120000\n\n",
+  "status": 0
+ },
+ "stable": true
+}

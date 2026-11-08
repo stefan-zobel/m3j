@@ -1,0 +1,128 @@
+{
+  "name": "Modula-3",
+  "scopeName": "source.modula3",
+  "fileTypes": ["i3", "m3", "ig", "mg"],
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#pragma" },
+    { "include": "#unit" },
+    { "include": "#procedure" },
+    { "include": "#text" },
+    { "include": "#char" },
+    { "include": "#number" },
+    { "include": "#keyword" },
+    { "include": "#constant" },
+    { "include": "#type" },
+    { "include": "#builtin" },
+    { "include": "#operator" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.block.modula3",
+      "begin": "\\(\\*",
+      "end": "\\*\\)",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.modula3" } },
+      "endCaptures": { "0": { "name": "punctuation.definition.comment.end.modula3" } },
+      "patterns": [ { "include": "#comment" } ]
+    },
+    "pragma": {
+      "name": "meta.preprocessor.pragma.modula3",
+      "begin": "<\\*",
+      "end": "\\*>",
+      "beginCaptures": { "0": { "name": "punctuation.definition.pragma.begin.modula3" } },
+      "endCaptures": { "0": { "name": "punctuation.definition.pragma.end.modula3" } },
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#text" },
+        { "include": "#number" },
+        {
+          "name": "keyword.other.pragma.modula3",
+          "match": "\\b(EXTERNAL|INLINE|ASSERT|UNUSED|OBSOLETE|TRACE|FATAL|NOWARN|LINE|PRAGMA|CALLBACK|EXPORTED|DEBUG|LL|LL\\.sup|SPEC|IMPLICIT|NOINLINE|LAZYALIGN|STRICTALIGN|WIDECHAR)\\b"
+        },
+        { "include": "#keyword" },
+        { "include": "#constant" },
+        { "include": "#type" },
+        { "include": "#builtin" }
+      ]
+    },
+    "unit": {
+      "match": "\\b(UNSAFE\\s+)?(GENERIC\\s+)?(INTERFACE|MODULE)\\s+([A-Za-z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.unsafe.modula3" },
+        "2": { "name": "keyword.other.generic.modula3" },
+        "3": { "name": "keyword.other.unit.modula3" },
+        "4": { "name": "entity.name.type.module.modula3" }
+      }
+    },
+    "procedure": {
+      "match": "\\b(PROCEDURE)\\s+([A-Za-z][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.procedure.modula3" },
+        "2": { "name": "entity.name.function.modula3" }
+      }
+    },
+    "text": {
+      "name": "string.quoted.double.modula3",
+      "begin": "\"",
+      "end": "\"|$",
+      "patterns": [ { "include": "#escape" } ]
+    },
+    "char": {
+      "name": "string.quoted.single.modula3",
+      "match": "'(?:\\\\(?:[0-7]{3}|[xX][0-9A-Fa-f]{2}|[uU][0-9A-Fa-f]{4}|U[0-9A-Fa-f]{6}|.)|[^'\\\\])'",
+      "captures": { "0": { "patterns": [ { "include": "#escape" } ] } }
+    },
+    "escape": {
+      "name": "constant.character.escape.modula3",
+      "match": "\\\\(?:[0-7]{3}|[xX][0-9A-Fa-f]{2}|[uU][0-9A-Fa-f]{4}|U[0-9A-Fa-f]{6}|[ntrf\\\\'\"])"
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.modula3",
+          "match": "\\b[0-9]+\\.[0-9]+(?:[EeDdXx][+-]?[0-9]+)?\\b"
+        },
+        {
+          "name": "constant.numeric.based.modula3",
+          "match": "\\b[0-9]+_[0-9A-Fa-f]+L?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.modula3",
+          "match": "\\b[0-9]+L?\\b"
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.modula3",
+          "match": "\\b(BEGIN|BY|CASE|DO|ELSE|ELSIF|END|EVAL|EXCEPT|EXIT|FINALLY|FOR|IF|LOCK|LOOP|RAISE|REPEAT|RETURN|THEN|TO|TRY|TYPECASE|UNTIL|WHILE|WITH)\\b"
+        },
+        {
+          "name": "keyword.operator.word.modula3",
+          "match": "\\b(AND|DIV|IN|MOD|NOT|OR)\\b"
+        },
+        {
+          "name": "keyword.other.modula3",
+          "match": "\\b(ANY|ARRAY|AS|BITS|BRANDED|CONST|EXCEPTION|EXPORTS|FROM|GENERIC|IMPORT|INTERFACE|METHODS|MODULE|OBJECT|OF|OVERRIDES|PROCEDURE|RAISES|READONLY|RECORD|REF|REVEAL|SET|TYPE|UNSAFE|UNTRACED|VALUE|VAR)\\b"
+        }
+      ]
+    },
+    "constant": {
+      "name": "constant.language.modula3",
+      "match": "\\b(TRUE|FALSE|NIL)\\b"
+    },
+    "type": {
+      "name": "support.type.modula3",
+      "match": "\\b(ADDRESS|BOOLEAN|CARDINAL|CHAR|EXTENDED|INTEGER|LONGCARD|LONGINT|LONGREAL|MUTEX|NULL|REAL|REFANY|ROOT|TEXT|WIDECHAR)\\b"
+    },
+    "builtin": {
+      "name": "support.function.modula3",
+      "match": "\\b(ABS|ADR|ADRSIZE|BITSIZE|BYTESIZE|CEILING|DEC|DISPOSE|FIRST|FLOAT|FLOOR|INC|ISTYPE|LAST|LOOPHOLE|MAX|MIN|NARROW|NEW|NUMBER|ORD|ROUND|SUBARRAY|TRUNC|TYPECODE|VAL)\\b"
+    },
+    "operator": {
+      "name": "keyword.operator.modula3",
+      "match": ":=|<:|=>|\\.\\.|<=|>=|[+\\-*/&#=<>^]"
+    }
+  }
+}

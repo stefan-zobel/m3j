@@ -1,0 +1,4 @@
+% The default values of record fields in new arrays and objects.
+import ("libm3")
+implementation ("Main")
+program ("new-defaults")

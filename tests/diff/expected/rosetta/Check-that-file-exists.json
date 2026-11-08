@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Check-that-file-exists/src/FileTest.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "FALSE\nFALSE\nFALSE\nFALSE\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

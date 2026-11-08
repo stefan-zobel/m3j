@@ -1,0 +1,48 @@
+$ m3build nob
+--- building in JVM ---
+
+"<java>" -Xss64m -jar "<m3j>/stubgen.jar" -v1 -sno Test.T   -T.M3IMPTAB
+stubgen: Processing Test.T
+"<java>" -Xss64m -jar "<m3j>/stubgen.jar" -v2 -sno Test.U   -T.M3IMPTAB
+stubgen: Processing Test.U
+new sources -> compiling netobj.jar
+m3j: warning: no module of interface RT0 is compiled (it is UNSAFE or missing): calling its procedures fails, its variables keep their initial values
+exit 0
+$ exists nob/JVM/Test_T_v1.m3
+yes
+$ exists nob/JVM/Test_U_v2.m3
+yes
+$ pair nob/JVM/netobj
+server:
+server done
+client:
+missing: TRUE
+imported: TRUE
+add: 42
+add big: 9223372036854775805
+add negative: -9223372036854775801
+echo: echo:hello
+echo empty: echo:
+echo nil: TRUE
+echo wide: 101 99 104 111 58 60 9786 65535 62
+echo long: 3005
+-14 3 4.5 FALSE b 4661 -2 0 { 0 3 17 39 40 }
+sum list: 55
+sum nil: 0
+names: n3 n1
+1 4 9 16 25 
+chars: 4 353 354 256 511
+texts: x|<nil>|z€|
+fail 0: ok
+oops code one
+NetObj.Error: my.error detail
+callback: 55 calls 10
+other: TRUE same surrogate: TRUE
+other sum list: 210
+-14 3 4.5 FALSE b 4661 -2 0 { 0 3 17 39 40 }
+owner comes home: TRUE
+other object: FALSE
+reader: read 24: some text for the reader
+writer: from server: abc
+client done
+exit 0

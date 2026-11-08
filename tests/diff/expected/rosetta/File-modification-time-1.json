@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/File-modification-time-1/src/ModTime.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Error: Failed to get file status.\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

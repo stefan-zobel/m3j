@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/One-dimensional-cellular-automata/src/Cell.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "Generation 0 _###_##_#_#_#_#__#__\nGeneration 1 _#_#####_#_#_#______\nGeneration 2 __##___##_#_#_______\nGeneration 3 __##___###_#________\nGeneration 4 __##___#_##_________\nGeneration 5 __##____###_________\nGeneration 6 __##____#_#_________\nGeneration 7 __##_____#__________\nGeneration 8 __##________________\nGeneration 9 __##________________\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

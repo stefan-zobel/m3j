@@ -1,0 +1,232 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/app/src/Main.m3"
+  }
+ },
+ {
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "total : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 7,
+     "line": 19
+    },
+    "start": {
+     "character": 2,
+     "line": 19
+    }
+   }
+  }
+ },
+ {
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "Show : PROCEDURE( w: Wr.T;  n: INTEGER)"
+   ],
+   "range": {
+    "end": {
+     "character": 6,
+     "line": 21
+    },
+    "start": {
+     "character": 2,
+     "line": 21
+    }
+   }
+  }
+ },
+ {
+  "id": 3,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "x : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 5,
+     "line": 18
+    },
+    "start": {
+     "character": 4,
+     "line": 18
+    }
+   }
+  }
+ },
+ {
+  "id": 4,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "area : PROCEDURE(): REAL"
+   ],
+   "range": {
+    "end": {
+     "character": 25,
+     "line": 22
+    },
+    "start": {
+     "character": 21,
+     "line": 22
+    }
+   }
+  }
+ },
+ {
+  "id": 5,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "w : Wr.T"
+   ],
+   "range": {
+    "end": {
+     "character": 17,
+     "line": 12
+    },
+    "start": {
+     "character": 16,
+     "line": 12
+    }
+   }
+  }
+ },
+ {
+  "id": 6,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "Limit : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 16,
+     "line": 18
+    },
+    "start": {
+     "character": 13,
+     "line": 18
+    }
+   }
+  }
+ },
+ {
+  "id": 7,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "Greeting : TEXT"
+   ],
+   "range": {
+    "end": {
+     "character": 26,
+     "line": 20
+    },
+    "start": {
+     "character": 18,
+     "line": 20
+    }
+   }
+  }
+ },
+ {
+  "id": 8,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "table : TextIntTbl.Default"
+   ],
+   "range": {
+    "end": {
+     "character": 12,
+     "line": 20
+    },
+    "start": {
+     "character": 7,
+     "line": 20
+    }
+   }
+  }
+ },
+ {
+  "id": 9,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "n : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 22,
+     "line": 14
+    },
+    "start": {
+     "character": 21,
+     "line": 14
+    }
+   }
+  }
+ },
+ {
+  "id": 10,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "circle : Shapes.Circle"
+   ],
+   "range": {
+    "end": {
+     "character": 8,
+     "line": 10
+    },
+    "start": {
+     "character": 2,
+     "line": 10
+    }
+   }
+  }
+ },
+ {
+  "id": 11,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "Util : "
+   ],
+   "range": {
+    "end": {
+     "character": 15,
+     "line": 19
+    },
+    "start": {
+     "character": 11,
+     "line": 19
+    }
+   }
+  }
+ },
+ {
+  "id": 12,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

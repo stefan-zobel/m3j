@@ -1,0 +1,17 @@
+{
+ "units": [
+  "tests/diff/src/check/tcp/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "tcp"
+ ],
+ "result": {
+  "stdout": "port chosen: ok\nstream: HELLO\nstream long line: ok\nstream: ABC done\nstream eof: ok\nstream TCPSpecial.EOF: ok\nmany: total 6787\ntimeout 0: TimedOut\ntimeout 0.2: TimedOut\nnot EOF while open: ok\ntimeout 10: got 1 x\npeer is the connector: ok\nTCPPeer.Get: ok\nTCPExtras.LocalEndpoint: ok\nserver's peer is the client: ok\nserver's local port: ok\nTCPPeer.Match 32: ok\nTCPPeer.Match 0: ok\noptions: set\nafter close by peer: got 0\nEOF after close by peer: ok\nrefused: IP.Error [ TCP.Refused ]\naccept closed: IP.Error [ TCP.Closed ]\nacceptfrom closed: IP.Error [ TCP.Closed ]\nget closed: Rd.Failure [ TCP.Closed ]\nput closed: Wr.Failure [ TCP.Closed ]\nfinish closed: IP.Error [ TCP.Closed ]\npeer closed: IP.Error [ TCP.Closed ]\nTCPPeer closed: IP.Error [ TCP.Closed ]\nshutdownIn closed: Rd.Failure [ TCP.Closed ]\nEOF of a closed connection: ok\nclose twice: done\nalert in Accept: Thread.Alerted\nalert in get: Thread.Alerted\nalert in GetLine: Thread.Alerted\nafter alerts: got x\nclose in Accept: IP.Error [ TCP.Closed ]\nGetHostByName 10.1.2.3: ok\nGetHostByName 127.0.0.1: ok\nGetHostAddr: ok\nGetAddrInfo: 127.0.0.1 port 20480\nGetAddrInfo 8080: port 36895\nGetAddrInfo NIL: 10.20.30.40 port 0\nGetAddrInfo NIL NIL: IP.Error [ IP.LookupFailure ]\nGetNameInfo service: 8080\nhtons 1: 256, ntohs 16_1234: 3412\natoms: ok\nend\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

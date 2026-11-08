@@ -1,0 +1,3 @@
+import ("libm3")
+implementation ("Size")
+program ("Variable_size_Get")

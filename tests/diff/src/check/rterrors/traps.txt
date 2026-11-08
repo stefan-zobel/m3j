@@ -1,0 +1,12 @@
+100 DIV by zero: Attempt to DIV or MOD by zero.
+101 MOD by zero: Attempt to DIV or MOD by zero.
+102 Word.Divide by zero: Attempt to DIV or MOD by zero.
+103 Word.Mod by zero: Attempt to DIV or MOD by zero.
+104 NIL^: Attempt to reference an illegal memory location.
+105 field of a NIL object: Attempt to reference an illegal memory location.
+106 method of a NIL object: Attempt to reference an illegal memory location.
+107 open array to an open array: An open array had the wrong shape.
+108 open array to an open array of two dimensions: An open array had the wrong shape.
+109 open array to a fixed array: An open array had the wrong shape.
+110 stack overflow: A thread stack overflowed.
+sink 0 -1 0 0 0 0 0

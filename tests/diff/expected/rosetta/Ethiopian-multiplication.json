@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Ethiopian-multiplication/src/Ethiopian.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "17 times 34 = 578\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

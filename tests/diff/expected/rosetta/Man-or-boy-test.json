@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/rosetta/Man-or-boy-test/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "-67\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,11 @@
+% The test perf of the network objects of cm3
+% (m3-comm/netobj/tests/perf), for tools/net_test.py.
+import ("libm3")
+import ("tcp")
+import ("netobj")
+interface ("Test")
+module ("XRd")
+netobjv2 ("Test", "T")
+netobjv2 ("Test", "Return")
+implementation ("Main")
+program ("perf")
