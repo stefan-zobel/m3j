@@ -1,8 +1,8 @@
 # m3j - Modula-3 on the JVM
 
 m3j compiles Modula-3 to Java bytecode. Its front end is a faithful Java
-port of the front end of Critical Mass Modula-3 (CM3), its back end new
-code on the JDK's ClassFile API. CM3 is the reference for everything.
+port of the front end of [Critical Mass Modula-3 (CM3)](https://github.com/modula3/cm3),
+its back end new code on the JDK's ClassFile API. CM3 is the reference for everything.
 
 - **Front end** (`m3j.front`, with the parts of `m3middle` and `m3core` it
   needs): on CM3's own libraries and on the m3tests suite it produces the
