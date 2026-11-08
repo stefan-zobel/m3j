@@ -789,7 +789,9 @@ final class Java {
      * procedure value and the arguments of the abstract method, and calls
      * the procedure. A Modula-3 exception that the procedure raises passes
      * through the Java caller and comes back to the call that made the
-     * Java code run as what it is.
+     * Java code run as what it is. So that a thread that Java started can
+     * tell what the program did not handle, a JVM exception that stands for
+     * a checked runtime error leaves here as that runtime error.
      */
     static void bridge(Unit u, ClassBuilder clb, String name, Adapter a) {
         MethodTypeDesc d = Params.descriptor(a.sig);
@@ -797,6 +799,8 @@ final class Java {
         MethodTypeDesc bd = a.samDesc.insertParameterTypes(0, iface);
         clb.withMethodBody(name, bd, ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC | ClassFile.ACC_SYNTHETIC, cb -> {
             Code c = new Code(u, cb, Frames.INIT);
+            Label start = cb.newLabel(), end = cb.newLabel(), handler = cb.newLabel();
+            cb.labelBinding(start);
             cb.aload(0);
             int slot = 1;
             int i = 0;
@@ -817,7 +821,12 @@ final class Java {
                 }
                 narrow(cb, a.result != null ? a.result : res, r);
             }
+            cb.labelBinding(end);
             cb.return_(TypeKind.from(r));
+            cb.labelBinding(handler);
+            cb.invokestatic(CD_Java, "caught", MT_CAUGHT);
+            cb.athrow();
+            cb.exceptionCatch(start, end, handler, Code.CD_Throwable);
         });
     }
 }

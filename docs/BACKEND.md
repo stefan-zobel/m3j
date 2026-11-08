@@ -390,8 +390,11 @@ run and `Stdio` is flushed.
 raised), turns what `Rt.toM3` knows into the checked runtime error, and
 anything else into `Java.Exception` with the throwable as argument. The
 exception is declared `<*IMPLICIT*>`, so the check of `RAISES` passes it.
-An exception that leaves a callback on a thread that Java started has no
-call to return to: the JVM's default handler reports it and only that
+A bridge (section 5) has the same handler, so that what leaves a callback
+is an `M3Exception`. On a thread that Java started it has no call to
+return to: `Rt.main` sets a default handler of uncaught exceptions, which
+ends the program for an `M3Exception` as `Thread.Fork` does. Other
+throwables are Java's own: it prints them as the JVM does, and only that
 thread ends.
 
 ## 8. Threads

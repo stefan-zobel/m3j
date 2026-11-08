@@ -135,8 +135,10 @@ A procedure passed for a parameter of a functional interface (`Runnable`,
 and result converted as above; `NIL` stays `null`, and it can be a nested
 procedure. A Modula-3 exception that it raises passes through Java and
 comes back to the call that made Java run it. On a thread that Java
-started there is no such call: the exception ends that thread only and
-the JVM prints it.
+started there is no such call: an exception or a checked runtime error
+that nothing handles ends the program, as in a thread of `Thread.Fork`.
+What a Java library catches itself stays with it: `Future.get` reports the
+exception of a task of `ExecutorService.submit` as its cause.
 
 Classes that are not those of the JDK are given with `-cp` (separated as
 in a class path of the system). A jar written with `-d` finds them through

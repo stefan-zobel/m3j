@@ -1,0 +1,25 @@
+{
+ "units": [
+  "tests/diff/src/check/java-threads/src/JArrays.i3",
+  "tests/diff/src/check/java-threads/src/JExecutor.i3",
+  "tests/diff/src/check/java-threads/src/JExecutors.i3",
+  "tests/diff/src/check/java-threads/src/JFuture.i3",
+  "tests/diff/src/check/java-threads/src/JIntStream.i3",
+  "tests/diff/src/check/java-threads/src/JInteger.i3",
+  "tests/diff/src/check/java-threads/src/JMap.i3",
+  "tests/diff/src/check/java-threads/src/JThread.i3",
+  "tests/diff/src/check/java-threads/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "java"
+ ],
+ "result": {
+  "stdout": "",
+  "stderr": "\n\n***\n*** runtime error:\n***    An array subscript was out of range.\n***    file \"../src/Main.m3\", line 509\n***\n\n",
+  "status": 4294967295
+ },
+ "stable": true
+}

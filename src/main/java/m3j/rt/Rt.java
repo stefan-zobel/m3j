@@ -274,12 +274,19 @@ public final class Rt {
     /**
      * Runs a program: body initializes the units in order. Runs in a thread
      * with a large stack; a runtime error or an unhandled exception ends
-     * the program as with cm3.
+     * the program as with cm3, also in a thread that Java started.
      */
     public static void main(String[] argv, Runnable body) {
         args = argv;
         program = body.getClass();
         int[] status = {0};
+        Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
+            if (e instanceof M3Exception m) {
+                crashAndExit(m);
+            }
+            System.err.print("Exception in thread \"" + thread.getName() + "\" ");
+            e.printStackTrace();
+        });
         Thread t = new Thread(null, () -> {
             try {
                 body.run();
@@ -746,11 +753,16 @@ public final class Rt {
         Runtime.getRuntime().halt(CRASH_STATUS);
     }
 
+    /** Taken for good by the first thread that ends the program for an exception. */
+    private static final Object CRASHING = new Object();
+
     /** Ends the program for an exception not handled in a thread. */
     public static void crashAndExit(M3Exception e) {
-        int status = crash(e);
-        System.out.flush();
-        Runtime.getRuntime().halt(status);
+        synchronized (CRASHING) {
+            int status = crash(e);
+            System.out.flush();
+            Runtime.getRuntime().halt(status);
+        }
     }
 
     /**

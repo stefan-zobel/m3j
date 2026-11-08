@@ -53,3 +53,7 @@ check/java-index tests/diff/src/check/java index
 check/java-uncaught tests/diff/src/check/java uncaught
 check/java-threads tests/diff/src/check/java-threads expected=hand-checked.txt
 check/java-threads-10 tests/diff/src/check/java-threads 10 expected=hand-checked.txt
+check/java-threads-error tests/diff/src/check/java-threads error
+check/java-threads-nil tests/diff/src/check/java-threads nil
+check/java-threads-raise tests/diff/src/check/java-threads raise
+check/java-threads-pool tests/diff/src/check/java-threads pool

@@ -12,6 +12,9 @@ TYPE
 <*EXTERNAL "submit(Ljava/lang/Runnable;)Ljava/util/concurrent/Future;"*>
 PROCEDURE submit (self: T; t: Task): JFuture.T;
 
+<*EXTERNAL "execute(Ljava/lang/Runnable;)V"*>
+PROCEDURE execute (self: T; t: Task);
+
 PROCEDURE shutdown (self: T);
 
 END JExecutor.

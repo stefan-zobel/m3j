@@ -10,7 +10,9 @@
 
    The output does not depend on the order in which the threads run: it has
    checks only, and is the same for every scale. The argument, a positive
-   number (default 1), scales the amount of work. *)
+   number (default 1), scales the amount of work. With the argument error,
+   nil, raise or pool, a callback on a Java thread leaves something
+   unhandled, which ends the program. *)
 
 MODULE Main;
 
@@ -493,6 +495,46 @@ PROCEDURE ThroughStream () =
     Check ("runtime error out of a parallel stream", errors = n, last);
   END ThroughStream;
 
+(* What a callback on a Java thread does not handle ends the program, as in
+   a forked thread. *)
+
+VAR
+  small  : ARRAY [0 .. 1] OF INTEGER;
+  far    := 5;
+  nothing: REF INTEGER := NIL;
+  mode   := "";
+
+PROCEDURE SubscriptError () =
+  BEGIN
+    small[far] := 1;
+  END SubscriptError;
+
+PROCEDURE NilError () =
+  BEGIN
+    nothing^ := 1;
+  END NilError;
+
+PROCEDURE RaiseBoom () RAISES {Boom} =
+  BEGIN
+    RAISE Boom (1);
+  END RaiseBoom;
+
+PROCEDURE Ends (t: JThread.T) =
+  BEGIN
+    JThread.start (t);
+    JThread.join (t);
+    IO.Put ("the program went on\n");
+  END Ends;
+
+PROCEDURE EndsInPool () =
+  VAR pool := JExecutors.newFixedThreadPool (1);
+  BEGIN
+    JExecutor.execute (pool, RaiseBoom);
+    JExecutor.shutdown (pool);
+    Thread.Pause (60.0D0);
+    IO.Put ("the program went on\n");
+  END EndsInPool;
+
 PROCEDURE Scale () =
   <* FATAL Lex.Error, FloatMode.Trap *>
   BEGIN
@@ -500,18 +542,29 @@ PROCEDURE Scale () =
   END Scale;
 
 BEGIN
-  Scale ();
-  Counter ();
-  Check ("closures of a recursion", Nest (64) = 1000 * 64 * 65 DIV 2);
-  Selves ();
-  Pool ();
-  Streams ();
-  Merge ();
-  Sort ();
-  Forked ();
-  Buffer ();
-  Alerts ();
-  Handled ();
-  ThroughFuture ();
-  ThroughStream ();
+  IF Params.Count > 1 THEN mode := Params.Get (1); END;
+  IF Text.Equal (mode, "error") THEN
+    Ends (JThread.New (SubscriptError));
+  ELSIF Text.Equal (mode, "nil") THEN
+    Ends (JThread.New (NilError));
+  ELSIF Text.Equal (mode, "raise") THEN
+    Ends (JThread.NewRaises (RaiseBoom));
+  ELSIF Text.Equal (mode, "pool") THEN
+    EndsInPool ();
+  ELSE
+    Scale ();
+    Counter ();
+    Check ("closures of a recursion", Nest (64) = 1000 * 64 * 65 DIV 2);
+    Selves ();
+    Pool ();
+    Streams ();
+    Merge ();
+    Sort ();
+    Forked ();
+    Buffer ();
+    Alerts ();
+    Handled ();
+    ThroughFuture ();
+    ThroughStream ();
+  END;
 END Main.
