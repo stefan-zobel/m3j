@@ -7,7 +7,7 @@ code on the JDK's ClassFile API. CM3 is the reference for everything.
 - **Front end** (`m3j.front`, with the parts of `m3middle` and `m3core` it
   needs): on CM3's own libraries and on the m3tests suite it produces the
   same intermediate code and the same diagnostics as cm3 (see
-  MODULA3-JVM.md).
+  [`MODULA3-JVM.md`](MODULA3-JVM.md)).
 - **Back end** (`m3j.jvm`) and **runtime** (`m3j.rt`, and Java versions of
   the library interfaces in `m3.i`): the safe language, threads and the
   parts of libm3 and m3core that safe programs use; the other library
@@ -15,7 +15,7 @@ code on the JDK's ClassFile API. CM3 is the reference for everything.
   program tests of m3tests (`p0`-`p2`, `r0`) give the expected output
   except for a few listed cases (`tools/run_jvm.py`), and every class of
   the compile tests `c0` and `c1` verifies. The design is in
-  `docs/BACKEND.md`.
+  [`docs/BACKEND.md`](docs/BACKEND.md).
 
 UNSAFE modules are not supported.
 
@@ -109,9 +109,9 @@ and the place of its declaration and of the definition of its type, from
 m3tk, cm3's toolkit for Modula-3. It is started as
 `java -jar m3_lang_server.jar` (with `m3j.jar` and `m3build.jar` next to
 it) and checks the files of packages (below a directory `src` with an
-`m3makefile`), whose imports it gets from m3build. `tools/langserver/vscode`
+`m3makefile`), whose imports it gets from m3build. [`tools/langserver/vscode`](tools/langserver/vscode)
 is an extension for Visual Studio Code (syntax highlighting and a client
-of the server, without other packages); `tools/langserver/README.md` has
+of the server, without other packages); [`tools/langserver/README.md`](tools/langserver/README.md) has
 the settings for Neovim, Emacs (Eglot), Helix and Kate.
 
 A compiled program follows the conventions of the operating system that it
@@ -168,27 +168,27 @@ CM3's libraries and m3tests do not use; build each of them with
 `-DNOCHECKS`, in a copy) and pass the package directories to
 `front_test.py`.
 
-`tools/README.md` lists the tools, `docs/PORTING.md` the rules for porting
-CM3 sources, `docs/BACKEND.md` the design of the JVM back end.
+[`tools/README.md`](tools/README.md) lists the tools, [`docs/PORTING.md`](docs/PORTING.md) the rules for porting
+CM3 sources, [`docs/BACKEND.md`](docs/BACKEND.md) the design of the JVM back end.
 
 ## License
 
 The sources written for m3j are distributed under the MIT license in
-`LICENSE`; their head says so (`SPDX-License-Identifier: MIT`). The
+[`LICENSE`](LICENSE); their head says so (`SPDX-License-Identifier: MIT`). The
 sources ported or copied from CM3 keep their original license; where m3j
 changed one, a line in its head says that the changes are distributed
-under the MIT license in `LICENSE`.
+under the MIT license in [`LICENSE`](LICENSE).
 
 The ported CM3 sources are distributed under their original licenses, in
-`licenses/` (`COPYRIGHT-DEC` for the code from Digital Equipment
-Corporation, `COPYRIGHT-CMASS` for the code from Critical Mass,
-`COPYRIGHT-COLUMBIA` for the code from Columbia University,
-`COPYRIGHT-LUCENT` for the notice of David Gay's conversion code,
-`MIT-BATES` for `ArrayExpr`, and `MIT-MCKINNA` for the language server).
+[`licenses/`](licenses) ([`COPYRIGHT-DEC`](licenses/COPYRIGHT-DEC) for the code from Digital Equipment
+Corporation, [`COPYRIGHT-CMASS`](licenses/COPYRIGHT-CMASS) for the code from Critical Mass,
+[`COPYRIGHT-COLUMBIA`](licenses/COPYRIGHT-COLUMBIA) for the code from Columbia University,
+[`COPYRIGHT-LUCENT`](licenses/COPYRIGHT-LUCENT) for the notice of David Gay's conversion code,
+[`MIT-BATES`](licenses/MIT-BATES) for `ArrayExpr`, and [`MIT-MCKINNA`](licenses/MIT-MCKINNA) for the language server).
 The sources copied from CM3 keep their notices: `lib` (m3core, libm3, tcp,
 netobj, sysutils, libbuf, and json with the notice of its author,
-`lib/json/COPYRIGHT-BSD`, see `lib/README.md`), `tools/langserver/src`
+[`lib/json/COPYRIGHT-BSD`](lib/json/COPYRIGHT-BSD), see [`lib/README.md`](lib/README.md)), `tools/langserver/src`
 (CM3's language server), `tests/m3tests`,
 `tests/diff/src`, `tests/pkg`, `tests/net`, `tests/m3front` (CM3's front end, see
-`tests/m3front/README.md`) and `tests/stubgen` (CM3's stub generator for
-network objects, see `tests/stubgen/README.md`), and `tools/m3bundle` (CM3's m3bundle).
+[`tests/m3front/README.md`](tests/m3front/README.md)) and `tests/stubgen` (CM3's stub generator for
+network objects, see [`tests/stubgen/README.md`](tests/stubgen/README.md)), and `tools/m3bundle` (CM3's m3bundle).

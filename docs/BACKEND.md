@@ -1,4 +1,4 @@
-# m3j step 4: the JVM back end — design rules
+# m3j: the JVM back end — design rules
 
 The back end translates the tree that the front end (`m3j.front`) has
 checked into JVM class files, using the Class-File API
