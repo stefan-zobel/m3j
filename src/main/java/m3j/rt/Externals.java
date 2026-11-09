@@ -175,6 +175,49 @@ public final class Externals {
         return FileSystem.setWorkingDirectory(p);
     }
 
+    // M3jTls (m3j's module TLS): see Tls
+    public static Object M3jTls__NewContext(String keyStore, String keyPassword, String trustStore,
+                                            String trustPassword, ObjRef err) {
+        return Tls.newContext(keyStore, keyPassword, trustStore, trustPassword, err);
+    }
+
+    public static Object M3jTls__NewEngine(Object context, String host, boolean client, boolean needAuth,
+                                           String alpn) {
+        return Tls.newEngine(context, host, client, needAuth, alpn);
+    }
+
+    public static void M3jTls__Feed(Object e, byte[] b, int off, int n) {
+        ((Tls) e).feed(b, off, n);
+    }
+
+    public static long M3jTls__Handshaking(Object e) {
+        return ((Tls) e).handshaking();
+    }
+
+    public static long M3jTls__Take(Object e, byte[] b, int off, int n) {
+        return ((Tls) e).take(b, off, n);
+    }
+
+    public static long M3jTls__Give(Object e, byte[] b, int off, int n) {
+        return ((Tls) e).give(b, off, n);
+    }
+
+    public static long M3jTls__Drain(Object e, byte[] b, int off, int n) {
+        return ((Tls) e).drain(b, off, n);
+    }
+
+    public static void M3jTls__CloseOutput(Object e) {
+        ((Tls) e).closeOutput();
+    }
+
+    public static String M3jTls__Message(Object e) {
+        return ((Tls) e).message();
+    }
+
+    public static String M3jTls__Info(Object e, long what) {
+        return ((Tls) e).info(what);
+    }
+
     // M3jNet (m3j's modules TCP and IP): see Net
     public static long M3jNet__Listen(long addr, long port) {
         return Net.listen(addr, port);

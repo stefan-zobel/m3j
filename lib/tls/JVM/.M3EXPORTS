@@ -1,0 +1,7 @@
+% exports of tls: TLS over connections, on the engine of the Java platform
+_define_lib("tls")
+import_version("m3core", "JVM")
+import_version("libm3", "JVM")
+import_version("tcp", "JVM")
+_map_add_interface("TLS.i3", "tls", "src", "")
+_map_add_module("TLS.m3", "tls", "src", "hidden")

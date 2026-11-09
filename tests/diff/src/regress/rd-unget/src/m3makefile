@@ -1,0 +1,4 @@
+% UnGetChar and GetSub on a file reader around the ends of its buffers.
+import ("libm3")
+implementation ("Main")
+program ("rd-unget")

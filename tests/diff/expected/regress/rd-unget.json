@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/rd-unget/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "unget, small GetSub 4096 10: ok\nunget, big GetSub 4096 20000: ok\nunget, GetChar 4096: ok\nnext GetChar 4096: ok\nUnGetCharMulti 8 4096: 8\nafter multi 4096 10: ok\nbig GetSub after GetChar 4096 20000: ok\nUnGetCharMulti 8 after it 4096: 8\nsmall GetSub after it 4096 10: ok\nIndex at the boundary 4096: 20480\nUnGetCharMulti 3 there 4096: 3\nGetChar after it 4096: ok\nSeek before 4096 10: ok\nIndex 4096: 4104\nSeek after 4096: ok\nSeek back 4096: ok\nunget, small GetSub 8192 10: ok\nunget, big GetSub 8192 20000: ok\nunget, GetChar 8192: ok\nnext GetChar 8192: ok\nUnGetCharMulti 8 8192: 8\nafter multi 8192 10: ok\nbig GetSub after GetChar 8192 20000: ok\nUnGetCharMulti 8 after it 8192: 8\nsmall GetSub after it 8192 10: ok\nIndex at the boundary 8192: 24576\nUnGetCharMulti 3 there 8192: 3\nGetChar after it 8192: ok\nSeek before 8192 10: ok\nIndex 8192: 8200\nSeek after 8192: ok\nSeek back 8192: ok\nunget, small GetSub 65536 10: ok\nunget, big GetSub 65536 20000: ok\nunget, GetChar 65536: ok\nnext GetChar 65536: ok\nUnGetCharMulti 8 65536: 8\nafter multi 65536 10: ok\nbig GetSub after GetChar 65536 20000: ok\nUnGetCharMulti 8 after it 65536: 8\nsmall GetSub after it 65536 10: ok\nIndex at the boundary 65536: 65536\nUnGetCharMulti 3 there 65536: 3\nGetChar after it 65536: ok\nSeek before 65536 10: ok\nIndex 65536: 65544\nSeek after 65536: ok\nSeek back 65536: ok\nunget, small GetSub 131072 10: ok\nunget, big GetSub 131072 20000: ok\nunget, GetChar 131072: ok\nnext GetChar 131072: ok\nUnGetCharMulti 8 131072: 8\nafter multi 131072 10: ok\nbig GetSub after GetChar 131072 20000: ok\nUnGetCharMulti 8 after it 131072: 8\nsmall GetSub after it 131072 10: ok\nIndex at the boundary 131072: 131072\nUnGetCharMulti 3 there 131072: 3\nGetChar after it 131072: ok\nSeek before 131072 10: ok\nIndex 131072: 131080\nSeek after 131072: ok\nSeek back 131072: ok\nUnGetCharMulti at the start 0: 0\nLength 0: 200000\nGetChar at the end 0: ok\nEOF 0: 1\nlast character 0: ok\nEOF again 0: 1\nGetText 0: 70000\nlines 0: 2500\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,6 +1,7 @@
 (* Changed for m3j from the UNSAFE module of libm3: the buffer is read
    with M3jFile.Read, as characters, instead of through a LOOPHOLE of its
-   address to an array of File.Byte; so the module is safe. *)
+   address to an array of File.Byte; so the module is safe. The buffer is
+   larger than in libm3. *)
 
 (* Copyright (C) 1993, Digital Equipment Corporation           *)
 (* All rights reserved.                                        *)
@@ -24,7 +25,11 @@ PROCEDURE Open(p: Pathname.T): T RAISES {OSError.E} =
 
 TYPE CharBuffer = REF ARRAY OF CHAR;
 
-CONST BufferSize = 4096;
+(* Rd.GetSub copies through this buffer whatever the size of the block it is
+   asked for: it does not call the method getSub, which knows nothing of the
+   unget buffer of Rd. So the size of the buffer sets the size of the reads
+   of a file. *)
+CONST BufferSize = 65536;
 
 CONST BIG = 16_1000000; (* 2^24 => 16M *)
 

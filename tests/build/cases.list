@@ -12,6 +12,8 @@ java     java     javac jbind/classes jbind/extra/tool/Extra.java; javac jbind/j
 
 java-lib java    javac jlib/jarclasses jlib/java/tool/Hello.java; jar jlib/lib/hello.jar jlib/jarclasses; m3build jlib; exists jlib/JVM/hello.jar; m3build jlib -ship -root <work>/root; exists root/pkg/jlib/JVM/hello.jar; m3build juser -root <work>/root; run juser/JVM/juser; m3build juser -ship -root <work>/root; run root/bin/juser; m3build jlib2 -root <work>/root; m3build jlib2 -ship -root <work>/root; m3build juser2 -root <work>/root; run juser2/JVM/juser2; m3build jlibdir; absent jlibdir/JVM/.M3EXPORTS
 
+tls      tls      m3build use; run use/JVM/use
+
 netobj   netobj   m3build nob; exists nob/JVM/Test_T_v1.m3; exists nob/JVM/Test_U_v2.m3; pair nob/JVM/netobj
 
 errors   errors   m3build bad; absent bad/JVM/bad.jar; m3build noimport; m3build csrc; absent csrc/JVM/csrc.jar; m3build unsafe; absent unsafe/JVM/unsafe.jar

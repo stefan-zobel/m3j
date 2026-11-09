@@ -1,0 +1,6 @@
+% Tests of TLS over TCP connections; tools/tls_test.py runs it.
+import ("libm3")
+import ("tcp")
+import ("tls")
+implementation ("Main")
+program ("tlstest")

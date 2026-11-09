@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -70,6 +70,30 @@ are compiled with the program; `Bundle.Get (NAME.Get (), ELEMENT)` and
 ```sh
 java -jar m3bundle.jar -name NAME -element ELEMENT FILE ...   # m3j-runtime.jar next to it
 ```
+
+### TLS
+
+The package tls (not part of cm3) has connections of TLS 1.2 and 1.3. A
+`TLS.T` is a `ConnFD.T` around another one, so `ConnRW` and `ConnMsgRW`
+work on it as on a `TCP.T`, with the same timeouts and alerts. The protocol,
+the check of certificates and the trusted certificates are those of the
+Java platform:
+
+```modula-3
+ctx := TLS.NewContext ();                          (* a client: the platform's CAs *)
+t := TLS.Client (ctx, TCP.Connect (ep), "www.example.org");
+rd := ConnRW.NewRd (t);  wr := ConnRW.NewWr (t);
+
+ctx := TLS.NewContext ("server.p12", "password");  (* a server, a thread per connection *)
+t := TLS.Server (ctx, TCP.Accept (connector));
+```
+
+The certificate of a server is always checked against the name that the
+client gives. The interface `TLS` describes contexts of other certificates,
+certificates of clients and ALPN. A connection that ends without the notice
+of closing of the protocol raises `Rd.Failure` with `TLS.Truncated`, for its
+data may be incomplete. Sessions are not resumed: each connection has a full
+handshake.
 
 ### Java APIs
 

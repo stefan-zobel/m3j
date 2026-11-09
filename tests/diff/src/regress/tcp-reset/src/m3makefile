@@ -1,0 +1,5 @@
+% The errors of a connection that its other side has reset.
+import ("libm3")
+import ("tcp")
+implementation ("Main")
+program ("tcp-reset")

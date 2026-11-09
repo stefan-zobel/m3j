@@ -1,0 +1,57 @@
+lines: TLSv1.3 peer CN=localhost
+lines: echo line 1
+lines: echo line 2
+lines: echo line 3
+lines: EOF TRUE
+blocks 1: read 1 wrong 0
+blocks 100: read 100 wrong 0
+blocks 16383: read 16383 wrong 0
+blocks 16384: read 16384 wrong 0
+blocks 16385: read 16385 wrong 0
+blocks 70000: read 70000 wrong 0
+blocks 1048576: read 1048576 wrong 0
+messages: 5:short
+messages: 12:hello, world
+messages: 0:
+name: TLSv1.3 protocol NIL peer CN=localhost
+address: TLSv1.3 protocol NIL peer CN=localhost
+other host: IP.Error TLS.BadCertificate
+other host: server: IP.Error TLS.HandshakeFailed
+wrong name: IP.Error TLS.BadCertificate
+wrong name: server: IP.Error TLS.HandshakeFailed
+expired: IP.Error TLS.BadCertificate
+expired: server: IP.Error TLS.HandshakeFailed
+unknown CA: IP.Error TLS.BadCertificate
+unknown CA: server: IP.Error TLS.HandshakeFailed
+not TLS: IP.Error TLS.HandshakeFailed
+plain client: server: IP.Error TLS.HandshakeFailed
+missing file: TLS.BadKeyStore
+wrong password: TLS.BadKeyStore
+trust PKCS12: TLSv1.3 protocol NIL peer CN=localhost
+alpn agreed: TLSv1.3 protocol b peer CN=localhost
+alpn only client: TLSv1.3 protocol NIL peer CN=localhost
+alpn only server: TLSv1.3 protocol NIL peer CN=localhost
+alpn mismatch: IP.Error TLS.HandshakeFailed
+alpn mismatch: server: IP.Error TLS.HandshakeFailed
+client cert: TLSv1.3 protocol NIL peer CN=localhost
+client cert: server: peer CN=m3j test client
+no client cert: Rd.Failure TLS.ProtocolError
+no client cert: server: IP.Error TLS.HandshakeFailed
+timeout: TimedOut, in time TRUE
+timeout 0: TimedOut
+CharsReady: 0
+after timeouts: answer
+handshake timeout: IP.Error TCP.Timeout
+alert in get: Thread.Alerted
+after the alert: answer
+alert in handshake: Thread.Alerted
+notice: last line
+notice: EOF TRUE
+cut: last line
+cut: Rd.Failure TLS.Truncated
+half close: lines read: 2
+shutdownIn: get 0
+closed get: Rd.Failure TCP.Closed
+closed put: Wr.Failure TCP.Closed
+reader and writer: 200 lines
+end

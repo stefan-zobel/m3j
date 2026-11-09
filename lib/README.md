@@ -49,7 +49,7 @@ These modules are changed for m3j (each says so and why at its top):
 | Module | Change |
 |---|---|
 | `m3core/src/text/TextConv.m3`, `libm3/src/text/TextExtras.m3`, `libm3/src/rw/Rd.m3`, `libm3/src/rw/TextWr.m3` | texts made with `Text.FromChars` instead of `Text8.Create` (`TEXT` is a Java string) |
-| `libm3/src/rw/FileRd.m3`, `libm3/src/rw/FileWr.m3` | safe: the buffers are read and written through `M3jFile` instead of a `LOOPHOLE` to bytes |
+| `libm3/src/rw/FileRd.m3`, `libm3/src/rw/FileWr.m3` | safe: the buffers are read and written through `M3jFile` instead of a `LOOPHOLE` to bytes; `FileRd` has a buffer of 64 KB instead of 4 KB, for reads of large blocks |
 | `libm3/src/rw/Stdio.m3` | the standard files from `M3jFile` |
 | `libm3/src/os/Common/FS.m3` | the file system of the Java platform (`M3jFS`) |
 | `libm3/src/os/Common/Process.m3` | new, in place of the UNSAFE `ProcessWin32.m3` and `ProcessPosix.m3`: the processes of the Java platform (`M3jProc`), and a working directory of the program that `SetWorkingDirectory` changes |
@@ -95,6 +95,13 @@ compares the first bits of the address, as its interface says (cm3
 compares others on a little-endian machine); `GetAddrInfo` and
 `GetNameInfo` know only some services by name (`ftp`, `ssh`, `telnet`,
 `smtp`, `domain`, `http`, `pop3`, `nntp`, `imap`, `https`).
+
+## tls
+
+Not a package of cm3, which has no TLS: `TLS` (`src/TLS.i3`, `src/TLS.m3`,
+safe), a `ConnFD.T` around another one, on the engine of the Java platform
+(`M3jTls`, `m3j.rt.Tls`). The engine does no input or output; the module
+moves the bytes over the connection below, so its timeouts and alerts stay.
 
 ## netobj
 
@@ -198,4 +205,6 @@ a reference (`LOOPHOLE (r, Word.T)`), and `M3jNet`, sockets of TCP that
 do not block and the lookup of names of hosts, for the modules `TCP` and
 `IP` of tcp (`m3j.rt.Net`), and `M3jProc`, the processes of the Java
 platform for `Process` (`m3j.rt.Proc`), and `M3jWeak`, the weak
-references of the Java platform for `WeakRef` (`m3j.rt.Weak`).
+references of the Java platform for `WeakRef` (`m3j.rt.Weak`), and
+`M3jTls`, the engine of TLS of the Java platform for the module `TLS` of
+tls (`m3j.rt.Tls`).

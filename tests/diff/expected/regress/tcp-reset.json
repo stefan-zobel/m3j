@@ -1,0 +1,17 @@
+{
+ "units": [
+  "tests/diff/src/regress/tcp-reset/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "tcp"
+ ],
+ "result": {
+  "stdout": "put: Wr.Failure [ TCP.ConnLost # ]\nget after put: Rd.Failure [ TCP.ConnLost # ]\nget: 0\nend\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

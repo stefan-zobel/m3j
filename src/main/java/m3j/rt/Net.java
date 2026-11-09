@@ -306,7 +306,13 @@ final class Net {
         try {
             int r = sock(h).conn().write(ByteBuffer.wrap(b, off, n));
             return r == 0 && n > 0 ? -WOULD_BLOCK : r;
-        } catch (IOException | RuntimeException e) {
+        } catch (IOException e) {
+            // On Windows the text of this error is the system's, in its
+            // language, so code may not know it; on a connection that was
+            // made, it means that the connection is lost.
+            long c = code(e);
+            return -(c == 1 ? CONN_RESET : c);
+        } catch (RuntimeException e) {
             return -code(e);
         }
     }

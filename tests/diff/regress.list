@@ -14,3 +14,5 @@ regress/init-cycle tests/diff/src/regress/init-cycle
 regress/merge-types tests/diff/src/regress/merge-types
 regress/frontend-fixes tests/diff/src/regress/frontend-fixes expected=hand-checked.txt
 regress/hash-streams tests/diff/src/regress/hash-streams
+regress/rd-unget tests/diff/src/regress/rd-unget
+regress/tcp-reset tests/diff/src/regress/tcp-reset

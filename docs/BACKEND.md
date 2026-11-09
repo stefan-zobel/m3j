@@ -599,6 +599,14 @@ The library is hybrid:
   set); one that may not keeps the interrupt for later. The errors are
   the numbers of Windows Sockets, as cm3 puts them into the lists of
   atoms of `IP.Error`, `Rd.Failure` and `Wr.Failure`.
+  The package tls of m3j (`lib/tls`) has a safe module `TLS` on `M3jTls`
+  (`m3j.rt.Tls`): an `SSLEngine` with buffers for the bytes from and for the
+  network and for the decrypted bytes, which does no input or output. The
+  module gives it what it reads from the `ConnFD.T` below and sends what it
+  asks for; no lock is held while a thread is blocked there, and one thread
+  at a time reads or sends, so that the records stay in order. A reader
+  leaves what it has to send to a thread that is already sending, so it
+  never waits for a writer that is blocked.
   The package sysutils of cm3 (`lib/sysutils`) has the modules of cm3 for
   Windows and for POSIX merged into modules for both (`PathRepr`,
   `OSSpecials`), and its UNSAFE procedures are safe ones in `System`
