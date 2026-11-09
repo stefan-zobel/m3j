@@ -26,6 +26,7 @@ These units are changed for m3j (each says so and why at its top):
 |---|---|
 | `m3front/src/misc/Scanner.m3` | safe: the list of pragmas to ignore is a traced reference |
 | `m3front/src/values/Module.m3` | the keyword `UNSAFE`, which it does not need, left out |
+| `m3front/src/builtinOps/BitSize.m3` | a type of size zero is accepted, as by the front end of m3j (`EVAL BYTESIZE (R)` of an empty record stops cm3 at an assertion) |
 | `m3front/src/misc/M3.i3`, `m3front/src/types/Type.m3` | safe: the assumptions of `Type.IsEqual` are allocated instead of being the addresses of records on the stack (`EqAssumption <: REFANY`) |
 | `m3middle/src/M3FP.m3` | safe: `Combine` copies the bytes instead of taking them with a `LOOPHOLE` |
 | `m3middle/src/M3ID.i3`, `m3middle/src/M3ID.m3` | safe: each id has its own array of characters; `ToStr` left out |

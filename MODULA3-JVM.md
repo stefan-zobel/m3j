@@ -288,8 +288,8 @@ affected, except for units that crash `M3C` before the stream is complete.
    - 9 units are cut off in cm3 because its C back end crashes (p240, p268,
      p270, p277, p280, c126; see above); cm3's code is a prefix of the
      port's. In e041 (cyclic revelations) cm3 and the port both overflow
-     the stack, and in c120 both stop at the same `<*ASSERT*>` in
-     `BitSize.m3`;
+     the stack; c120 stops cm3 at an `<*ASSERT*>` in `BitSize.m3`, which
+     the port no longer has;
    - the diagnostics are the same in all packages. For six p tests the
      expected files of m3tests are older than this cm3 (p070, p135,
      p152–p154, p161); there cm3 itself was run again for comparison.

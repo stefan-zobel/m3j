@@ -1,3 +1,6 @@
+(* Changed for m3j from the module of m3front: a type of size zero is
+   accepted, as by the front end of m3j, where the assertion was "> 0". *)
+
 (* Copyright (C) 1992, Digital Equipment Corporation           *)
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
@@ -68,7 +71,7 @@ PROCEDURE DoCompile (e: Expr.T;  unit: INTEGER) =
     IF TypeExpr.Split (e, t) THEN
       Type.Compile (t);
       EVAL Type.CheckInfo (t, info);
-      <* ASSERT info.size > 0 *>
+      <* ASSERT info.size >= 0 *>
       CG.Load_intt ((info.size + unit - 1) DIV unit);
       RETURN;
     END;
