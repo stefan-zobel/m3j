@@ -1,0 +1,5 @@
+% Tests of JsonWriter of the library json; tools/json_test.py runs it.
+import ("libm3")
+import ("json")
+implementation ("Main")
+program ("jsonwritertest")

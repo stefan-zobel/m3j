@@ -43,7 +43,7 @@ The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
 tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
-`TextUtils` and others, and the packages json and libbuf: `Json`, `Buf`,
+`TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
 the jar; for these no cm3 installation is needed:
 
@@ -174,6 +174,29 @@ a well-formed document that reads back as it was written; the first error ends
 the writer. Children take the namespace of their parent, and prefixes are
 declared where they are needed. The output is UTF-8. It is plain Modula-3,
 without the writer of the Java platform.
+
+### JSON
+
+`Json`, from cm3, parses a text into a tree. `JsonWriter` writes JSON piece by
+piece to a `Wr.T`, without a tree:
+
+```modula-3
+w := JsonWriter.ToWr (wr, JsonWriter.Options {indent := "  "});
+w.object ();
+w.array ("books");
+w.object ();
+w.int (id, "id");
+w.text (title, "title");
+w.end ();
+w.end ();
+w.end ();
+w.finish ();
+```
+
+It escapes strings and checks the order of the calls, so that the result is a
+valid document (RFC 8259) that reads back as it was written. A surrogate
+without its partner, an infinity or a NaN and a key that the object has
+already are errors, and the first error ends the writer. The output is UTF-8.
 
 ### Java APIs
 

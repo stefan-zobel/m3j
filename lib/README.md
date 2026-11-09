@@ -185,6 +185,12 @@ does not use.
 | `json/src/Json.m3` | safe: `Dump` prints the name of the parent instead of its address (`LOOPHOLE`); `find` does not find a name below a node without children and `iterate` gives no children of an empty object or array, where cm3's module fails on a `NIL` table |
 | `json/src/JsonKeyword.m3` | safe: the characters taken with the checks of their subscripts instead of through an untraced pointer |
 
+`json/src/JsonWriter.i3` and `JsonWriter.m3` are m3j's own, not from cm3: JSON
+written piece by piece to a `Wr.T`, in plain Modula-3. `Json.format` joins the
+tree into one text and does not escape strings; the values of a `Json.T` are
+the text of the source, with its escapes and as bytes, and so they do not go
+through `JsonWriter.text`.
+
 ## libbuf
 
 The package libbuf of CM3 5.12.0 (`m3-libs/libbuf`, with the notice of

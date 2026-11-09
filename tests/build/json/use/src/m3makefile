@@ -1,0 +1,5 @@
+% A program that imports the package json.
+import ("libm3")
+import ("json")
+implementation ("Main")
+program ("use")

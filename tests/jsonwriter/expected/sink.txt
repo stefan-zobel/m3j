@@ -1,0 +1,15 @@
+opened: [{]
+after a member: [{"a":"x"]
+after a key: [{"a":"x","b":]
+array done: [{"a":"x","b":[1]]
+depth 1
+finished: [{"a":"x","b":[1]}]
+after finish: Closed
+close and flush again are harmless
+failing writers TRUE: raised TRUE, a prefix TRUE, closed afterwards TRUE
+Thread.Alerted came through
+after Thread.Alerted: Closed
+file: ["\c3\a4"]
+error: no object or array is open
+closed after an error
+the same key, few TRUE, many TRUE
