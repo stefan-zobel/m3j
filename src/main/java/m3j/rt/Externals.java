@@ -263,13 +263,31 @@ public final class Externals {
      * characters of t with the algorithm alg ("MD5", "SHA-256"), in hex.
      */
     public static String M3jHash__Digest(String alg, String t) {
-        java.security.MessageDigest md;
+        return java.util.HexFormat.of().formatHex(
+                digest(alg).digest(t.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)));
+    }
+
+    /** M3jHash.New: a digest in progress. */
+    public static Object M3jHash__New(String alg) {
+        return digest(alg);
+    }
+
+    private static java.security.MessageDigest digest(String alg) {
         try {
-            md = java.security.MessageDigest.getInstance(alg);
+            return java.security.MessageDigest.getInstance(alg);
         } catch (java.security.NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
-        return java.util.HexFormat.of().formatHex(md.digest(t.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)));
+    }
+
+    /** M3jHash.Update: adds n characters of b, from off, to the digest d. */
+    public static void M3jHash__Update(Object d, byte[] b, int off, int n) {
+        ((java.security.MessageDigest) d).update(b, off, n);
+    }
+
+    /** M3jHash.Finish: the digest of all the characters given to d, in hex. */
+    public static String M3jHash__Finish(Object d) {
+        return java.util.HexFormat.of().formatHex(((java.security.MessageDigest) d).digest());
     }
 
     /** M3jRef.Hash: a hash of the identity of a reference. */

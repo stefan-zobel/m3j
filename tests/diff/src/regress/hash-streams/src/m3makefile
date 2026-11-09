@@ -1,0 +1,4 @@
+% MD5.FromFile and SHA256.FromFile on readers around the block sizes.
+import ("libm3")
+implementation ("Main")
+program ("hash-streams")
