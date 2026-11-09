@@ -55,8 +55,11 @@ PROCEDURE ToInt (x: REFANY): INTEGER;
 (* The value of the java.lang.Number x; a checked runtime error if x is
    anything else. *)
 
-(* A Java array is held in a REFANY. A binding can pass it for a parameter
-   of an array type, and it is copied from and to Modula-3 arrays here. *)
+(* A binding can have Modula-3 arrays as parameters and results, which are
+   copied at the call. An array that fits none of them (of several
+   dimensions, or of a class without a binding) is held in a REFANY: a
+   binding can pass it for a parameter of an array type, and it is copied
+   from and to Modula-3 arrays here. *)
 
 PROCEDURE NewLongs (READONLY a: ARRAY OF INTEGER): REFANY;
 PROCEDURE NewBytes (READONLY a: ARRAY OF CHAR): REFANY;

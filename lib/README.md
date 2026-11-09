@@ -177,7 +177,10 @@ README of m3j). `Java` has the Java types as Modula-3 types
 (`Java.Int`, ...), the implicit exception `Java.Exception` and the helpers
 for any reference, boxes and arrays, implemented by the class
 `m3.i.Java`. `JavaObject` and `JavaThrowable` bind `java.lang.Object` and
-`java.lang.Throwable`; they are the types that other bindings extend. cm3
+`java.lang.Throwable`; they are the types that other bindings extend, and
+that object types can extend. The copies of `Java` are for Java arrays that
+a program holds in a `REFANY`; a binding can take Modula-3 arrays directly.
+cm3
 cannot compile these interfaces, so `m3front_test.py` leaves them out.
 
 ## m3j

@@ -24,6 +24,9 @@
    m3j, or AMD64_NT of one of cm3), except those of the packages that
    m3j brings (lib), which the compiler has in its jar. With the
    definition M3J_EXPORTS (the option -exports), nothing is compiled.
+   The class path of the bindings of Java classes is in M3J_CLASSPATH:
+   what the m3makefile of the package and the .M3EXPORTS of the libraries
+   that it imports say with java_classpath.
    m3j compiles Modula-3 only: other sources are an error. *)
 
 MODULE Builder;
@@ -316,11 +319,27 @@ PROCEDURE ClassPath (m: Quake.Machine): TEXT =
     RETURN v;
   END ClassPath;
 
+PROCEDURE OnClassPath (classPath, path: TEXT): BOOLEAN =
+  VAR
+    sep := Text.GetChar (PathSeparator (), 0);
+    start := 0;  n := Text.Length (classPath);  stop: INTEGER;
+  BEGIN
+    WHILE start <= n DO
+      stop := Text.FindChar (classPath, sep, start);
+      IF stop < 0 THEN stop := n; END;
+      IF Text.Equal (Text.Sub (classPath, start, stop - start), path) THEN RETURN TRUE; END;
+      start := stop + 1;
+    END;
+    RETURN FALSE;
+  END OnClassPath;
+
 PROCEDURE AddClassPath (m: Quake.Machine;  path: TEXT) RAISES {Quake.Error} =
   VAR old := ClassPath (m);
   BEGIN
     IF Text.Empty (old) THEN
       Quake.Define (m, ClassPathVar, path);
+    ELSIF OnClassPath (old, path) THEN
+      RETURN;
     ELSE
       Quake.Define (m, ClassPathVar, old & PathSeparator () & path);
     END;

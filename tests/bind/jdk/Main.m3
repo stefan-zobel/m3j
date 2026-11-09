@@ -5,8 +5,20 @@
 
 MODULE Main;
 
-IMPORT ArrayList, List, StringBuilder, JavaObject;
+IMPORT Arrays, ArrayList, JThread, List, Runnable, StringBuilder, JavaObject;
 IMPORT IO, Fmt;
+
+TYPE
+  Job = Runnable.T OBJECT
+    done := FALSE;
+  METHODS
+    run () := Run;
+  END;
+
+PROCEDURE Run (self: Job) =
+  BEGIN
+    self.done := TRUE;
+  END Run;
 
 VAR
   a := ArrayList.New ();
@@ -31,4 +43,17 @@ BEGIN
   IO.Put (StringBuilder.toString (b) & "\n");
   IO.Put (Fmt.Int (StringBuilder.length (b)) & "\n");
   IO.Put (StringBuilder.toString (StringBuilder.reverse (b)) & "\n");
+
+  (* an array parameter of an interface that m3jbind wrote *)
+  IO.Put (Arrays.toString_longArray (ARRAY OF INTEGER {4, 5}) & "\n");
+
+  (* a subtype of an interface that m3jbind wrote *)
+  VAR
+    j := NEW (Job);
+    t := JThread.New2 (j);
+  BEGIN
+    JThread.start (t);
+    JThread.join (t);
+    IO.Put (Fmt.Bool (j.done) & "\n");
+  END;
 END Main.

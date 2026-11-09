@@ -1,0 +1,44 @@
+thread subclass: ok
+ordinary method: ok
+override in NEW: ok
+subtype of the subtype: ok
+interface passed to a constructor: ok
+interface method called from Modula-3: ok
+revealed subtype: ok
+subtype from an interface, cast of a Java result: ok
+interface with several methods: ok
+override reaches Java: ok
+toString: ok
+ToText: ok
+exception through Java: ok
+abstract class: ok
+comparator: ok
+default method of an interface: ok
+protected Java method: ok
+subtype of java.lang.Object: ok
+protected constructor: ok
+ISTYPE down: ok
+ISTYPE up: ok
+ISTYPE other: ok
+ISTYPE interface: ok
+NARROW: ok
+TYPECASE: ok
+TYPECASE with a Java type: ok
+assignment to the supertype: ok
+supertype of a subtype: ok
+supertype of a subtype of Java: ok
+read a field: ok
+write a field: ok
+field as a VAR actual: ok
+field of another class: ok
+field in NEW of a subtype: ok
+field through WITH: ok
+value of a static method: ok
+value of a constructor: ok
+value of an instance method: ok
+equal in two units: ok
+not equal to another value: ok
+value passed as a callback: ok
+value that takes a callback: ok
+value with a VAR array: ok
+method default: ok

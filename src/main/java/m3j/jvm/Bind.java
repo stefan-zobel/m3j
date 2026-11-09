@@ -495,6 +495,19 @@ public final class Bind {
             return out;
         }
 
+        /** The element type of the Modula-3 array that stands for the Java array type c, null if there is none. */
+        private String element(Class<?> c) {
+            if (!c.isArray() || c.getComponentType().isArray()) {
+                return null;
+            }
+            Class<?> e = c.getComponentType();
+            if (e == byte.class) {
+                return "CHAR";
+            }
+            String t = typeOf(e);
+            return t.equals("REFANY") && e != Object.class ? null : t;
+        }
+
         private String procedure(Member m) {
             StringBuilder b = new StringBuilder();
             b.append("<*EXTERNAL \"").append(m.javaName).append(m.desc).append("\"*>\n");
@@ -506,14 +519,17 @@ public final class Bind {
             }
             int i = 1;
             for (Class<?> p : m.params) {
-                b.append(sep).append('a').append(i++).append(": ").append(typeOf(p));
+                String e = element(p);
+                b.append(sep).append(e != null ? "READONLY a" : "a").append(i++).append(": ")
+                 .append(e != null ? "ARRAY OF " + e : typeOf(p));
                 sep = "; ";
             }
             b.append(')');
             if (m.isCtor) {
                 b.append(": ").append(selfType());
             } else if (m.result != void.class) {
-                b.append(": ").append(typeOf(m.result));
+                String e = element(m.result);
+                b.append(": ").append(e != null ? "REF ARRAY OF " + e : typeOf(m.result));
             }
             return b.append(";\n").toString();
         }
@@ -530,13 +546,46 @@ public final class Bind {
             return pragma + " VAR " + name + ": " + (t == target.cls ? selfType() : typeOf(t)) + ";\n";
         }
 
+        /**
+         * The fields that the type T lists: the public instance fields that
+         * the class declares. A field stays out if it has no name in
+         * Modula-3, or if a value of its Modula-3 type could not be assigned
+         * to it.
+         */
+        private String fieldList(List<Field> fields) {
+            StringBuilder b = new StringBuilder();
+            for (Field f : fields) {
+                int mod = f.getModifiers();
+                if (!Modifier.isPublic(mod) || Modifier.isStatic(mod) || f.isSynthetic()) {
+                    continue;
+                }
+                String name = f.getName();
+                if (!identifier(name).equals(name)) {
+                    System.err.println("m3jbind: warning: the field " + target.cls.getName() + "." + name
+                                       + " has no name in Modula-3: left out");
+                    continue;
+                }
+                Class<?> c = f.getType();
+                String t = typeOf(c);
+                if (!t.equals("REFANY") || Modifier.isFinal(mod) || c == Object.class) {
+                    b.append("  ").append(name).append(": ").append(t).append(";\n");
+                }
+            }
+            return b.toString();
+        }
+
         String text() {
             List<Member> members = members();
             List<Field> fields = new ArrayList<>(Arrays.asList(target.cls.getDeclaredFields()));
             fields.sort(Comparator.comparing(Field::getName));
             StringBuilder body = new StringBuilder();
             if (!isString()) {
-                body.append("TYPE T <: ").append(superT).append(";\n\n");
+                String list = fieldList(fields);
+                body.append("TYPE T <: ").append(superT);
+                if (!list.isEmpty()) {
+                    body.append(" OBJECT\n").append(list).append("END");
+                }
+                body.append(";\n\n");
             }
             for (Member m : members) {
                 body.append(procedure(m)).append('\n');

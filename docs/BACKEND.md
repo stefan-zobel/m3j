@@ -214,11 +214,30 @@ where it is used, as cm3 does.
 **Java classes.** The opaque type `T` of an interface
 `<*EXTERNAL "a.b.C":JAVA*>` is the class a.b.C: `JType.providedClass` asks
 `Java.classOf` first, so that descriptors, `checkcast` and the tests of
-`ISTYPE`, `NARROW` and `TYPECASE` use the class itself, and no class is
-generated for the interface. A Java object is no `M3Object`, so
-`ISTYPE (x, ROOT)` is false for it. The `ClassHierarchyResolver` of the
-verifier uses the class loader of `-cp`, so that stack maps can join Java
-types.
+`ISTYPE`, `NARROW` and `TYPECASE` use the class itself. A Java object is
+no `M3Object`, so `ISTYPE (x, ROOT)` is false for it. The
+`ClassHierarchyResolver` of the verifier uses the class loader of `-cp`, so
+that stack maps can join Java types.
+
+The object type in `T <: S OBJECT x: Java.Int END` of such an interface is
+not generated either: `Module.javaClassOf` answers the class for it too, so
+that the holder of the field is the Java class (`Java.fieldLoc`,
+`Loc.FinalField` for a final field).
+
+An object type with such a `T` as supertype is a class of its own that
+extends the Java class, or extends `Object` and implements the Java
+interface (`Types.object`, `Java.superClass`, `Java.interfaceOf`); its
+`<init>` calls the constructor without parameters and then
+`Mutex.threadsStarted`, as Java may run its methods on any thread. Its
+methods are the JVM methods `<name>_<uid>` of any object type, and for each
+of them with the name of a Java method there is one more, with the Java
+name and descriptor, that converts like a bridge and calls the first
+(`Java.overrides`): overrides need nothing further. A Java method that has
+the same parameters with a wider result gets one too. The chain of
+supertypes ends in the opaque `T`: `RTType.Supertype` answers `NoSuchType`
+above the first generated class, `WeakRef` holds for ever such an object
+that has a cleanup procedure, as it does any that is no `M3Object`, and
+`Pickle` reports that it cannot write them.
 
 ## 4. Variables and parameters
 
@@ -302,6 +321,21 @@ instruction itself (`invokestatic`, `invokevirtual`, `invokeinterface`,
 machinery of external names; the actuals are converted with `Code.exprAs`
 and the range checks of any assignment. `<*EXTERNAL*> VAR` is a static
 field (`Loc.Static`, or `Loc.FinalStatic`, whose store is an error).
+
+An array formal is three values in Modula-3 (storage, offset, length) and
+one in Java: the call passes `Arrays.copyOfRange` of the part, and for VAR
+keeps the copy and calls `System.arraycopy` after the call. The class of a
+`REF ARRAY OF E` of one dimension has a second constructor that takes the
+storage, for the copy of a Java result.
+
+A bound interface is the class `m3.b.NAME`, in a package of its own so that
+it cannot clash with a class of the runtime (`m3.i`) when a binding is
+named like a runtime interface. Each bound procedure is a static method of
+the class of its interface with the name and the signature of the
+procedure, which makes the JVM call (`Java.thunk`), and has the accessor
+`$proc$NAME` of any procedure of a unit: a value and a method default go
+through these, so that a value is one object in the whole program, while a
+call stays the JVM instruction.
 
 **Procedures passed to Java.** For a formal of procedure type at a
 parameter with one abstract method, the call makes an object with

@@ -35,12 +35,14 @@ import m3j.front.Procedure;
 import m3j.front.Revelation;
 import m3j.front.Scope;
 import m3j.front.Stmt;
+import m3j.front.Tipe;
 import m3j.front.Value;
 import m3j.front.Variable;
 
 /**
  * Generates the class of one unit. A module becomes the class m3.m.NAME,
- * an interface the class m3.i.NAME (unless the runtime provides it).
+ * an interface the class m3.i.NAME (unless the runtime provides it), an
+ * interface bound to a Java class the class m3.b.NAME.
  */
 final class Unit {
 
@@ -76,6 +78,9 @@ final class Unit {
 
     static ClassDesc classDesc(Module.T m) {
         String n = Code.id(Module.name(m));
+        if (m.javaClass != null) {
+            return ClassDesc.of("m3.b." + n);
+        }
         return m.interface_ ? ClassDesc.of("m3.i." + n) : ClassDesc.of("m3.m." + n);
     }
 
@@ -308,6 +313,16 @@ final class Unit {
                     emitSplittable(clb, p, methodNames.get(p), descriptor(p),
                         ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC, Code::procedure, p.block, ownVariables(p));
                 }
+                // the methods that stand for the procedures bound to Java members where they are values
+                for (Value.T v = Scope.toList(module.localScope); v != null; v = v.next) {
+                    if (v instanceof Procedure.T p && p.javaBound && Java.resolve(p) != null) {
+                        String thunk = Code.id(p.name);
+                        methodNames.put(p, thunk);
+                        usedNames.add(thunk);
+                        accessors.put(p, "$proc$" + thunk);
+                        Java.thunk(this, clb, p, thunk);
+                    }
+                }
                 // the accessors of procedure values (and of exported procedures)
                 if (!isInterface) {
                     for (Value.T v = Scope.toList(module.localScope); v != null; v = v.next) {
@@ -331,10 +346,13 @@ final class Unit {
                     fb -> fb.withFlags(ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC | ClassFile.ACC_FINAL)
                             .with(ConstantValueAttribute.of(metadata())));
             });
-            // the exceptions declared in the unit
+            // the exceptions declared in the unit, and the classes that extend
+            // Java classes: what is wrong with them is an error of this unit
             for (Value.T v = Scope.toList(module.localScope); v != null; v = v.next) {
                 if (v instanceof Exceptionz.T e) {
                     Exceptions.classOf(e);
+                } else if (v instanceof Tipe.T t && Java.isJavaObject(t.value)) {
+                    Types.classOf(t.value);
                 }
             }
             Types.flush();
@@ -441,6 +459,10 @@ final class Unit {
 
     /** Calls procedure p; its arguments (and static link) are on the stack. */
     void invoke(CodeBuilder cb, Procedure.T p) {
+        if (Java.isBound(p)) {
+            Procs.invokeStatic(cb, p);
+            return;
+        }
         Value.T home = Scope.toUnit(p);
         if (home == module && !p.external) {
             cb.invokestatic(self, methodName(p), descriptor(p));

@@ -1,0 +1,5 @@
+% A library on a library with a jar.
+import ("libm3")
+import ("jlib")
+Module ("Two")
+Library ("jlib2")

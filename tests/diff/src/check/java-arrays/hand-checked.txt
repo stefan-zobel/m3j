@@ -1,0 +1,31 @@
+VAR SUBARRAY writes back its part: ok
+VAR fixed array to an open formal: ok
+VAR fixed formal: ok
+VAR ARRAY OF Java.Int: ok
+VAR open array: ok
+READONLY constructor: ok
+VALUE: ok
+empty: ok
+short: ok
+byte: ok
+CHAR is a byte: ok
+WIDECHAR: ok
+BOOLEAN: ok
+REAL: ok
+LONGREAL: ok
+ofChars: ok
+Object array: ok
+VAR Object array: ok
+VAR array of a Java type: ok
+REF ARRAY result: ok
+a result is a copy: ok
+REF ARRAY OF WIDECHAR: ok
+REF ARRAY OF CHAR: ok
+REF ARRAY OF TEXT: ok
+null is NIL: ok
+result after a parameter: ok
+roots of a file system: ok
+VAR ARRAY OF CHAR: ok
+Java passes an array to a method: ok
+a method returns an array to Java: ok
+a method returns NIL to Java: ok

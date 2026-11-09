@@ -1,0 +1,75 @@
+$ javac jlib/jarclasses jlib/java/tool/Hello.java
+$ jar jlib/lib/hello.jar jlib/jarclasses
+$ m3build jlib
+--- building in JVM ---
+
+checking library "jlib"
+exit 0
+$ exists jlib/JVM/hello.jar
+yes
+$ m3build jlib -ship -root <work>/root
+--- shipping from JVM ---
+
+. => <work>/root/pkg/jlib/JVM
+  hello.jar         .M3EXPORTS      
+../src => <work>/root/pkg/jlib/src
+  Hello.i3        
+exit 0
+$ exists root/pkg/jlib/JVM/hello.jar
+yes
+$ m3build juser -root <work>/root
+--- building in JVM ---
+
+new sources -> compiling juser.jar
+exit 0
+$ run juser/JVM/juser
+hi, library
+exit 0
+$ m3build juser -ship -root <work>/root
+--- shipping from JVM ---
+
+. => <work>/root/pkg/juser/JVM
+  .M3EXPORTS      
+../src => <work>/root/pkg/juser/src
+  Main.m3         
+. => <work>/root/bin
+  juser.jar         juser             juser.cmd       
+exit 0
+$ run root/bin/juser
+hi, library
+exit 0
+$ m3build jlib2 -root <work>/root
+--- building in JVM ---
+
+checking library "jlib2"
+exit 0
+$ m3build jlib2 -ship -root <work>/root
+--- shipping from JVM ---
+
+. => <work>/root/pkg/jlib2/JVM
+  .M3EXPORTS      
+../src => <work>/root/pkg/jlib2/src
+  Two.i3            Two.m3          
+exit 0
+$ m3build juser2 -root <work>/root
+--- building in JVM ---
+
+new sources -> compiling juser2.jar
+exit 0
+$ run juser2/JVM/juser2
+hi, two
+exit 0
+$ m3build jlibdir
+--- building in JVM ---
+
+"<work>/jlibdir\src\m3makefile", line 6: quake runtime error: java_classpath: a library passes on jars only: pack <work>/jlib\jarclasses into a jar
+
+--procedure--  -line-  -file---
+Library            --  <builtin>
+include_dir         6  <work>/jlibdir\src\m3makefile
+                    4  <work>/jlibdir\JVM\m3make.args
+
+Fatal Error: package build failed
+exit 2
+$ absent jlibdir/JVM/.M3EXPORTS
+yes

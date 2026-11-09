@@ -86,6 +86,9 @@ public final class OpaqueType {
         p.super_ = super_;
         p.declared = decl;
         p.id = M3ID.NoID;
+        if (super_ instanceof ObjectType.P o) {
+            o.opaque = p; // port, addition: the fields that the type of a Java binding lists
+        }
         return p;
     }
 

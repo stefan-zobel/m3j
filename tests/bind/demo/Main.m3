@@ -6,8 +6,28 @@
 
 MODULE Main;
 
-IMPORT Dot, Dot_Kind, Shape, Java, JavaThrowable;
+IMPORT Dot, Dot_Kind, Hand, Shape, Source, StrSource, Java, JavaThrowable;
 IMPORT IO, Fmt;
+
+TYPE
+  Mine = StrSource.T OBJECT
+  METHODS
+    get (): TEXT := MyGet;
+  END;
+
+PROCEDURE MyGet (<*UNUSED*> self: Mine): TEXT =
+  BEGIN
+    RETURN "mine";
+  END MyGet;
+
+PROCEDURE Sum (READONLY b: ARRAY OF CHAR): Java.Int =
+  VAR s := 0;
+  BEGIN
+    FOR i := FIRST (b) TO LAST (b) DO
+      INC (s, ORD (b[i]));
+    END;
+    RETURN s;
+  END Sum;
 
 VAR
   p := Dot.New2 (3, 4);
@@ -34,10 +54,27 @@ BEGIN
   IO.Put (Fmt.Bool (k = Dot_Kind.NEAR) & " " & Fmt.Bool (k = Dot_Kind.FAR) & "\n");
   IO.Put (Fmt.Int (Shape.sides (Shape.triangle ())) & "\n");
 
-  (* an array in a REFANY *)
+  (* arrays are copied; one of arrays stays a REFANY *)
   VAR a := ARRAY [0 .. 2] OF INTEGER {1, 20, 300};
   BEGIN
-    IO.Put (Fmt.Int (Dot.sum (Java.NewLongs (a))) & "\n");
+    IO.Put (Fmt.Int (Dot.sum (a)) & "\n");
+    IO.Put (Fmt.Int (Dot.total (ARRAY OF Java.Int {2, 3})) & "\n");
+    IO.Put (Dot.names (p)[1] & " " & Dot.toString (Dot.pair (p)[1]) & "\n");
+    IO.Put (Fmt.Int (Java.Length (Dot.grid (p))) & "\n");
+    IO.Put (Fmt.Int (Hand.applyTo (Sum, ARRAY OF CHAR {'\001', '\002'})) & "\n");
+  END;
+
+  (* the instance fields; the name of Modula-3 that a field cannot have is left out *)
+  p.weight := p.weight + 5;
+  p.next := q;
+  p.note := p.note & "!";
+  IO.Put (Fmt.Int (p.weight) & " " & Fmt.Int (p.id) & " " & Dot.toString (p.next) & " " & p.note & "\n");
+  IO.Put (Fmt.Int (Java.Length (p.table)) & "\n");
+
+  (* a Java method that is there with two results *)
+  VAR m := NEW (Mine);
+  BEGIN
+    IO.Put (Source.show (m) & " " & StrSource.shown (m) & "\n");
   END;
 
   TRY

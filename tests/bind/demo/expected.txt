@@ -10,4 +10,11 @@
 TRUE FALSE
 3
 321
+5
+y4 (0,0)
+2
+3
+7 9 (4,5) n!
+2
+mine mine
 no disk

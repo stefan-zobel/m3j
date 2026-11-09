@@ -230,6 +230,16 @@ public final class Compile {
         for (Path p : pkgs) {
             c.env.addPackage(p);
         }
+        if (!c.env.classPath.isEmpty()) {
+            List<Path> all = new ArrayList<>(c.classPath);
+            for (Path e : c.env.classPath) {
+                if (!all.contains(e)) {
+                    all.add(e);
+                }
+            }
+            Java.setClassPath(all);
+            c.classPath = all;
+        }
         if (c.mcDir != null) {
             Files.createDirectories(c.mcDir);
         }
@@ -350,7 +360,7 @@ public final class Compile {
         if (m.interface_) {
             Java.resolveAll(m, u);
         }
-        if (!(m.interface_ && (Unit.provided(u.name) != null || m.javaClass != null))) {
+        if (!(m.interface_ && m.javaClass == null && Unit.provided(u.name) != null)) {
             byte[] b = u.generate();
             classes.put(u.self.descriptorString(), b);
             unsupported += u.unsupported.size();

@@ -1,0 +1,5 @@
+% A program that imports a library that imports the library with the jar.
+import ("libm3")
+import ("jlib2")
+implementation ("Main")
+program ("juser2")

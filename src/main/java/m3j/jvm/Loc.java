@@ -84,6 +84,29 @@ sealed interface Loc {
         }
     }
 
+    /** A final field of the object that obj loads, of a Java class: an assignment is an error of the compilation. */
+    record FinalField(Loc obj, ClassDesc owner, String name, JType type, Code code) implements Loc {
+        @Override
+        public void load(CodeBuilder cb) {
+            obj.load(cb);
+            cb.getfield(owner, name, type.desc);
+        }
+
+        @Override
+        public void storePost(CodeBuilder cb) {
+            reject();
+            if (type.typeKind().slotSize() == 2) {
+                cb.pop2();
+            } else {
+                cb.pop();
+            }
+        }
+
+        void reject() {
+            code.unit.error("cannot assign to the final Java field " + name, code.origin);
+        }
+    }
+
     /** A field of the object that obj loads. */
     record Field(Loc obj, ClassDesc owner, String name, JType type) implements Loc {
         @Override

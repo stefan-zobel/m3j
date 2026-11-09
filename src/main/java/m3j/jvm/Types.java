@@ -102,6 +102,10 @@ final class Types {
         if (u == Type.stripPacked(Type.check(m3j.front.Mutex.T))) {
             return CD_Mutex;
         }
+        ClassDesc bound = Java.classOf(u);
+        if (bound != null) {
+            return bound;
+        }
         long uid = Type.globalUID(u);
         if (u.info.class_ == Type.Class.Opaque) {
             ClassDesc pc = JType.providedClass(u);
@@ -134,7 +138,7 @@ final class Types {
                     }
                 }
                 Type.T su = sup == null ? null : Type.stripPacked(Type.check(sup));
-                supers.put(oc, su == null || su.info.class_ == Type.Class.Ref && target(su) == null
+                supers.put(oc, su == null || su.info.class_ == Type.Class.Ref && target(su) == null || Java.isInterface(su)
                     ? ConstantDescs.CD_Object
                     : su.info.class_ == Type.Class.Object && ObjectType.super_(su) == null
                         && objectFields(su).isEmpty() && methods(su).isEmpty()
@@ -517,6 +521,10 @@ final class Types {
         if (s == null) {
             return CD_M3Object;
         }
+        ClassDesc java = Java.superClass(obj);
+        if (java != null) {
+            return java;
+        }
         Type.T su = Type.stripPacked(Type.check(s));
         if (su.info.class_ == Type.Class.Object && ObjectType.super_(su) == null && objectFields(su).isEmpty()
                 && methods(su).isEmpty()) {
@@ -541,21 +549,35 @@ final class Types {
         ClassDesc sup = superClass(t);
         List<Field.T> fs = objectFields(t);
         List<Method.T> ms = methods(t);
+        ClassDesc iface = Java.interfaceOf(t);
+        boolean javaSuper = Java.superClass(t) != null;
         supers.put(cd, sup);
+        if (currentUnit != null) {
+            Java.checkSuper(currentUnit, t);
+        }
         byte[] b = classFile().build(cd, clb -> {
             clb.withFlags(AccessFlag.PUBLIC, AccessFlag.SUPER);
             clb.withSuperclass(sup);
+            if (iface != null) {
+                clb.withInterfaceSymbols(iface);
+            }
             for (Field.T f : fs) {
                 clb.withField(Code.id(f.name), JType.of(f.tipe).desc, ClassFile.ACC_PUBLIC);
             }
             clb.withMethodBody("<init>", MethodTypeDesc.of(ConstantDescs.CD_void), ClassFile.ACC_PUBLIC, cb -> {
                 cb.aload(0);
                 cb.invokespecial(sup, "<init>", MethodTypeDesc.of(ConstantDescs.CD_void));
+                if (javaSuper) {
+                    Java.threadsStarted(cb);
+                }
                 initFields(cb, cd, fs, true);
                 cb.return_();
             });
             for (Method.T m : ms) {
                 methodBody(clb, cd, m);
+            }
+            if (currentUnit != null) {
+                Java.overrides(currentUnit, t, clb, cd, ms);
             }
         });
         put(cd, sup, b);
@@ -570,13 +592,6 @@ final class Types {
         MethodTypeDesc d = methodDescriptor(declaring(m));
         clb.withMethodBody(name, d, ClassFile.ACC_PUBLIC, cb -> {
             Value.T p = m.dfault == null ? null : Value.base(m.dfault);
-            if (p instanceof Procedure.T bound && Java.isBound(bound)) {
-                if (currentUnit != null) {
-                    currentUnit.error("a procedure bound to a Java member cannot be a method: "
-                                      + Code.id(bound.name), m.origin);
-                }
-                p = null;
-            }
             if (p instanceof Procedure.T proc) {
                 // the procedure takes the object first
                 cb.aload(0);

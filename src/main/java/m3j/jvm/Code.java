@@ -1753,7 +1753,7 @@ final class Code {
                         m3j.front.Field.T f = (m3j.front.Field.T) q.rhsValue;
                         ClassDesc oc = Types.classOf(q.holder);
                         Loc obj = temp(oc, () -> refBase(q.lhsExpr, oc));
-                        return fieldLoc(obj, oc, f);
+                        return objectFieldLoc(obj, q.holder, f);
                     }
                     default -> {
                         return null;
@@ -1785,6 +1785,12 @@ final class Code {
                 return null;
             }
         }
+    }
+
+    /** The location of the field f, which the object type holder declares, of the object that obj loads. */
+    Loc objectFieldLoc(Loc obj, Type.T holder, m3j.front.Field.T f) {
+        Loc java = Java.fieldLoc(this, obj, holder, f);
+        return java != null ? java : fieldLoc(obj, Types.classOf(holder), f);
     }
 
     /** The location of a field f of the record or object that rec loads. */

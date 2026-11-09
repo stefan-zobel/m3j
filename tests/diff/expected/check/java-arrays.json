@@ -1,0 +1,27 @@
+{
+ "units": [
+  "tests/diff/src/check/java-arrays/src/ByteIn.i3",
+  "tests/diff/src/check/java-arrays/src/JArrays.i3",
+  "tests/diff/src/check/java-arrays/src/JFile.i3",
+  "tests/diff/src/check/java-arrays/src/JInputStream.i3",
+  "tests/diff/src/check/java-arrays/src/JList.i3",
+  "tests/diff/src/check/java-arrays/src/JOutputStream.i3",
+  "tests/diff/src/check/java-arrays/src/JString.i3",
+  "tests/diff/src/check/java-arrays/src/JThread.i3",
+  "tests/diff/src/check/java-arrays/src/PrintStream.i3",
+  "tests/diff/src/check/java-arrays/src/ZipEntry.i3",
+  "tests/diff/src/check/java-arrays/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "java"
+ ],
+ "result": {
+  "stdout": "VAR SUBARRAY writes back its part: ok\nVAR fixed array to an open formal: ok\nVAR fixed formal: ok\nVAR ARRAY OF Java.Int: ok\nVAR open array: ok\nREADONLY constructor: ok\nVALUE: ok\nempty: ok\nshort: ok\nbyte: ok\nCHAR is a byte: ok\nWIDECHAR: ok\nBOOLEAN: ok\nREAL: ok\nLONGREAL: ok\nofChars: ok\nObject array: ok\nVAR Object array: ok\nVAR array of a Java type: ok\nREF ARRAY result: ok\na result is a copy: ok\nREF ARRAY OF WIDECHAR: ok\nREF ARRAY OF CHAR: ok\nREF ARRAY OF TEXT: ok\nnull is NIL: ok\nresult after a parameter: ok\nroots of a file system: ok\nVAR ARRAY OF CHAR: ok\nJava passes an array to a method: ok\na method returns an array to Java: ok\na method returns NIL to Java: ok\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

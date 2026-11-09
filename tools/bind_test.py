@@ -109,7 +109,8 @@ def import_all(d):
 
 def case_jdk(env):
     d = new_dir(env, "jdk")
-    env.bind(["java.util.ArrayList", "java.util.List", "java.lang.StringBuilder"], d)
+    env.bind(["java.util.ArrayList", "java.util.List", "java.lang.StringBuilder", "java.util.Arrays",
+              "java.lang.Runnable", "-name", "java.lang.Thread=JThread", "java.lang.Thread"], d)
     shutil.copy(TESTS / "jdk" / "Main.m3", d)
     out = env.compile(["-I", ".", "Main.m3", "-run"], d)
     expect(out, read(TESTS / "jdk" / "expected.txt"), "output")
@@ -120,18 +121,45 @@ def case_demo(env):
     javac = str(Path(env.args.java).with_name("javac"))
     sources = [str(f) for f in sorted((TESTS / "demo" / "java" / "demo").glob("*.java"))]
     subprocess.run([javac, "-d", str(d / "classes")] + sources, check=True, capture_output=True)
-    env.bind(["-cp", "classes", "-d", "m3", "demo.Dot", "demo.Dot$Kind", "demo.Shape"], d)
+    err = env.bind(["-cp", "classes", "-d", "m3", "demo.Dot", "demo.Dot$Kind", "demo.Shape", "demo.Source",
+                    "demo.StrSource"], d)
+    if "the field demo.Dot.BEGIN has no name in Modula-3" not in err:
+        raise Failed("no warning about the field BEGIN: %r" % err)
     expect(read(d / "m3" / "Dot.i3"), read(TESTS / "demo" / "Dot.i3"), "Dot.i3")
     shape = read(d / "m3" / "Shape.i3")
     if "New" in shape:
         raise Failed("the binding of an abstract class has a constructor")
     shutil.copy(TESTS / "demo" / "Main.m3", d)
+    shutil.copy(TESTS / "demo" / "Hand.i3", d / "m3")
     out = env.compile(["-cp", "classes", "-I", "m3", "Main.m3", "-run"], d)
     expect(out, read(TESTS / "demo" / "expected.txt"), "output")
     # a jar finds the classes by its manifest
     env.compile(["-cp", "classes", "-I", "m3", "Main.m3", "-d", "demo.jar"], d)
     rc, out, err = env.java("m3.Main", [], d, env.args.jar + os.pathsep + "demo.jar")
     expect((rc, out), (0, read(TESTS / "demo" / "expected.txt")), "output of the jar")
+    # a final instance field cannot be assigned
+    e = new_dir(env, "final")
+    (e / "Main.m3").write_text("MODULE Main;\nIMPORT Dot;\nVAR p := Dot.New ();\nBEGIN\n  p.id := 1;\nEND Main.\n",
+                               encoding="ascii")
+    rc, out, err = env.java("m3j.jvm.Compile", ["-cp", str(d / "classes"), "-I", str(d / "m3"), "Main.m3"], e)
+    if rc == 0 or 'line 5: cannot assign to the final Java field id' not in err:
+        raise Failed("final field: exit status %d: %s" % (rc, err.strip()[:300]))
+    # -pkg: the jar that the .M3EXPORTS of a package names is on the class path
+    jar = str(Path(env.args.java).with_name("jar"))
+    pkg = new_dir(env, "pkgcp")
+    (pkg / "lib" / "JVM").mkdir(parents=True)
+    (pkg / "lib" / "src").mkdir()
+    subprocess.run([jar, "--create", "--file", str(pkg / "lib" / "JVM" / "demo.jar"), "-C", str(d / "classes"), "."],
+                   check=True, capture_output=True)
+    (pkg / "lib" / "JVM" / ".M3EXPORTS").write_text(
+        'java_classpath("demo.jar")\n_map_add_interface("Tag.i3", "lib", "src", "")\n', encoding="ascii")
+    (pkg / "lib" / "src" / "Tag.i3").write_text(
+        '<*EXTERNAL "demo.Dot":JAVA*> INTERFACE Tag;\nIMPORT Java;\n<*EXTERNAL "LIMIT"*> VAR Limit: Java.Long;\nEND Tag.\n',
+        encoding="ascii")
+    (pkg / "Main.m3").write_text('MODULE Main;\nIMPORT IO, Fmt, Tag;\nBEGIN\n  IO.Put (Fmt.Int (Tag.Limit) & "\\n");\nEND Main.\n',
+                                 encoding="ascii")
+    out = env.compile(["-pkg", "lib/JVM", "Main.m3", "-run"], pkg)
+    expect(out, "1099511627776\n", "output with -pkg")
 
 
 def case_cycle(env):

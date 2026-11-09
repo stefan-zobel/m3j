@@ -193,6 +193,10 @@ final class Procs {
     static void invokeStatic(CodeBuilder cb, Procedure.T p) {
         MethodTypeDesc d = Params.descriptor(p.signature);
         String name = Code.id(p.name);
+        if (Java.isBound(p)) {
+            cb.invokestatic(Unit.classDesc((Module.T) Scope.toUnit(p)), name, d);
+            return;
+        }
         if (p.external && Scope.toUnit(p) instanceof Module.T em && em.interface_
                 && Unit.provided(Code.id(Module.name(em))) != null) {
             MethodTypeDesc e = Params.erased(d);
@@ -240,13 +244,12 @@ final class Procs {
     /** Pushes the value of procedure p: an object of its functional interface. */
     static JType procValue(Code c, Procedure.T p) {
         CodeBuilder cb = c.cb;
-        if (Java.isBound(p)) {
-            c.unit.error("a procedure bound to a Java member cannot be used as a value: " + Code.id(p.name), c.origin);
-            cb.aconst_null();
-            return JType.PROC;
-        }
         MethodTypeDesc d = Params.descriptor(p.signature);
         ClassDesc iface = Types.procInterface(d);
+        if (Java.isBound(p)) {
+            cb.invokestatic(Unit.classDesc((Module.T) Scope.toUnit(p)), "$proc$" + Code.id(p.name), MethodTypeDesc.of(iface));
+            return JType.PROC;
+        }
         Unit u = c.unit;
         Value.T home = Scope.toUnit(p);
         boolean nested = u.frames.parent.containsKey(p) && u.frames.parent.get(p) != null;

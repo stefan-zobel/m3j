@@ -37,10 +37,26 @@ public final class RTType {
 
     public static int Supertype(int tc) {
         Class<?> c = tc == 0 ? null : check(tc);
-        if (c == null || c == M3Object.class || !M3Object.class.isAssignableFrom(c)) {
+        if (c == null || c == M3Object.class) {
+            return NO_SUCH_TYPE;
+        }
+        // an object type below a Java class stops at that class
+        if (!M3Object.class.isAssignableFrom(c) && !hasFingerprint(c.getSuperclass())) {
             return NO_SUCH_TYPE;
         }
         return (int) Typecodes.of(c.getSuperclass());
+    }
+
+    private static boolean hasFingerprint(Class<?> c) {
+        if (c == null) {
+            return false;
+        }
+        try {
+            c.getDeclaredField("M3$FP");
+            return true;
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
     }
 
     public static boolean IsTraced(int tc) {

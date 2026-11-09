@@ -98,11 +98,33 @@ A static method has no receiver, and a static field is a variable
 (`<*EXTERNAL*> VAR MAX_VALUE: Java.Int;`; assigning to a `final` field is
 an error). One procedure of an ordinary interface is bound by naming the
 class too: `<*EXTERNAL "java.lang.Math.max":JAVA*> PROCEDURE Max (a, b:
-INTEGER): INTEGER;`. Bindings are declared in interfaces only, and their
-formals are VALUE formals. The class or member is looked up when the
-interface is compiled: a class that is missing, a method without a fitting
-overload or an ambiguous one (the message lists the descriptors) is an
-error at the declaration, even if the program never calls it.
+INTEGER): INTEGER;`. Bindings are declared in interfaces only; their
+formals are VALUE formals, except arrays. A bound procedure is a procedure
+value like any other: it can be assigned, compared (`=` holds across the
+whole program), passed to Java as a callback and be the default of a
+method. The class or member is looked up when the interface is compiled: a
+class that is missing, a method without a fitting overload or an ambiguous
+one (the message lists the descriptors) is an error at the declaration,
+even if the program never calls it.
+
+The public instance fields of a class are the fields of its type `T`:
+
+```modula3
+<*EXTERNAL "java.awt.Point":JAVA*> INTERFACE Point;
+
+IMPORT Java, JavaObject;
+
+TYPE T <: JavaObject.T OBJECT x, y: Java.Int END;
+
+PROCEDURE New (x, y: Java.Int): T;
+
+END Point.
+```
+
+`p.x := 3` is then a `putfield`. The type of a field must fit as for a
+static field, it has no default value, assigning to a `final` field is an
+error, and the list has fields only: methods are procedures of the
+interface.
 
 | Modula-3 | Java |
 |---|---|
@@ -115,14 +137,62 @@ error at the declaration, even if the program never calls it.
 | the type `T` of a binding | the class, or a supertype of it |
 | `REFANY` | any class, `Object` without a cast; `NIL` is `null` |
 | a procedure type | an interface with one abstract method |
+| `ARRAY OF E`, `ARRAY [a .. b] OF E` (VALUE, READONLY, VAR) | the Java array of the same elements, as a copy (see below) |
+| `REF ARRAY OF E`, as a result | the Java array, as a copy; `null` is `NIL` |
 
 Results convert the other way round, with a cast where the Java type is
 wider, and `void` is a proper procedure. `ISTYPE`, `NARROW` and `TYPECASE`
 on the types of bindings are `instanceof`; a Java object is not a `ROOT`.
-Scalars are not boxed for a parameter of type `Object`, and Java arrays are
-held in a `REFANY`: `Java.i3` has the boxes (`FromInt`, `FromLong`,
-`ToInt`), copies between arrays of both languages, and `ToText`, `Equals`,
-`HashCode`, `ClassName` and `IsInstance` for any reference.
+Scalars are not boxed for a parameter of type `Object`. `Java.i3` has the
+boxes (`FromInt`, `FromLong`, `ToInt`), copies for Java arrays held in a
+`REFANY`, and `ToText`, `Equals`, `HashCode`, `ClassName` and `IsInstance`
+for any reference.
+
+An array of one dimension is passed as a copy, and a VAR array is copied
+back after the call; the cost grows with the array. The elements must be
+of the same kind in both languages: `INTEGER` is `long`, `Java.Int` `int`,
+`Java.Short` `short`, `Java.Byte` and `CHAR` `byte`, `WIDECHAR` `char`,
+`BOOLEAN` `boolean`, `REAL` `float`, `LONGREAL` `double`, `TEXT` `String`,
+`REFANY` `Object` and the `T` of a binding its class. Java passes an array
+to a procedure or method as a copy in a VALUE or READONLY `ARRAY OF E`, and
+gets a copy of a `REF ARRAY OF E` that it returns. Other arrays (several
+dimensions, records) stay in a `REFANY`.
+
+An object type can have the `T` of a binding as its supertype, and its
+objects are then objects of the Java class:
+
+```modula3
+TYPE
+  Worker = JThread.T OBJECT                 (* extends java.lang.Thread *)
+    count := 0;
+  METHODS
+    run () := Run;                          (* overrides Thread.run *)
+    report (): TEXT := Report;              (* of Modula-3 only *)
+  END;
+  Chars = CharSequence.T OBJECT             (* implements java.lang.CharSequence *)
+    s: TEXT;
+  METHODS
+    length (): Java.Int := Length;
+    charAt (i: Java.Int): Java.Char := CharAt;
+    subSequence (a, b: Java.Int): CharSequence.T := Sub;
+    toString (): TEXT := ToText;
+  END;
+```
+
+A method that the type declares (in `METHODS`) with the name of a public or
+protected Java method that is not final or static implements it; its
+signature must fit, or it is an error, and one that fits several overloads
+equally is one too. Each name is one method of a type: for two overloads of
+one Java method, declare the second in a subtype. `OVERRIDES`, `NEW (T, m :=
+P)` and further subtypes reach Java as well. The class must not be final,
+and needs a public or protected constructor without parameters, which is
+the one that runs; `NEW` is an error if an abstract Java method is left
+without an implementation. There are no calls of the overridden Java method
+(`super`), a type has one Java supertype (a class or an interface), and
+such a type is a subtype of `REFANY` but not of `ROOT`. Its objects cannot
+be pickled. `NEW (Point.T)` of the type of a binding is an error: call a
+constructor of the binding. Exceptions pass through Java as they do from a
+callback.
 
 A Java exception that ends a call is `Java.Exception (t)`, with the
 `JavaThrowable.T` as its argument. Like `RuntimeError.E` it is implicit and
@@ -167,12 +237,18 @@ an interface in `DIR`; any other class is `REFANY`, and so is a class that
 would make two interfaces import each other (`File` and `Path`). `T` is a
 subtype of the type of the nearest bound superclass or superinterface. A
 binding has the methods the class declares, so bind the supertypes too
-for what it inherits. Parameters for callbacks are `REFANY` in the output:
-to pass a procedure, write the formal with a procedure type by hand.
+for what it inherits. The public instance fields that a class declares are
+the field list of `T`; a field is left out if its name is no identifier of
+Modula-3 (with a warning) or if no type of Modula-3 can be assigned to it.
+A Java array of a type with a name in Modula-3 is a `READONLY ARRAY OF E`
+parameter and a `REF ARRAY OF E` result, with `CHAR` for `byte`; any other
+array is `REFANY`. Where Java fills an array, change `READONLY` to `VAR`.
+Parameters for callbacks are `REFANY` in the output: to pass a procedure,
+write the formal with a procedure type by hand.
 
-Not supported: Modula-3 subtypes of Java classes, implementing interfaces
-with several methods, instance fields, and a bound procedure as a
-procedure value or a method (each is an error).
+Not supported: several Java interfaces for one type, calls of the
+overridden Java method (`super`), and arrays of several dimensions other
+than in a `REFANY`.
 
 ### Packages: m3build
 
@@ -208,8 +284,12 @@ A package with bindings of Java classes does `import ("java")` and names
 the jars or directories of the classes that are not those of the JDK:
 `java_classpath ("../lib/foo.jar")`, relative to the file that says so.
 The compiler gets them, the program runs with them, and it is compiled
-again when one of the jars changes. They are not passed on to the
-programs that import a library: each program names its own.
+again when one of the jars changes. A library passes its jars on: each is
+installed beside the `.M3EXPORTS`, which names it, so that a package that
+imports the library, directly or through another one, has it on its class
+path. A directory cannot be passed on (pack it into a jar), and two jars
+of a library must differ in name. The option `-pkg DIR` of the compiler
+reads such a `.M3EXPORTS` too.
 
 ### Editors: the language server
 

@@ -381,6 +381,23 @@ final class Aggregates {
                 cb.putfield(cd, "a", storage);
                 cb.return_();
             });
+            if (depth == 1) {
+                // the array that a Java method returned
+                clb.withMethodBody("<init>", MethodTypeDesc.of(ConstantDescs.CD_void, storage), ClassFile.ACC_PUBLIC, cb -> {
+                    cb.aload(0);
+                    cb.invokespecial(ConstantDescs.CD_Object, "<init>", MethodTypeDesc.of(ConstantDescs.CD_void));
+                    cb.aload(0);
+                    cb.aload(1);
+                    cb.arraylength();
+                    cb.loadConstant((int) l.slots());
+                    cb.idiv();
+                    cb.putfield(cd, "n0", ConstantDescs.CD_int);
+                    cb.aload(0);
+                    cb.aload(1);
+                    cb.putfield(cd, "a", storage);
+                    cb.return_();
+                });
+            }
         });
         Types.put(cd, ConstantDescs.CD_Object, b);
     }

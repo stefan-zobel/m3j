@@ -1,0 +1,16 @@
+% Java arrays as Modula-3 arrays, by copy (output checked by hand: cm3 does not
+% know <*EXTERNAL ... :JAVA*>).
+import ("libm3")
+import ("java")
+interface ("ByteIn")
+interface ("JArrays")
+interface ("JFile")
+interface ("JInputStream")
+interface ("JList")
+interface ("JOutputStream")
+interface ("JString")
+interface ("JThread")
+interface ("PrintStream")
+interface ("ZipEntry")
+implementation ("Main")
+program ("java-arrays")

@@ -48,6 +48,8 @@ public final class ObjectType {
         public boolean inPrimLookUp;
         public boolean isTraced;
         public String user_name;
+        /** Port, addition: the opaque type declared as a subtype of this object type, or null. */
+        public OpaqueType.P opaque;
 
         @Override
         public void check() {
@@ -454,8 +456,8 @@ public final class ObjectType {
         } else { // some super type specified
             super_ = Type.checkInfo(super_, super_info);
             p.superType = super_;
-            if (is(super_)) {
-                // super type is an object type
+            if (is(super_) || Module.isJavaType(super_)) {
+                // super type is an object type, or a Java class
                 p.isTraced = super_info.isTraced;
                 p.info.addr_align = super_info.addr_align;
                 hash[0] = super_info.hash * 37;

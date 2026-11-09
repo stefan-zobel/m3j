@@ -93,6 +93,8 @@ REVEAL
     (* various sources *)
     units             : M3Unit.Set;   (* source units *)
     tfile_args        : TxtList;
+    class_paths       : TxtList; (* m3j: the java_classpath entries of this package *)
+    importing         : INTEGER := 0; (* m3j: > 0 inside the .M3EXPORTS of an import *)
     derived           : IntRefTbl.T;  (* derived files *)
     sys_libs          : IntRefTbl.T;  (* imported system libraries *)
     ship_units        : M3Unit.Set;   (* explicitly shipped units *)
@@ -302,6 +304,7 @@ PROCEDURE InitGlobals (t: T) =
     t.imports := NewMap ();
     M3Unit.InitSet (t.units);
     InitTxtList (t.tfile_args);
+    InitTxtList (t.class_paths);
     t.derived := NewMap ();
     t.sys_libs := NewMap ();
     M3Unit.InitSet (t.ship_units);
@@ -1153,7 +1156,9 @@ PROCEDURE ImportVersion (t: T;  pkg, vers: M3ID.T)
         t.error ("package \"" & M3ID.ToText (pkg)
                  & "\" not found: it has no .M3EXPORTS in " & Places (t));
       END;
+      INC (t.importing);
       Include (t, file);
+      DEC (t.importing);
     END;
   END ImportVersion;
 
@@ -1161,7 +1166,9 @@ PROCEDURE DoJavaClasspath (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
   RAISES {Quake.Error} =
   (* m3j: java_classpath ("a.jar") adds a jar or a directory, relative to
      the file that says so, to the Java classes of the bindings of this
-     package and of the program that is built. *)
+     package and of the program that is built. A library passes its own
+     jars on to the packages that import it (ExportClassPaths): the line
+     is then in its .M3EXPORTS, which this reads like any m3makefile. *)
   VAR t := Self (m);  x := PopText (t);  path: TEXT;
   BEGIN
     IF t.mode # MM.Build THEN RETURN; END;
@@ -1169,6 +1176,7 @@ PROCEDURE DoJavaClasspath (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
       path := FS.GetAbsolutePathname (PathOf (t, x));
       EVAL FS.Status (path);
       Builder.AddClassPath (t, path);
+      IF t.importing = 0 THEN AddText (t.class_paths, path); END;
     EXCEPT OSError.E =>
       t.error ("java_classpath: no such file or directory: " & x);
     END;
@@ -1525,12 +1533,37 @@ PROCEDURE DoTemplate (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
 
 (*------------------------------------------------------- library building --*)
 
+PROCEDURE ExportClassPaths (t: T)
+  RAISES {Quake.Error} =
+  (* m3j: a jar on the class path of a library goes beside its .M3EXPORTS,
+     where the packages that import the library find it, also after the
+     library is shipped. A directory cannot be passed on. *)
+  VAR x := t.class_paths.head;  seen := NewMap ();  path, base: TEXT;  ref: REFANY;
+  BEGIN
+    WHILE (x # NIL) DO
+      path := x.head;
+      IF Utils.IsDir (path) THEN
+        t.error ("java_classpath: a library passes on jars only: pack " & path & " into a jar");
+      END;
+      base := Pathname.Last (path);
+      IF seen.get (M3ID.Add (base), ref) THEN
+        t.error ("java_classpath: two jars of a library have the name " & base);
+      END;
+      EVAL seen.put (M3ID.Add (base), path);
+      t.cp_if (path, base);
+      InstallDerived (t, base);
+      AddTexts (t.tfile_args, "java_classpath(\"", base, QRPCR);
+      x := x.tail;
+    END;
+  END ExportClassPaths;
+
 PROCEDURE DoLibrary (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
   RAISES {Quake.Error} =
   VAR t := Self (m);  nm: M3ID.T;  name, lib_a, lib_m3x: TEXT;
   BEGIN
     nm := PopID (t);  name := M3ID.ToText (nm);
     AddDerived (t, nm, UK.M3LIB, hidden := TRUE);
+    IF (t.mode = MM.Build) THEN ExportClassPaths (t); END;
     GenM3Exports (t, "_define_lib(\"" & name & QRPCR);
     lib_a   := M3Path.Join (NIL, name, UK.M3LIB);
     lib_m3x := M3Path.Join (NIL, name, UK.LIBX);

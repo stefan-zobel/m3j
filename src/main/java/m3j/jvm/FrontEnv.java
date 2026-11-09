@@ -51,6 +51,11 @@ final class FrontEnv extends M3Compiler.Environment {
     private static final Pattern MAP = Pattern.compile(
         "_map_add_(interface|module|generic_interface|generic_module)\\(\"([^\"]*)\", \"([^\"]*)\", \"([^\"]*)\", \"([^\"]*)\"\\)");
 
+    private static final Pattern CLASS_PATH = Pattern.compile("java_classpath\\(\"([^\"]*)\"\\)");
+
+    /** the jars that the .M3EXPORTS of the installed packages name, for the bindings of Java classes */
+    final List<Path> classPath = new ArrayList<>();
+
     /** units by file name ("Wr.i3"), in the order of the search path */
     private final Map<String, Source> units = new LinkedHashMap<>();
     /**
@@ -236,6 +241,10 @@ final class FrontEnv extends M3Compiler.Environment {
         List<Path> modules = new ArrayList<>();
         List<Path> interfaces = new ArrayList<>();
         for (String line : Files.readAllLines(exports, StandardCharsets.ISO_8859_1)) {
+            Matcher cp = CLASS_PATH.matcher(line);
+            if (cp.find()) {
+                classPath.add(build.resolve(cp.group(1)).toAbsolutePath().normalize());
+            }
             Matcher m = MAP.matcher(line);
             if (m.find()) {
                 String file = m.group(2);

@@ -1,0 +1,37 @@
+{
+ "units": [
+  "tests/diff/src/check/java-sub/src/AbstractList.i3",
+  "tests/diff/src/check/java-sub/src/Bound.i3",
+  "tests/diff/src/check/java-sub/src/CharSequence.i3",
+  "tests/diff/src/check/java-sub/src/Collections.i3",
+  "tests/diff/src/check/java-sub/src/Comparator.i3",
+  "tests/diff/src/check/java-sub/src/Dimension.i3",
+  "tests/diff/src/check/java-sub/src/Elsewhere.i3",
+  "tests/diff/src/check/java-sub/src/IntStream.i3",
+  "tests/diff/src/check/java-sub/src/Iterator.i3",
+  "tests/diff/src/check/java-sub/src/JArr.i3",
+  "tests/diff/src/check/java-sub/src/JInteger.i3",
+  "tests/diff/src/check/java-sub/src/JMath.i3",
+  "tests/diff/src/check/java-sub/src/JThread.i3",
+  "tests/diff/src/check/java-sub/src/Point.i3",
+  "tests/diff/src/check/java-sub/src/Runnable.i3",
+  "tests/diff/src/check/java-sub/src/StringBuilder.i3",
+  "tests/diff/src/check/java-sub/src/ThreadLocal.i3",
+  "tests/diff/src/check/java-sub/src/TimerTask.i3",
+  "tests/diff/src/check/java-sub/src/Workers.i3",
+  "tests/diff/src/check/java-sub/src/Elsewhere.m3",
+  "tests/diff/src/check/java-sub/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3",
+  "java"
+ ],
+ "result": {
+  "stdout": "thread subclass: ok\nordinary method: ok\noverride in NEW: ok\nsubtype of the subtype: ok\ninterface passed to a constructor: ok\ninterface method called from Modula-3: ok\nrevealed subtype: ok\nsubtype from an interface, cast of a Java result: ok\ninterface with several methods: ok\noverride reaches Java: ok\ntoString: ok\nToText: ok\nexception through Java: ok\nabstract class: ok\ncomparator: ok\ndefault method of an interface: ok\nprotected Java method: ok\nsubtype of java.lang.Object: ok\nprotected constructor: ok\nISTYPE down: ok\nISTYPE up: ok\nISTYPE other: ok\nISTYPE interface: ok\nNARROW: ok\nTYPECASE: ok\nTYPECASE with a Java type: ok\nassignment to the supertype: ok\nsupertype of a subtype: ok\nsupertype of a subtype of Java: ok\nread a field: ok\nwrite a field: ok\nfield as a VAR actual: ok\nfield of another class: ok\nfield in NEW of a subtype: ok\nfield through WITH: ok\nvalue of a static method: ok\nvalue of a constructor: ok\nvalue of an instance method: ok\nequal in two units: ok\nnot equal to another value: ok\nvalue passed as a callback: ok\nvalue that takes a callback: ok\nvalue with a VAR array: ok\nmethod default: ok\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

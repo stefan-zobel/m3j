@@ -215,6 +215,10 @@ final class Refs {
                 f.reject();
                 cb.aconst_null();
             }
+            case Loc.FinalField f -> {
+                f.reject();
+                cb.aconst_null();
+            }
             default -> c.unsupported("VAR actual " + l.getClass().getSimpleName());
         }
     }

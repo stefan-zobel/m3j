@@ -1,0 +1,6 @@
+% A library cannot pass on a directory of classes.
+import ("libm3")
+import ("java")
+java_classpath ("../../jlib/jarclasses")
+Interface ("Hello")
+Library ("jlibdir")

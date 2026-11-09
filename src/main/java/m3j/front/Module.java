@@ -1063,6 +1063,39 @@ public final class Module {
         return (curModule != null) && (curModule.javaClass != null);
     }
 
+    /**
+     * Port, addition: the Java class of t if t is the opaque type T of an
+     * interface bound to a Java class or the object type that lists the
+     * fields of that T, null otherwise.
+     */
+    public static String javaClassOf(Type.T t) {
+        if (t instanceof ObjectType.P o) {
+            return o.opaque == null ? null : javaClassOf(o.opaque);
+        }
+        if (t instanceof OpaqueType.P op && op.declared != null
+                && Scope.toUnit(op.declared) instanceof T m && m.javaClass != null
+                && M3ID.toText(M3.ids, op.declared.name).equals("T")) {
+            return m.javaClass;
+        }
+        return null;
+    }
+
+    /**
+     * Port, addition: t is the type of a Java class, or an opaque subtype
+     * of one. Such a type can be the supertype of an object type even if
+     * no object type is known above it.
+     */
+    public static boolean isJavaType(Type.T t) {
+        while (t != null) {
+            Type.T u = Type.stripPacked(Type.check(t));
+            if (javaClassOf(u) != null) {
+                return true;
+            }
+            t = u.info.class_ == Type.Class.Opaque ? OpaqueType.super_(u) : null;
+        }
+        return false;
+    }
+
     public static boolean lazyAlignmentOn() {
         return curModule != null && curModule.lazyAligned;
     }

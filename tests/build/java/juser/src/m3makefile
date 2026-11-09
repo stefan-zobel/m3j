@@ -1,0 +1,5 @@
+% A program that gets the jar of a library through its .M3EXPORTS.
+import ("libm3")
+import ("jlib")
+implementation ("Main")
+Program ("juser")

@@ -18,6 +18,14 @@ public class Dot implements Comparable<Dot> {
     /** The classes of dots. */
     public enum Kind { NEAR, FAR }
 
+    public int weight = 2;
+    public final int id = 9;
+    public Dot next;
+    public String note = "n";
+    public final long[] table = {1, 2};
+    public int[] writable;
+    public int BEGIN = 1;
+
     private final int x;
     private final int y;
 
@@ -76,6 +84,30 @@ public class Dot implements Comparable<Dot> {
             s += e;
         }
         return s;
+    }
+
+    public static int total(int[] a) {
+        int s = 0;
+        for (int e : a) {
+            s += e;
+        }
+        return s;
+    }
+
+    public String[] names() {
+        return new String[] {"x" + x, "y" + y};
+    }
+
+    public Dot[] pair() {
+        return new Dot[] {this, ORIGIN};
+    }
+
+    public long[][] grid() {
+        return new long[][] {{x}, {y}};
+    }
+
+    public static int applyTo(Bytes f, byte[] b) {
+        return f.sum(b);
     }
 
     public static Dot parse(String s) {

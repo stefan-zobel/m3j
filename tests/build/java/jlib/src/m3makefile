@@ -1,0 +1,6 @@
+% A library with a binding of a Java class of a jar.
+import ("libm3")
+import ("java")
+java_classpath ("../lib/hello.jar")
+Interface ("Hello")
+Library ("jlib")

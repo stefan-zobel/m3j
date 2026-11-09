@@ -316,10 +316,16 @@ final class Builtins {
         Type.T rt = typeArg(a[0]);
         Type.T u = Aggregates.strip(rt);
         ClassDesc cd = Types.classOf(rt);
+        if (Java.classOf(u) != null) {
+            c.unit.error("NEW of a Java type: call a constructor of the binding", ce.origin);
+        }
         // an opaque type: what the revelation visible here says it is
         while (u.info.class_ == Type.Class.Opaque && m3j.front.Revelation.lookUp(u) instanceof Type.T rev
                && Aggregates.strip(rev) != u) {
             u = Aggregates.strip(rev);
+        }
+        if (u.info.class_ == Type.Class.Object) {
+            Java.checkComplete(c.unit, u, ce.origin);
         }
         if (u.info.class_ == Type.Class.Ref) {
             Type.T target = Types.target(u);
@@ -409,7 +415,7 @@ final class Builtins {
             Value.T[] v = new Value.T[1];
             Type.T[] vis = new Type.T[1];
             if (ObjectType.lookUp(rt, key[0], v, vis) && v[0] instanceof m3j.front.Field.T f) {
-                Loc l = c.fieldLoc(obj, Types.classOf(vis[0]), f);
+                Loc l = c.objectFieldLoc(obj, vis[0], f);
                 if (l instanceof Loc.Arr arr) {
                     c.assignArr(arr, val[0]);
                 } else {
