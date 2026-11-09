@@ -113,6 +113,14 @@ dates, basic authentication), `HTTPServer` (safe; HTTP/1.1 on any
 `ConnFD.T`) and `HTTPClient` (the client of the Java platform, through
 `M3jHttp` and `m3j.rt.Http`).
 
+## xml
+
+Not a package of cm3, whose `sgml` is of another kind: `XmlReader` (safe), a
+pull parser with namespaces, and two interfaces that it binds (`M3jXml`,
+`M3jXmlFill`) with `<*EXTERNAL ... :JAVA*>`. The class `m3j.rt.Xml` is a layer on
+the StAX parser of the Java platform; `docs/BACKEND.md` says why the parser is
+not bound directly.
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the

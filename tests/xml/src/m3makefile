@@ -1,0 +1,5 @@
+% Tests of the library xml; tools/xml_test.py runs it.
+import ("libm3")
+import ("xml")
+implementation ("Main")
+program ("xmltest")

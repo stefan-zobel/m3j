@@ -1,0 +1,69 @@
+root = [catalog]
+version = [1.0]
+encoding = [<NIL>]
+attr v = [8]
+attr v any = [7]
+attr v urn:x = [7]
+attr none = [<NIL>]
+lookup x = [urn:x]
+lookup default = [urn:c]
+lookup xml = [http://www.w3.org/XML/1998/namespace]
+lookup unknown = [<NIL>]
+depth 1
+child book depth 2 at 4:32
+id 1 in print TRUE
+title = [A & B <C>]
+price 1.5
+after, on End book
+child other depth 2 at 5:10
+after, on End other
+child book depth 2 at 7:29
+id 2 in print FALSE
+title = []
+after, on End book
+child x:book depth 2 at 8:19
+foreign id = [x]
+after, on End x:book
+end of root, on End depth 1
+child FALSE on EOF depth 0
+next EOF
+toInt 12 toBool TRUE toReal 2.5
+before: None local [] value [] target [] attrs 0 depth 0
+token: PI local [] value [q] target [p] attrs 0 depth 0
+token: Start local [a] value [] target [] attrs 1 depth 1
+token: Text local [] value [x] target [] attrs 0 depth 1
+token: Comment local [] value [y] target [] attrs 0 depth 1
+token: End local [a] value [] target [] attrs 0 depth 1
+end: EOF local [] value [] target [] attrs 0 depth 0
+closed: None local [] value [] target [] attrs 0 depth 0
+next after close raises Closed at 1:19: the reader is closed or has failed
+root of another name raises Unexpected at 1:5: expected the element b
+  then next is End
+root of another namespace raises Unexpected at 1:5: expected the element a
+  then next is End
+root twice raises Unexpected at 1:5: the root element has been reached before
+  then next is End
+content with a child raises Unexpected at 1:8: the element a has the child element b
+  then next is End
+content not on a start raises Unexpected at 1:1: content needs a start tag
+  then next is Start
+skip not on a start raises Unexpected at 1:1: skip needs a start tag
+  then next is Start
+need of a missing attribute raises Unexpected at 1:5: the element a has no attribute x
+  then next is End
+expect on an end raises Unexpected at 1:5: expected the element a
+  then next is EOF
+toInt of a bad value raises BadValue at 1:5: not an integer: 12x
+  then next is End
+toInt of NIL raises BadValue at 1:5: no value, where an integer is needed
+  then next is End
+toInt of a huge value raises BadValue at 1:5: not an integer: 99999999999999999999999
+  then next is End
+toBool of a bad value raises BadValue at 1:5: not a boolean: yes
+  then next is End
+toReal of a bad value raises BadValue at 1:5: not a number: one
+  then next is End
+root of an empty document raises Malformed at 1:1
+  then next raises Closed at 1:1: the reader is closed or has failed
+root of a malformed document raises Malformed at 1:3
+  then next raises Closed at 1:3: the reader is closed or has failed

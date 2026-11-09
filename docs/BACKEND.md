@@ -614,6 +614,21 @@ The library is hybrid:
   feeds the body of a request from its reader. A wait there looks for
   the alert of the thread as `Net.await` does; `m3j.rt.Http` hands over only
   fixed texts of errors, because the module makes atoms of them.
+  The package xml of m3j (`lib/xml`) is a pull parser on StAX of the Java
+  platform, through the layer `m3j.rt.Xml`, which `XmlReader` binds with
+  `<*EXTERNAL ... :JAVA*>`. The parser needs the layer. By default it reads
+  external entities, so document type declarations are off for good. After
+  an error its next call fails in undefined ways, so the first error ends
+  the object. On invalid bytes it prints to standard error whatever
+  reporter it has, so the layer finds the encoding by appendix F of XML 1.0,
+  decodes, and gives it characters. It hands out text in pieces, or
+  collects it without bound, so the layer joins the pieces and counts: a
+  single CDATA section or attribute value is one piece of any size, so the
+  limit on a token is checked in the source of characters, too. The source
+  of bytes is an object of Modula-3 that implements `Xml.Fill`: it returns
+  an array, because an array passed to a callback is a copy that could not
+  bring anything back. `Rd.Failure` and `Thread.Alerted` from it pass
+  through the parser as exceptions of Java do.
   The package sysutils of cm3 (`lib/sysutils`) has the modules of cm3 for
   Windows and for POSIX merged into modules for both (`PathRepr`,
   `OSSpecials`), and its UNSAFE procedures are safe ones in `System`

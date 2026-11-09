@@ -1,0 +1,14 @@
+token Start
+token Start
+Rd.Failure came through
+kind None local []
+next after Rd.Failure raises Closed at 1:1: the reader is closed or has failed
+Thread.Alerted came through
+next after Thread.Alerted raises Closed at 1:1: the reader is closed or has failed
+token Start
+next raises Malformed at 1:6
+next raises Closed at 1:6: the reader is closed or has failed
+kind None
+encoding = [ISO-8859-1]
+version = [1.0]
+content = [\00e9]

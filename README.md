@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -126,13 +126,43 @@ client is the one of the Java platform, with its pool of connections,
 redirects, proxies and TLS. Neither end does compression, WebSockets or
 HTTP/2 upgrades over plain TCP, and the server does not speak HTTP/2.
 
+### XML
+
+The package xml reads XML one token at a time, so a document can be larger
+than the memory of the program:
+
+```modula-3
+r := XmlReader.FromRd (rd);
+r.root ("catalog");
+WHILE r.child () DO
+  IF r.is ("book") THEN
+    id := r.toInt (r.need ("id"));
+    WHILE r.child () DO
+      IF r.is ("title") THEN title := r.content () ELSE r.skip () END;
+    END;
+  ELSE
+    r.skip ();
+  END;
+END;
+```
+
+`r.next ()` goes through the tokens one by one instead, for a program that
+wants to see all of them. Namespaces are supported, text comes in one piece
+however it is written (CDATA, references), and encodings are found by the
+rules of XML. It is meant for documents from anywhere: a document type
+declaration is skipped unread, so that nothing outside the document is ever
+fetched and entities cannot expand, and depth, attributes, names and tokens
+have limits (`XmlReader.Options`). The first error of a document ends the
+reader, and `XmlReader.Error` says what went wrong and where. The parser is
+the one of the Java platform.
+
 ### Java APIs
 
 An interface can stand for a Java class. The program then calls its
 methods, holds its objects in typed variables and catches its exceptions,
 and the compiler checks the declarations against the class:
 
-```modula3
+```modula-3
 <*EXTERNAL "java.util.ArrayList":JAVA*> INTERFACE ArrayList;
 
 IMPORT Java, JavaObject;
@@ -164,7 +194,7 @@ even if the program never calls it.
 
 The public instance fields of a class are the fields of its type `T`:
 
-```modula3
+```modula-3
 <*EXTERNAL "java.awt.Point":JAVA*> INTERFACE Point;
 
 IMPORT Java, JavaObject;
@@ -216,7 +246,7 @@ dimensions, records) stay in a `REFANY`.
 An object type can have the `T` of a binding as its supertype, and its
 objects are then objects of the Java class:
 
-```modula3
+```modula-3
 TYPE
   Worker = JThread.T OBJECT                 (* extends java.lang.Thread *)
     count := 0;
