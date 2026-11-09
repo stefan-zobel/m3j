@@ -41,8 +41,8 @@ three times.
 
 ## How the server sees the files
 
-A file is checked if it is in a package (below a directory `src` with an
-`m3makefile`); the server finds the imports of the package with m3build
+A file is checked if it is in the library of m3j (`lib`) or in a package
+(below a directory `src` with an `m3makefile`); the server finds the imports of the package with m3build
 when it sees the first file of the package, and again when the
 `m3makefile` or the `m3overrides` of the package is saved. A library that
 the package imports through its `m3overrides` must be built (m3build in

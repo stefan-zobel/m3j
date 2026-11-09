@@ -23,6 +23,9 @@ MODULE M3CTypeCheck;
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
 
+(* Changed for m3j: the supertype of an object type may be an opaque type
+   with the bound REFANY, the type of a binding of a Java class. *)
+
 IMPORT Text, Fmt;
 
 IMPORT AST, M3AST_AS, M3AST_SM;
@@ -807,6 +810,7 @@ PROCEDURE Ref(h: Handle; r: M3AST_AS.Ref_type) RAISES {}=
 PROCEDURE Object(h: Handle; o: M3AST_AS.Object_type) RAISES {}=
   VAR
     super: M3AST_SM.TYPE_SPEC_UNSET;
+    opaque := FALSE;
   BEGIN
     IF (M3CTypesMisc.IsTracedObject(o) = M3CTypesMisc.Ref.Untraced) AND
         h.safe AND M3CTypesMisc.ContainsTracedFields(o.as_fields_s) THEN
@@ -816,12 +820,14 @@ PROCEDURE Object(h: Handle; o: M3AST_AS.Object_type) RAISES {}=
       LOOP
         IF super # NIL AND ISTYPE(super, M3AST_AS.Opaque_type) THEN
           super := M3CConcTypeSpec.CurrentReveal(super);
+          opaque := TRUE;
         ELSE
           EXIT;
         END;
       END;
       IF super = NIL OR ISTYPE(super, M3AST_AS.Object_type) OR
-          ISTYPE(super, M3AST_AS.Root_type) THEN
+          ISTYPE(super, M3AST_AS.Root_type) OR
+          (opaque AND ISTYPE(super, M3AST_AS.RefAny_type)) THEN
         (* all is well *)
       ELSE
         M3Error.Report(o.as_ancestor,

@@ -21,6 +21,10 @@
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
 
+(* Changed for m3j: "NAME OBJECT ... END" as an argument that can be a
+   type, as in NEW (T OBJECT ... END), failed in a NARROW to an expression
+   instead of giving the type back. *)
+
 MODULE M3CParse;
 
 IMPORT Text, TextExtras, Fmt;
@@ -1559,6 +1563,7 @@ PROCEDURE E7(
         EVAL ExpectSet(t, e7FullTerm);
         token := t.lexer.current();
       END;
+      RAISE IsType(e8);
     ELSIF token = M3CToken.CurlyBra THEN
       IF e8MayBeType THEN
         e8 := Constructor(t, e7Term, EXP_TYPEToM3TYPE(t, e8));

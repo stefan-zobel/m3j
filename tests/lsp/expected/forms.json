@@ -1,0 +1,178 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/forms/src/Main.m3"
+  }
+ },
+ {
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "c : WIDECHAR"
+   ],
+   "range": {
+    "end": {
+     "character": 3,
+     "line": 15
+    },
+    "start": {
+     "character": 2,
+     "line": 15
+    }
+   }
+  }
+ },
+ {
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 3,
+     "line": 15
+    },
+    "start": {
+     "character": 2,
+     "line": 15
+    }
+   },
+   "uri": "file:<work>/forms/src/Main.m3"
+  }
+ },
+ {
+  "id": 3,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 7,
+     "line": 7
+    },
+    "start": {
+     "character": 2,
+     "line": 7
+    }
+   },
+   "uri": "file:<work>/forms/src/Main.m3"
+  }
+ },
+ {
+  "id": 4,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 35,
+     "line": 14
+    },
+    "start": {
+     "character": 29,
+     "line": 14
+    }
+   },
+   "uri": "file:<work>/forms/src/Main.m3"
+  }
+ },
+ {
+  "id": 5,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 7,
+     "line": 13
+    },
+    "start": {
+     "character": 2,
+     "line": 13
+    }
+   },
+   "uri": "file:<m3j>/lib/m3core/src/thread/Common/Thread.i3"
+  }
+ },
+ {
+  "id": 6,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "count : INTEGER"
+   ],
+   "range": {
+    "end": {
+     "character": 20,
+     "line": 20
+    },
+    "start": {
+     "character": 15,
+     "line": 20
+    }
+   }
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 16
+      },
+      "start": {
+       "character": 4,
+       "line": 16
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 14,
+       "line": 13
+      },
+      "start": {
+       "character": 4,
+       "line": 13
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 8,
+       "line": 12
+      },
+      "start": {
+       "character": 4,
+       "line": 12
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/forms/src/Labels.m3"
+  }
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

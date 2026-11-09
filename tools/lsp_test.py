@@ -86,11 +86,16 @@ def file_uri(path):
     return "file://" + p
 
 
+def source(work, f):
+    """The file f of a session: below the work directory, or with <m3j>/ below m3j."""
+    return ROOT / f[len("<m3j>/"):] if f.startswith("<m3j>/") else work / f
+
+
 def position(work, spec):
     f, text = spec[0], spec[1]
     n = spec[2] if len(spec) > 2 else 1
     off = spec[3] if len(spec) > 3 else 0
-    src = (work / f).read_text(encoding="latin-1").replace("\r\n", "\n")
+    src = source(work, f).read_text(encoding="latin-1").replace("\r\n", "\n")
     at = -1
     for _ in range(n):
         at = src.index(text, at + 1)
@@ -103,9 +108,9 @@ def position(work, spec):
 def expand(x, work):
     if isinstance(x, dict):
         if set(x) == {"$uri"}:
-            return file_uri(work / x["$uri"])
+            return file_uri(source(work, x["$uri"]))
         if set(x) == {"$text"}:
-            return (work / x["$text"]).read_text(encoding="latin-1").replace("\r\n", "\n")
+            return source(work, x["$text"]).read_text(encoding="latin-1").replace("\r\n", "\n")
         if set(x) == {"$pos"}:
             return position(work, x["$pos"])
         return {k: expand(v, work) for k, v in x.items()}
@@ -326,6 +331,10 @@ def run_session(name, args, work):
     return record, srv.err
 
 
+def lib_files():
+    return {str(p.relative_to(ROOT)) for p in (ROOT / "lib").rglob("*") if p.is_file()}
+
+
 def first_diff(want, got):
     for i in range(max(len(want), len(got))):
         a = want[i] if i < len(want) else "<end>"
@@ -381,6 +390,7 @@ def main():
         if status not in ("PASS", "RECORDED") or args.verbose:
             print("%-12s %s  %s" % (status, what, detail))
 
+    before = lib_files()
     try:
         for name in names:
             # a new copy of the packages for each session
@@ -416,6 +426,8 @@ def main():
             m3build(args, w / "shapes")
             status, detail = smoke(args, w)
             report(status, "smoke (node)", detail)
+        new = lib_files() - before
+        report("FAIL" if new else "PASS", "nothing written to lib", ", ".join(sorted(new)))
         print(", ".join("%s %d" % (k, counts[k]) for k in sorted(counts)) + "  (%.1f s)" % (time.time() - t0))
         return 0 if set(counts) <= {"PASS", "RECORDED", "SKIP"} else 1
     finally:

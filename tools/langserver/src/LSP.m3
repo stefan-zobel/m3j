@@ -13,7 +13,9 @@
      m3j) writes the .M3IMPTAB with -tfile (and -override if the package
      has an m3overrides) when the first file of the package is checked, and again when its m3makefile or m3overrides
      is saved, instead of cm3 once for the workspace. Its output goes to
-     the standard error output, not to that of the protocol.
+     the standard error output, not to that of the protocol. A file of
+     the library of m3j (lib) is checked too, without m3build and without
+     writing anything there (AstCompile).
    - A mutex keeps the thread that compiles and the requests from using
      m3tk at the same time; hover, declaration and type definition
      compile the file first if it is not the one that m3tk compiled
@@ -207,22 +209,18 @@ PROCEDURE RunM3Build (dir: TEXT): INTEGER =
    compile, after its .M3IMPTAB is made (again if again) *)
 PROCEDURE Package (uri: TEXT; again := FALSE): BOOLEAN =
   VAR
-    base, lib: TEXT;
-    ref      : REFANY;
+    base: TEXT;
+    ref : REFANY;
   BEGIN
     base := wc.package(uri);
     IF base = NIL THEN RETURN FALSE; END;
-    (* a package without an m3makefile, such as those of the library of
-       m3j, is not built *)
+    (* the library of m3j is not built *)
+    IF wc.inLibrary(uri) THEN RETURN TRUE; END;
+    (* a package without an m3makefile is not built *)
     TRY
       EVAL FS.Status(Pathname.Join(Pathname.Join(base, "src"), "m3makefile"));
     EXCEPT
     | OSError.E => RETURN FALSE;
-    END;
-    lib := Pathname.Join(M3jCompile.Home(), "lib");
-    IF Text.Length(base) > Text.Length(lib)
-         AND Text.Equal(Text.Sub(base, 0, Text.Length(lib)), lib) THEN
-      RETURN FALSE;
     END;
     IF again OR NOT packages.get(base, ref) THEN
       EVAL packages.put(base, NIL);

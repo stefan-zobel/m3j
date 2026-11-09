@@ -1,0 +1,177 @@
+{
+ "comment": "wide literals, whose value is computed, and NEW of an object type made from a name",
+ "steps": [
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Main.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 1,
+    "method": "textDocument/hover",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "forms/src/Main.m3",
+       "c: WIDECHAR",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 2,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "forms/src/Main.m3",
+       "c = Plain",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 3,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "forms/src/Main.m3",
+       "Plain OR",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 4,
+    "method": "textDocument/typeDefinition",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "forms/src/Main.m3",
+       "mutex.count",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 5,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "forms/src/Main.m3",
+       "Thread.Mutex",
+       1,
+       7
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 6,
+    "method": "textDocument/hover",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "forms/src/Main.m3",
+       "count);",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Main.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Labels.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Labels.m3"
+      }
+     }
+    }
+   }
+  }
+ ]
+}

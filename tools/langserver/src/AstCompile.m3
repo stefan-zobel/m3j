@@ -8,7 +8,9 @@
    and the search for the directory src above it ends at the root of the
    file system on Windows too; the build directory is JVM (that of
    m3build) instead of the name of the host from m3quake (MxConfig); the
-   method package gives the directory of the package of a file. *)
+   method package gives the directory of the package of a file. A file
+   of the library of m3j (lib) needs no .M3IMPTAB, which would have to be
+   written next to it: m3tk searches the directories of the library. *)
 
 MODULE AstCompile;
 
@@ -22,7 +24,7 @@ IMPORT M3CWarnTool, M3Error, TextRd, Text;
 IMPORT M3AST_all;                (* this cannot be omitted; it defines the
                                     particular revelations for all the AST
                                     nodes *)
-IMPORT Debug, Uri;
+IMPORT Debug, Uri, M3jCompile, M3jOS, TextUtils;
 
 <*FATAL ANY *>
 
@@ -50,6 +52,7 @@ REVEAL
     dirs : TextSeq.T;              (* search paths as a seq *)
     compType : CompType;           (* module interface or generic form *)
     base : TEXT;                   (* the directory of the package, or NIL *)
+    inLib : BOOLEAN;               (* the file is in the library of m3j *)
     errSeq : RefSeq.T;             (* error seq direct from m3tk *)
     errWr : NullWr.T;
   METHODS
@@ -64,6 +67,7 @@ REVEAL
     getTargetDir := TargetDir;
     getUnit := GetUnit;
     package := Package;
+    inLibrary := InLibrary;
     work := Work;
   END;
 
@@ -157,6 +161,12 @@ PROCEDURE Package(self : WorkerClosure; uri : TEXT) : TEXT =
     RETURN self.base;
   END Package;
 
+PROCEDURE InLibrary(self : WorkerClosure; uri : TEXT) : BOOLEAN =
+  BEGIN
+    self.getDirs(uri);
+    RETURN self.inLib;
+  END InLibrary;
+
 PROCEDURE New() : WorkerClosure =
   BEGIN
     RETURN NEW(WorkerClosure).init();
@@ -191,8 +201,12 @@ PROCEDURE Setup(self : WorkerClosure) =
     (* setting -D pathnames arg *)
     M3Args.SetPrefix(self.pathTool, M3PathTool.Define_Arg, pathList);
 
-    tList := NEW(RAT, 1);
-    tList[0] := self.targetDir & "/.M3IMPTAB";
+    IF self.inLib THEN
+      tList := NEW(RAT, 0);
+    ELSE
+      tList := NEW(RAT, 1);
+      tList[0] := self.targetDir & "/.M3IMPTAB";
+    END;
     (* setting -T.M3IMPTAB arg *)
     M3Args.SetPrefix(self.pathTool, M3PathTool.TFile_Arg, tList);
   END Setup;
@@ -240,6 +254,75 @@ PROCEDURE AddSubDirs(p : TEXT; seq : TextSeq.T) =
     fs.close();
   END AddSubDirs;
 
+(* A pathname as it is compared: on Windows, the case of the letters and
+   the kind of separator do not matter (an editor writes "d:", the
+   directory of m3j may be "D:") *)
+PROCEDURE Comparable(p : TEXT) : TEXT =
+  BEGIN
+    IF M3jOS.Posix() THEN RETURN p; END;
+    RETURN TextUtils.Lower(TextUtils.Substitute(p, "/", "\\"));
+  END Comparable;
+
+PROCEDURE Below(path, dir : TEXT) : BOOLEAN =
+  VAR
+    p := Comparable(path);
+    d := Comparable(dir);
+    n := Text.Length(d);
+  BEGIN
+    RETURN Text.Length(p) > n
+             AND Text.Equal(Text.Sub(p, 0, n), d)
+             AND Text.GetChar(p, n) IN SET OF CHAR{'/', '\\'};
+  END Below;
+
+(* The directories below p, without JVM (no sources), to seq, and those
+   for the other kind of system (lib/libm3/src/os/POSIX on Windows) to
+   last: they have units of the same name, and a unit of the common code
+   can import a unit that is only there. *)
+PROCEDURE AddLibDirs(p : TEXT; seq, last : TextSeq.T) =
+  VAR
+    fs := FS.Iterate(p);
+    other := "POSIX";
+    name,join : TEXT;
+    stat : File.Status;
+  BEGIN
+    IF M3jOS.Posix() THEN other := "WIN32"; END;
+    WHILE fs.nextWithStatus(name,stat) DO
+      IF stat.type = FS.DirectoryFileType AND NOT Text.Equal(name,"JVM") THEN
+        join := Pathname.Join(p,name);
+        IF Text.Equal(name,other) THEN
+          last.addhi(join);
+          AddLibDirs(join,last,last);
+        ELSE
+          seq.addhi(join);
+          AddLibDirs(join,seq,last);
+        END;
+      END;
+    END;
+    fs.close();
+  END AddLibDirs;
+
+(* The directory of the library, and its directories, found once. *)
+PROCEDURE LibDir() : TEXT =
+  BEGIN
+    IF libDir = NIL THEN
+      libDir := Pathname.Join(M3jCompile.Home(), "lib");
+    END;
+    RETURN libDir;
+  END LibDir;
+
+PROCEDURE LibDirs() : TextSeq.T =
+  VAR
+    last : TextSeq.T;
+  BEGIN
+    IF libDirs = NIL THEN
+      libDirs := NEW(TextSeq.T).init();
+      last := NEW(TextSeq.T).init();
+      AddLibDirs(LibDir(),libDirs,last);
+      FOR i := 0 TO last.size() - 1 DO libDirs.addhi(last.get(i)); END;
+    END;
+    RETURN libDirs;
+  END LibDirs;
+
 PROCEDURE GetDirs(self : WorkerClosure; name : TEXT) =
   VAR
     file,base,posSrc,ext,srcDir,parent : TEXT;
@@ -278,9 +361,20 @@ PROCEDURE GetDirs(self : WorkerClosure; name : TEXT) =
       posSrc := parent;
     END;
 
+    (* the library: the directory of the file first, for a unit with a
+       name that is also in another directory *)
+    self.inLib := Below(self.prefix, LibDir());
+    IF self.inLib THEN
+      self.base := LibDir();
+      self.targetDir := self.prefix;
+      self.dirs.addhi(self.prefix);
+      VAR all := LibDirs();
+      BEGIN
+        FOR i := 0 TO all.size() - 1 DO self.dirs.addhi(all.get(i)); END;
+      END;
+    ELSIF foundSrc THEN
     (* go up dir tree until you find src then add ../target
        and all subdirs of src *)
-    IF foundSrc THEN
       Debug.Write("Src Dir: " & srcDir & "\n");
       base := Pathname.Prefix(srcDir);
       self.base := base;
@@ -311,6 +405,10 @@ PROCEDURE GetDirs(self : WorkerClosure; name : TEXT) =
       Debug.Write("Error - file error extension " & ext & "\n");
     END;
   END GetDirs;
+
+VAR
+  libDir : TEXT := NIL;
+  libDirs : TextSeq.T := NIL;
 
 BEGIN
   (* have to init the warn tool to get warnings *)

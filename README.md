@@ -404,7 +404,8 @@ and the place of its declaration and of the definition of its type, from
 m3tk, cm3's toolkit for Modula-3. It is started as
 `java -jar m3_lang_server.jar` (with `m3j.jar` and `m3build.jar` next to
 it) and checks the files of packages (below a directory `src` with an
-`m3makefile`), whose imports it gets from m3build. [`tools/langserver/vscode`](tools/langserver/vscode)
+`m3makefile`), whose imports it gets from m3build, and those of the library
+(`lib`). [`tools/langserver/vscode`](tools/langserver/vscode)
 is an extension for Visual Studio Code (syntax highlighting and a client
 of the server, without other packages); [`tools/langserver/README.md`](tools/langserver/README.md) has
 the settings for Neovim, Emacs (Eglot), Helix and Kate.

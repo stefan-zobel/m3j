@@ -12,12 +12,14 @@ input and output, so any editor with a client of the protocol can use it:
   (`textDocument/declaration`, `textDocument/definition`,
   `textDocument/typeDefinition`), in the same file, in the interfaces of
   the package, in the library of m3j (`lib`) and in the packages that the
-  package imports.
+  package imports, also from a file of the library itself.
 
 It checks a file with m3tk, CM3's toolkit for Modula-3 (in `tests/stubgen`),
 not with the compiler of m3j: a message is that of m3tk. A file is checked
-if it is in a package, below a directory `src` with an `m3makefile`. For
-each package, the server runs m3build (`m3build.jar` next to it) with
+if it is in the library of m3j (`lib`), whose packages m3tk searches
+without m3build and where the server writes nothing, or in a package,
+below a directory `src` with an `m3makefile`. For each package, the
+server runs m3build (`m3build.jar` next to it) with
 `-tfile` in the directory of the package, which writes the imports of the
 package to `JVM/.M3IMPTAB`, where m3tk finds them; again when the
 `m3makefile` or the `m3overrides` of the package is saved. A package that

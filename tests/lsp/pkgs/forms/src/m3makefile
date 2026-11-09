@@ -1,0 +1,5 @@
+% Forms that the toolkit of the server has to understand.
+import ("libm3")
+implementation ("Main")
+module ("Labels")
+program ("forms")

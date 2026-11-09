@@ -21,6 +21,10 @@
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
 
+(* Changed for m3j: the value of a wide character literal and of a wide
+   text literal, which failed in a NARROW to the type of the literals
+   that are not wide; a wide character literal starts with W; CHV knows
+   the digits A to F of a hexadecimal escape. *)
 
 MODULE M3CBackEnd_C  EXPORTS M3CBackEnd, M3CBackEnd_C;
 
@@ -320,15 +324,15 @@ PROCEDURE LiteralValue_C(lit: M3AST_AS.EXP;
         END;
 
     | M3AST_AS.WideChar_literal =>
-        (* 'x' or '\n' or '\dddddd' or '\xDDDD' or '\XDDDD' *)
+        (* W'x' or W'\n' or W'\dddddd' or W'\xDDDD' or W'\XDDDD' *)
         VAR
           cvi: INTEGER;
           t: TEXT := M3CLiteral.ToText(
-              NARROW(lit, M3AST_AS.Char_literal).lx_litrep);
+              NARROW(lit, M3AST_AS.WideChar_literal).lx_litrep);
         BEGIN
-          IF Text.GetChar(t, 1) = '\\' THEN
+          IF Text.GetChar(t, 2) = '\\' THEN
             (* escape *)
-            CASE Text.GetChar(t, 2) OF
+            CASE Text.GetChar(t, 3) OF
             | 'n' => cvi := ORD('\n');
             | 't' => cvi := ORD('\t');
             | 'r' => cvi := ORD('\r');
@@ -337,20 +341,20 @@ PROCEDURE LiteralValue_C(lit: M3AST_AS.EXP;
             | 'f' => cvi := ORD('\f');
             | '\\' => cvi := ORD('\\');
             | 'x' , 'X' =>
-              cvi := CHV(Text.GetChar(t, 3)) * 4096 + 
-                     CHV(Text.GetChar(t, 4)) * 256 + 
-                     CHV(Text.GetChar(t, 5)) * 16 + 
-                     CHV(Text.GetChar(t, 6));
-            ELSE  (* \ddd *)
-              cvi := CHV(Text.GetChar(t, 2)) * 32768 + 
-                     CHV(Text.GetChar(t, 3)) * 4096 + 
-                     CHV(Text.GetChar(t, 4)) * 512 + 
-                     CHV(Text.GetChar(t, 5)) * 64 + 
-                     CHV(Text.GetChar(t, 6)) * 8 + 
+              cvi := CHV(Text.GetChar(t, 4)) * 4096 + 
+                     CHV(Text.GetChar(t, 5)) * 256 + 
+                     CHV(Text.GetChar(t, 6)) * 16 + 
                      CHV(Text.GetChar(t, 7));
+            ELSE  (* \ddd *)
+              cvi := CHV(Text.GetChar(t, 3)) * 32768 + 
+                     CHV(Text.GetChar(t, 4)) * 4096 + 
+                     CHV(Text.GetChar(t, 5)) * 512 + 
+                     CHV(Text.GetChar(t, 6)) * 64 + 
+                     CHV(Text.GetChar(t, 7)) * 8 + 
+                     CHV(Text.GetChar(t, 8));
             END; (* case *)
           ELSE
-            cvi := ORD(Text.GetChar(t, 1));
+            cvi := ORD(Text.GetChar(t, 2));
           END; (* if *)
           er := M3CBackEnd_Int_Integer.New_value(cvi);
         END;
@@ -367,7 +371,7 @@ PROCEDURE LiteralValue_C(lit: M3AST_AS.EXP;
     | M3AST_AS.WideText_literal =>
         VAR tv := NEW(Text_value);
             t: TEXT := M3CLiteral.ToText(
-                NARROW(lit, M3AST_AS.Text_literal).lx_litrep);
+                NARROW(lit, M3AST_AS.WideText_literal).lx_litrep);
         BEGIN
           er := tv;
           tv.sm_value := Text.Sub(t, 2, Text.Length(t) - 3); 
@@ -460,7 +464,11 @@ PROCEDURE LiteralValue_C(lit: M3AST_AS.EXP;
 
 <*INLINE*> PROCEDURE CHV(ch: CHAR): INTEGER RAISES {}=
   BEGIN
-    RETURN ORD(ch) - ORD('0');
+    CASE ch OF
+    | 'a' .. 'f' => RETURN ORD(ch) - ORD('a') + 10;
+    | 'A' .. 'F' => RETURN ORD(ch) - ORD('A') + 10;
+    ELSE RETURN ORD(ch) - ORD('0');
+    END;
   END CHV;
 
 

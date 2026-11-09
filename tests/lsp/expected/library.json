@@ -1,0 +1,159 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<m3j>/lib/xml/src/XmlReader.m3"
+  }
+ },
+ {
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 6,
+     "line": 84
+    },
+    "start": {
+     "character": 5,
+     "line": 84
+    }
+   },
+   "uri": "file:<m3j>/lib/libm3/src/rw/Rd.i3"
+  }
+ },
+ {
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 6,
+     "line": 11
+    },
+    "start": {
+     "character": 5,
+     "line": 11
+    }
+   },
+   "uri": "file:<m3j>/lib/xml/src/M3jXmlFill.i3"
+  }
+ },
+ {
+  "id": 3,
+  "jsonrpc": "2.0",
+  "result": {
+   "contents": [
+    "Filler : XmlReader.Filler"
+   ],
+   "range": {
+    "end": {
+     "character": 8,
+     "line": 9
+    },
+    "start": {
+     "character": 2,
+     "line": 9
+    }
+   }
+  }
+ },
+ {
+  "id": 4,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 14,
+     "line": 84
+    },
+    "start": {
+     "character": 10,
+     "line": 84
+    }
+   },
+   "uri": "file:<m3j>/lib/libm3/src/rw/Rd.i3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<m3j>/lib/xml/src/XmlName.m3"
+  }
+ },
+ {
+  "id": 5,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 16,
+     "line": 24
+    },
+    "start": {
+     "character": 10,
+     "line": 24
+    }
+   },
+   "uri": "file:<m3j>/lib/m3core/src/text/Text.i3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<m3j>/lib/libm3/AMD64_NT/AtomList.i3"
+  }
+ },
+ {
+  "id": 6,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<m3j>/lib/libm3/src/os/Common/Pathname.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<m3j>/lib/libm3/src/uid/Common/Capability.m3"
+  }
+ },
+ {
+  "id": 7,
+  "jsonrpc": "2.0",
+  "result": {
+   "range": {
+    "end": {
+     "character": 9,
+     "line": 26
+    },
+    "start": {
+     "character": 2,
+     "line": 26
+    }
+   },
+   "uri": "file:<m3j>/lib/libm3/src/random/Common/Random.i3"
+  }
+ },
+ {
+  "id": 9999,
+  "jsonrpc": "2.0",
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

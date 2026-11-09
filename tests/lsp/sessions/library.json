@@ -1,0 +1,297 @@
+{
+ "comment": "files of the library of m3j, which has no m3makefiles: errors, hovers, declarations in the package, in another package and in a derived unit",
+ "steps": [
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlReader.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "<m3j>/lib/xml/src/XmlReader.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 1,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlReader.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/xml/src/XmlReader.m3",
+       "Rd.T",
+       1,
+       3
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 2,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlReader.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/xml/src/XmlReader.m3",
+       "M3jXmlFill.T",
+       1,
+       11
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 3,
+    "method": "textDocument/hover",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlReader.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/xml/src/XmlReader.m3",
+       "Filler =",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 4,
+    "method": "textDocument/typeDefinition",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlReader.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/xml/src/XmlReader.m3",
+       "rd: Rd.T",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlReader.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlName.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "<m3j>/lib/xml/src/XmlName.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 5,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlName.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/xml/src/XmlName.m3",
+       "Text.Length",
+       1,
+       5
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/xml/src/XmlName.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/AMD64_NT/AtomList.i3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "<m3j>/lib/libm3/AMD64_NT/AtomList.i3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 6,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/AMD64_NT/AtomList.i3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/libm3/AMD64_NT/AtomList.i3",
+       "Atom)",
+       1,
+       0
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/AMD64_NT/AtomList.i3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/src/os/Common/Pathname.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "<m3j>/lib/libm3/src/os/Common/Pathname.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/src/os/Common/Pathname.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/src/uid/Common/Capability.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "<m3j>/lib/libm3/src/uid/Common/Capability.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "id": 7,
+    "method": "textDocument/declaration",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/src/uid/Common/Capability.m3"
+      }
+     },
+     "position": {
+      "$pos": [
+       "<m3j>/lib/libm3/src/uid/Common/Capability.m3",
+       "Random.Default",
+       1,
+       7
+      ]
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "<m3j>/lib/libm3/src/uid/Common/Capability.m3"
+      }
+     }
+    }
+   }
+  }
+ ]
+}
