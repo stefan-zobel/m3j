@@ -22,7 +22,8 @@
 (* See the file COPYRIGHT for a full description.              *)
 
 (* Changed for m3j: an exception named in a FATAL pragma can have an
-   underscore in its name. *)
+   underscore in its name, and a reserved word there is a name that is not
+   declared. *)
 
 MODULE M3CChkRaises;
 
@@ -261,8 +262,12 @@ PROCEDURE FindDefId(
     h: Handle;
     t: Text.T)
     : M3AST_AS.DEF_ID=
+  VAR
+    id: M3CId.T;
   BEGIN
-    h.used_id.lx_symrep := M3CId.Enter(t);
+    (* a reserved word, like OR, is not an M3CId.T *)
+    IF NOT M3CId.Lookup(t, id) THEN RETURN NIL END;
+    h.used_id.lx_symrep := id;
     RETURN M3ASTScope.Lookup(h.scope, h.used_id);
   END FindDefId;
 
@@ -272,8 +277,11 @@ PROCEDURE FindInInterface(
     defId: M3AST_AS.DEF_ID;
     name: Text.T)
     : M3AST_AS.DEF_ID=
+  VAR
+    id: M3CId.T;
   BEGIN
-    h.used_id.lx_symrep := M3CId.Enter(name);
+    IF NOT M3CId.Lookup(name, id) THEN RETURN NIL END;
+    h.used_id.lx_symrep := id;
     h.used_id.sm_def := NIL;
     M3CDef.ResolveInterfaceId(defId, h.used_id);
     RETURN h.used_id.sm_def

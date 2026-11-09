@@ -1,11 +1,15 @@
 MODULE Asserted;
 
-(* Names that are used only in an ASSERT or DEBUG pragma, none of which may
-   get the message that it is not used. *)
+(* Names that are used only in an ASSERT, DEBUG or FATAL pragma, none of which
+   may get the message that it is not used. *)
 
-IMPORT Fmt, Text;
+IMPORT Fmt, Text, Thread;
+FROM Rd IMPORT EndOfFile;
+
+<*FATAL Thread.Alerted, EndOfFile*>
 
 EXCEPTION Failed (INTEGER);
+EXCEPTION Only_In_Pragma;
 
 TYPE
   A = REF RECORD x: INTEGER END;
@@ -74,6 +78,11 @@ PROCEDURE Imported () =
     <*ASSERT Fmt.Int (0) # NIL*>
   END Imported;
 
+PROCEDURE Fatal () =
+  <*FATAL Only_In_Pragma*>
+  BEGIN
+  END Fatal;
+
 VAR final := 0;
 
 BEGIN
@@ -85,5 +94,6 @@ BEGIN
   Loop ();
   Formals (1, 0);
   Imported ();
+  Fatal ();
   <*ASSERT final = 0*>
 END Asserted.

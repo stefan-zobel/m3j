@@ -21,9 +21,9 @@
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
 
-(* Changed for m3j: a name in an ASSERT or DEBUG pragma is a use of it. The
-   text of the pragma is not part of the tree, so its names are looked up
-   here, in the scope that the pragma is in. *)
+(* Changed for m3j: a name in an ASSERT, DEBUG or FATAL pragma is a use of
+   it. The text of the pragma is not part of the tree, so its names are
+   looked up here, in the scope that the pragma is in. *)
 
 MODULE M3CChkUses;
 
@@ -165,8 +165,8 @@ PROCEDURE MarkNames(
     scope: M3AST_SM.SCOPE)
     RAISES {}=
   (* Marks the names that 'body', the text of a pragma, uses, if the pragma
-   is an ASSERT or a DEBUG. A name after a dot is that of a field, a method
-   or an item of an interface, which are not tracked. *)
+   is an ASSERT, a DEBUG or a FATAL. A name after a dot is that of a field,
+   a method or an item of an interface, which are not tracked. *)
   VAR
     i: CARDINAL := 2;
     end := Text.Length(body) - 2;
@@ -178,7 +178,8 @@ PROCEDURE MarkNames(
     start := i;
     WHILE i < end AND Text.GetChar(body, i) IN IdentChars DO INC(i) END;
     WITH word = Text.Sub(body, start, i - start) DO
-      keyword := Text.Equal(word, "ASSERT") OR Text.Equal(word, "DEBUG");
+      keyword := Text.Equal(word, "ASSERT") OR Text.Equal(word, "DEBUG")
+                 OR Text.Equal(word, "FATAL");
     END;
     IF NOT keyword THEN RETURN END;
     WHILE i < end DO

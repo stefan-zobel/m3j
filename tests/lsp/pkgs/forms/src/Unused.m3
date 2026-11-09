@@ -1,9 +1,9 @@
 MODULE Unused;
 
-(* Names that an ASSERT does not use, each of which still gets the message
+(* Names that a pragma does not use, each of which still gets the message
    that it is not used, and one that is used although it says it is not. *)
 
-IMPORT Fmt;
+IMPORT Fmt, Thread;
 
 TYPE O = OBJECT field: INTEGER END;
 
@@ -40,9 +40,16 @@ PROCEDURE Says (<*UNUSED*> u: INTEGER) =
     <*ASSERT u = 0*>
   END Says;
 
+PROCEDURE Qualified () =
+  <*FATAL Thread.Alerted*>
+  VAR Alerted := 0;
+  BEGIN
+  END Qualified;
+
 BEGIN
   Texts ();
   Other ();
   Shadowed ();
   Says (0);
+  Qualified ();
 END Unused.

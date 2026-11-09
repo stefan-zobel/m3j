@@ -17,7 +17,7 @@ CONST
   J = Long.Rotate (1L, -1000);
 
 PROCEDURE P () =
-  <*FATAL Not_Declared*>
+  <*FATAL Not_Declared, OR, Word.OR*>
   BEGIN
   END P;
 
