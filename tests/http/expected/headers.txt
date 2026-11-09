@@ -1,0 +1,38 @@
+empty
+get Host = <NIL>
+add
+  Host: example.org
+  Set-Cookie: a=1
+  Accept: */*
+  set-cookie: b=2
+  SET-COOKIE: c=3
+get HOST = example.org
+get Set-Cookie = a=1
+get Missing = <NIL>
+set keeps the position of the first and removes the others
+  Host: example.org
+  Set-Cookie: d=4
+  Accept: */*
+set of a new name appends
+  Host: example.org
+  Set-Cookie: d=4
+  Accept: */*
+  Date: today
+remove
+  Host: example.org
+  Set-Cookie: d=4
+  Date: today
+growth
+get x-100 = 10000
+get X-1 = 1
+get x-50 = 2500
+count 100
+next at the end: 0
+characters above 255
+a%E9%E2%82%AC
+0
+0
+bad
+bad
+bad
+4261736963206454706836654b4372413d3d

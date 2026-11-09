@@ -607,6 +607,13 @@ The library is hybrid:
   at a time reads or sends, so that the records stay in order. A reader
   leaves what it has to send to a thread that is already sending, so it
   never waits for a writer that is blocked.
+  The package http of m3j (`lib/http`) has a server in safe Modula-3 and a
+  client on the one of the Java platform. `HTTPClient` is a thin layer on
+  `M3jHttp` (`m3j.rt.Http`): the body of a response waits in a queue that
+  the subscriber keeps short by flow control, and a thread of the module
+  feeds the body of a request from its reader. A wait there looks for
+  the alert of the thread as `Net.await` does; `m3j.rt.Http` hands over only
+  fixed texts of errors, because the module makes atoms of them.
   The package sysutils of cm3 (`lib/sysutils`) has the modules of cm3 for
   Windows and for POSIX merged into modules for both (`PathRepr`,
   `OSSpecials`), and its UNSAFE procedures are safe ones in `System`

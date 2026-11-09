@@ -1,0 +1,7 @@
+% Tests of the library http; tools/http_test.py runs it.
+import ("libm3")
+import ("tcp")
+import ("tls")
+import ("http")
+implementation ("Main")
+program ("httptest")

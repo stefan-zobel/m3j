@@ -218,6 +218,42 @@ public final class Externals {
         return ((Tls) e).info(what);
     }
 
+    // M3jHttp (m3j's module HTTPClient): see Http
+
+    public static Object M3jHttp__NewClient(double connectTimeout, boolean follow, String proxy, Object context,
+                                            ObjRef err) {
+        return Http.newClient(connectTimeout, follow, proxy, context, err);
+    }
+
+    public static void M3jHttp__CloseClient(Object client) {
+        Http.closeClient(client);
+    }
+
+    public static Object M3jHttp__Start(Object client, String method, String url, String headers, String text,
+                                        boolean upload, long length, double timeout, LongRef code, ObjRef err) {
+        return Http.start(client, method, url, headers, text, upload, length, timeout, code, err);
+    }
+
+    public static long M3jHttp__AwaitResponse(Object x, LongRef status, ObjRef version, ObjRef headers, ObjRef err) {
+        return Http.awaitResponse(x, status, version, headers, err);
+    }
+
+    public static long M3jHttp__Read(Object x, byte[] b, int off, int n, double timeout, ObjRef err) {
+        return Http.read(x, b, off, n, timeout, err);
+    }
+
+    public static long M3jHttp__Write(Object x, byte[] b, int off, int n) {
+        return Http.write(x, b, off, n);
+    }
+
+    public static void M3jHttp__FinishUpload(Object x, boolean failed) {
+        Http.finishUpload(x, failed);
+    }
+
+    public static void M3jHttp__Abort(Object x) {
+        Http.abort(x);
+    }
+
     // M3jNet (m3j's modules TCP and IP): see Net
     public static long M3jNet__Listen(long addr, long port) {
         return Net.listen(addr, port);

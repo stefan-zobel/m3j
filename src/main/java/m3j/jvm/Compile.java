@@ -225,7 +225,7 @@ public final class Compile {
             c.env.addSourceDir(d, dirNames.get(d));
         }
         // the library that m3j brings: m3core, libm3, tcp, netobj and sysutils (safe modules, some
-        // changed for m3j), tls and the units of m3j
+        // changed for m3j), tls, http and the units of m3j
         c.env.addBundled();
         for (Path p : pkgs) {
             c.env.addPackage(p);

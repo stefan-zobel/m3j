@@ -1,0 +1,26 @@
+http
+  200 HTTP/1.1 Hello
+
+  ping
+  404 Not Found
+
+  chunked upload: 500000 -1
+  known upload: 500000 500000
+  download: 1
+  500 Internal Server Error
+
+  200 Rd.Failure HTTP.BadMessage (the response is incomplete)
+  end
+https
+  200 HTTP/1.1 Hello
+
+  ping
+  404 Not Found
+
+  chunked upload: 500000 -1
+  known upload: 500000 500000
+  download: 1
+  500 Internal Server Error
+
+  200 Rd.Failure HTTP.BadMessage (the response is incomplete)
+  end

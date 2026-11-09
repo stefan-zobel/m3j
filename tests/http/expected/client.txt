@@ -1,0 +1,52 @@
+text: hello
+404: 404 HTTP/1.1 status body
+GetText of 404: HTTP.BadMessage (a status outside 200 to 299)
+multi: 200
+  get set-cookie: a=1; Path=/
+  set-cookie: [a=1; Path=/]
+  set-cookie: [b=2]
+  x-a: [1]
+  x-empty: []
+redirect: ok hello
+no redirect: 302 /text
+post: 200 POST len=14 sum=8283fd58 type=text/x-test te=None multi=None
+empty post: 200 POST len=0 sum=e3b0c442 type=text/x-test te=None multi=None
+wide post: 200 POST len=3 sum=c4cc90ed type=text/x-test te=None multi=None
+method: 200 PATCH len=0 sum=e3b0c442 type=None te=None multi=['one', 'two']
+delete: 200 DELETE len=0 sum=e3b0c442 type=None te=None multi=None
+known length: 200 POST len=300000 sum=4bd69805 type=None te=None multi=None
+unknown length: 200 POST len=300000 sum=4bd69805 type=None te=chunked multi=None
+wrong length: HTTP.BadMessage (the body of the request does not have the declared length)
+failing body: HTTP.BadMessage (reading the body of the request failed)
+restricted field: HTTP.BadMessage (a field that the client sets itself)
+transfer-encoding: HTTP.BadMessage (a field that the client sets itself)
+not ascii: HTTP.BadMessage (a field that cannot be sent)
+line break: HTTP.BadMessage (a field that cannot be sent)
+bad name: HTTP.BadMessage (a field that cannot be sent)
+bad method: HTTP.BadMessage (a method that cannot be sent)
+no url: HTTP.BadUrl (no URL)
+scheme: HTTP.BadUrl (malformed URL)
+relative: HTTP.BadUrl (malformed URL)
+syntax: HTTP.BadUrl (malformed URL)
+unreachable: HTTP.Unreachable (no connection to the server)
+unknown host: HTTP.Unreachable (unknown host)
+timeout in head: HTTP.Timeout (the request timed out)
+timeout in body: 200 Rd.Failure HTTP.Timeout (timeout in the body of a response)
+truncated: 200 Rd.Failure HTTP.BadMessage (the response is incomplete)
+garbage: HTTP.BadMessage (invalid response)
+closes early: HTTP.Unreachable (the connection failed)
+alert in the head: alerted, quick: 1
+  head arrived, reading
+alert in the body: alerted, quick: 1
+close early: read 100
+reader closed: hello
+still works: ok hello
+download: 104857600 bytes, checksum 155345524
+through a proxy: ok hello
+bad proxy: HTTP.BadUrl (malformed address of a proxy)
+default trust against the test ca: TLS.BadCertificate (the certificate of the server is not accepted)
+https: ok hello
+https post: 200 HTTP/1.1 POST len=8 sum=c476a7a4 type=text/x-test te=None multi=None
+wrong host: TLS.BadCertificate (the certificate of the server is not accepted)
+other ca: TLS.BadCertificate (the certificate of the server is not accepted)
+end

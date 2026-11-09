@@ -49,6 +49,11 @@ PROCEDURE NewContext (keyStore, keyPassword, trustStore, trustPassword: TEXT := 
     RETURN NEW (Context, ctx := ctx);
   END NewContext;
 
+PROCEDURE Platform (ctx: Context): REFANY =
+  BEGIN
+    RETURN ctx.ctx;
+  END Platform;
+
 PROCEDURE Client (ctx: Context; conn: ConnFD.T; host: TEXT; alpn: TEXT := NIL;
                   waitFor: LONGREAL := -1.0D0): T
   RAISES {IP.Error, Thread.Alerted} =

@@ -14,6 +14,8 @@ java-lib java    javac jlib/jarclasses jlib/java/tool/Hello.java; jar jlib/lib/h
 
 tls      tls      m3build use; run use/JVM/use
 
+http     http     m3build use; run use/JVM/use
+
 netobj   netobj   m3build nob; exists nob/JVM/Test_T_v1.m3; exists nob/JVM/Test_U_v2.m3; pair nob/JVM/netobj
 
 errors   errors   m3build bad; absent bad/JVM/bad.jar; m3build noimport; m3build csrc; absent csrc/JVM/csrc.jar; m3build unsafe; absent unsafe/JVM/unsafe.jar

@@ -58,6 +58,11 @@ PROCEDURE NewContext (keyStore, keyPassword, trustStore, trustPassword: TEXT := 
    in the format PEM, with the certificates that are trusted, "NIL" for
    those of the platform. *)
 
+PROCEDURE Platform (ctx: Context): REFANY;
+(* The object of the Java platform behind "ctx", a
+   "javax.net.ssl.SSLContext", for code that works with the platform
+   directly. *)
+
 PROCEDURE Client (ctx: Context; conn: ConnFD.T; host: TEXT; alpn: TEXT := NIL;
                   waitFor: LONGREAL := -1.0D0): T
   RAISES {IP.Error, Thread.Alerted};

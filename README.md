@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -94,6 +94,37 @@ certificates of clients and ALPN. A connection that ends without the notice
 of closing of the protocol raises `Rd.Failure` with `TLS.Truncated`, for its
 data may be incomplete. Sessions are not resumed: each connection has a full
 handshake.
+
+### HTTP
+
+The package http (not part of cm3, whose `m3-www/http` is from the 1990s) has
+a server for HTTP/1.1 and a client that also speaks HTTP/2:
+
+```modula-3
+TYPE Hello = HTTPServer.Handler OBJECT OVERRIDES request := Greet END;
+
+PROCEDURE Greet (h: Hello; req: HTTPServer.Request; resp: HTTPServer.Response)
+  RAISES {Wr.Failure, Thread.Alerted} =
+  BEGIN
+    resp.headers.set ("Content-Type", "text/plain");
+    Wr.PutText (resp.body (), "Hello\n");
+  END Greet;
+
+server := HTTPServer.New ();
+server.register (NEW (Hello));
+server.serve (TCP.NewConnector (IP.Endpoint {IP.NullAddress, 8080}));  (* with a TLS.Context: HTTPS *)
+
+client := HTTPClient.New ();
+page := HTTPClient.GetText (client, "https://www.example.org/");
+```
+
+The server is written in safe Modula-3 on `ConnFD.T`, so it runs over TCP
+or TLS. It serves one connection per thread with keep-alive and `chunked`,
+checks requests strictly against RFC 9110 and 9112, and has limits and
+timeouts for each stage of a request; `HTTPServer.Options` lists them. The
+client is the one of the Java platform, with its pool of connections,
+redirects, proxies and TLS. Neither end does compression, WebSockets or
+HTTP/2 upgrades over plain TCP, and the server does not speak HTTP/2.
 
 ### Java APIs
 

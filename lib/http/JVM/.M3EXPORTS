@@ -1,0 +1,12 @@
+% exports of http: a server and a client for HTTP
+_define_lib("http")
+import_version("m3core", "JVM")
+import_version("libm3", "JVM")
+import_version("tcp", "JVM")
+import_version("tls", "JVM")
+_map_add_interface("HTTP.i3", "http", "src", "")
+_map_add_module("HTTP.m3", "http", "src", "hidden")
+_map_add_interface("HTTPClient.i3", "http", "src", "")
+_map_add_module("HTTPClient.m3", "http", "src", "hidden")
+_map_add_interface("HTTPServer.i3", "http", "src", "")
+_map_add_module("HTTPServer.m3", "http", "src", "hidden")

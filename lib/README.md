@@ -103,6 +103,16 @@ safe), a `ConnFD.T` around another one, on the engine of the Java platform
 (`M3jTls`, `m3j.rt.Tls`). The engine does no input or output; the module
 moves the bytes over the connection below, so its timeouts and alerts stay.
 
+## http
+
+Not a package of cm3, whose `m3-www/http` has no keep-alive, no limits and a
+broken `chunked`, so this is a new design that takes only some tables and
+the outline of a few procedures from it (with the notice of Digital Equipment
+Corporation, `http/src/COPYRIGHT`): `HTTP` (fields of messages, escapes,
+dates, basic authentication), `HTTPServer` (safe; HTTP/1.1 on any
+`ConnFD.T`) and `HTTPClient` (the client of the Java platform, through
+`M3jHttp` and `m3j.rt.Http`).
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the
@@ -207,4 +217,5 @@ do not block and the lookup of names of hosts, for the modules `TCP` and
 platform for `Process` (`m3j.rt.Proc`), and `M3jWeak`, the weak
 references of the Java platform for `WeakRef` (`m3j.rt.Weak`), and
 `M3jTls`, the engine of TLS of the Java platform for the module `TLS` of
-tls (`m3j.rt.Tls`).
+tls (`m3j.rt.Tls`), and `M3jHttp`, the client of HTTP of the Java platform
+for the module `HTTPClient` of http (`m3j.rt.Http`).
