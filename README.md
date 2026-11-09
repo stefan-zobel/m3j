@@ -43,7 +43,7 @@ The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
 tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
-`TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `Buf`,
+`TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
 the jar; for these no cm3 installation is needed:
 
@@ -197,6 +197,37 @@ It escapes strings and checks the order of the calls, so that the result is a
 valid document (RFC 8259) that reads back as it was written. A surrogate
 without its partner, an infinity or a NaN and a key that the object has
 already are errors, and the first error ends the writer. The output is UTF-8.
+
+`JsonReader` reads JSON piece by piece from a `Rd.T`, so a large document needs
+no more memory than its longest string:
+
+```modula-3
+r := JsonReader.FromRd (rd);
+r.object ();
+WHILE r.member () DO
+  IF r.is ("books") THEN
+    r.array ();
+    WHILE r.element () DO
+      r.object ();
+      WHILE r.member () DO
+        IF r.is ("id") THEN id := r.int ();
+        ELSIF r.is ("title") THEN title := r.text ();
+        ELSE r.skip ();
+        END;
+      END;
+    END;
+  ELSE
+    r.skip ();
+  END;
+END;
+r.finish ();
+```
+
+`peek` tells what comes next, for a program that does not know the format. It
+follows RFC 8259 strictly and decodes escapes, so `text` gives the characters
+of the string. An error of the document names its line, column and offset and
+ends the reader; a value of the wrong kind or a number that does not fit takes
+nothing, and the program can go on. `Open` reads a file, `FromText` a text.
 
 ### Java APIs
 

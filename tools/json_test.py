@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 the m3j authors.
 # SPDX-License-Identifier: MIT
-"""Tests of JsonWriter of the library json of m3j, through
-tests/jsonwriter/src/Main.m3, which carries out scripts of calls. They need
-no connection to the internet.
+"""Tests of JsonWriter and JsonReader of the library json of m3j, through
+tests/jsonwriter/src/Main.m3, which carries out scripts of calls, and
+tests/jsonreader/src/Main.m3, which reads documents. They need no connection
+to the internet.
 
   python3 tools/json_test.py [CASE]... [--java JAVA] [--jar JAR] [--work DIR]
                              [--keep] [--timeout SECONDS] [--count N] [--speed]
@@ -28,6 +29,28 @@ The cases:
            in tests/jsonwriter/expected)
   big      a generated document under a small heap, compared by hash
 
+The cases of the reader; the json module of Python, made strict about what it
+lets through, says what a document holds and whether it is one:
+
+  rfixed   documents with their pieces, checked by hand
+  rerrors  what must be refused, with the place of the error, however it comes
+  rrandom  random documents against their model, read in every way, and
+           written again by JsonWriter
+  rfuzz    documents with random damage, accepted exactly if Python accepts
+  rchunks  every document in pieces of any size gives the same result
+  rchars   each character in a value and in a key, raw and as an escape;
+           surrogates without a partner; pairs on the edge of a chunk of a text
+  rutf8    all short sequences of bytes, refused or replaced like Python does
+  rreals   random numbers from their bits and hard cases, to the bit
+  rints    the limits of INTEGER, and what is not an integer
+  rnumbers numbers as texts against the grammar of RFC 8259, long numbers
+  rdepth   the limit of nesting; a million levels without a limit
+  rlimits  the limits of strings and numbers, to the character
+  rapi     calls one by one: what takes nothing, what ends the reader, positions
+  rfeed    readers that fail or block, Open and close (expected output in
+           tests/jsonreader/expected)
+  rbig     a generated document under a small heap, checked record by record
+
 --speed measures the rate, for information.
 """
 
@@ -49,6 +72,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TESTS = ROOT / "tests" / "jsonwriter"
+READER = ROOT / "tests" / "jsonreader"
 SEED = 20261109
 FIRST_INT = -2 ** 63
 LAST_INT = 2 ** 63 - 1
@@ -75,18 +99,34 @@ class Env:
         self.java = args.java
         self.classes = work / "classes"
         self.cp = str(self.classes) + os.pathsep + args.jar
+        self.reader_classes = work / "reader_classes"
         self.batches = 0
 
-    def compile(self):
-        cmd = [self.java, "-Xss64m", "-cp", self.args.jar, "m3j.jvm.Compile", str(TESTS / "src" / "Main.m3"),
-               "-d", str(self.classes)]
+    def compile(self, tests=TESTS, classes=None):
+        cmd = [self.java, "-Xss64m", "-cp", self.args.jar, "m3j.jvm.Compile", str(tests / "src" / "Main.m3"),
+               "-d", str(classes or self.classes)]
         r = subprocess.run(cmd, cwd=self.work, capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if r.returncode:
             raise Failed("compile:\n" + r.stdout + r.stderr)
 
-    def run(self, *a, heap=None):
+    def rrun(self, *a, heap=None):
+        return self.run(*a, heap=heap, cp=str(self.reader_classes) + os.pathsep + self.args.jar)
+
+    def reads(self, docs):
+        """Reads each Read; gives the lines of the result of each."""
+        self.batches += 1
+        name = "r%d" % self.batches
+        (self.work / name).write_text("".join("%s %s %s\n" % (d.head(), d.how, d.hex()) for d in docs), newline="\n",
+                                      encoding="ascii")
+        self.rrun("batch", name, name + ".out", heap="2g")
+        out = (self.work / (name + ".out")).read_text(encoding="ascii").split(".\n")
+        (self.work / name).unlink()
+        (self.work / (name + ".out")).unlink()
+        return [b.splitlines() for b in out[:len(docs)]]
+
+    def run(self, *a, heap=None, cp=None):
         opts = ["-Xmx" + heap] if heap else []
-        r = subprocess.run([self.java, *opts, "-cp", self.cp, "m3.Main", *a], cwd=self.work, capture_output=True,
+        r = subprocess.run([self.java, *opts, "-Xss64m", "-cp", cp or self.cp, "m3.Main", *a], cwd=self.work, capture_output=True,
                            timeout=self.args.timeout)
         if r.returncode:
             raise Failed("exit %d: %s" % (r.returncode, (r.stdout + r.stderr).decode("latin-1")[:2000]))
@@ -778,6 +818,791 @@ def speed(env):
     print("SPEED     " + env.run("speed", "1000").strip(), flush=True)
 
 
+# ---------------------------------------------------------------- the reader
+
+WHOLE = 1 << 30
+PIECES = -1                     # delivered in pieces of random sizes
+FROM_TEXT = -2                  # the document is a text
+BOM = b"\xef\xbb\xbf"
+MAX_STRING = 64 * 1024 * 1024
+MAX_NUMBER = 64 * 1024
+LONE = re.compile("[\ud800-\udfff]")
+
+
+class Read:
+    """A document for the reader, and how it is read: its pieces, the options,
+    and e for all the pieces, s to skip it, w to write it again."""
+
+    def __init__(self, data, chunk=WHOLE, replace=False, depth=1000, string=MAX_STRING, number=MAX_NUMBER, how="e"):
+        self.data = data
+        self.chunk = chunk
+        self.replace = replace
+        self.depth = depth
+        self.string = string
+        self.number = number
+        self.how = how
+
+    def head(self):
+        return "%d %d %d %d %d" % (self.chunk, self.replace, self.depth, self.string, self.number)
+
+    def hex(self):
+        if self.chunk == FROM_TEXT:
+            return self.data.encode("utf-16-be", "surrogatepass").hex()
+        return self.data.hex()
+
+
+class Num(str):
+    pass
+
+
+class Pairs(list):
+    pass
+
+
+def units(s):
+    return s.encode("utf-16-be", "surrogatepass").hex()
+
+
+def events(v, fix=False):
+    """The pieces of a value, as the test program prints them."""
+    out = []
+
+    def text(s):
+        return units(LONE.sub("\ufffd", s) if fix else s)
+
+    def go(x):
+        if isinstance(x, Pairs):
+            out.append("{")
+            for k, y in x:
+                out.append("K " + text(k))
+                go(y)
+            out.append("}")
+        elif isinstance(x, list):
+            out.append("[")
+            for y in x:
+                go(y)
+            out.append("]")
+        elif isinstance(x, Num):
+            out.append("N " + x)
+        elif isinstance(x, str):
+            out.append("T " + text(x))
+        elif x is None:
+            out.append("Z")
+        else:
+            out.append("B " + ("TRUE" if x else "FALSE"))
+
+    go(v)
+    return out
+
+
+def no_constant(c):
+    raise ValueError(c)
+
+
+def strict_loads(text):
+    return json.loads(text, parse_constant=no_constant, parse_int=Num, parse_float=Num, object_pairs_hook=Pairs)
+
+
+def has_lone(v):
+    if isinstance(v, Pairs):
+        return any(has_lone(k) or has_lone(y) for k, y in v)
+    if isinstance(v, list):
+        return any(has_lone(y) for y in v)
+    return isinstance(v, str) and not isinstance(v, Num) and LONE.search(v) is not None
+
+
+def oracle_text(text, fix=False):
+    """The pieces of a document that RFC 8259 allows, otherwise None."""
+    try:
+        v = strict_loads(text)
+    except (ValueError, RecursionError):
+        return None
+    if has_lone(v) and not fix:
+        return None
+    return events(v, fix)
+
+
+def oracle(data, fix=False):
+    if data.startswith(BOM):
+        data = data[3:]
+    try:
+        return oracle_text(data.decode("utf-8", "replace" if fix else "strict"), fix)
+    except UnicodeDecodeError:
+        return None
+
+
+def agree(label, doc, lines, expected):
+    """expected is the list of pieces, or None if the document must be refused."""
+    if expected is None:
+        if len(lines) < 2 or not lines[-2].startswith("ERROR ") or lines[-1] != "AFTER Closed":
+            raise Failed("%s: accepted %r: %s" % (label, doc[:200], lines[-3:]))
+    elif lines != expected + ["OK"]:
+        raise Failed("%s: %r:\n  expected %s\n  got      %s" % (label, doc[:200], expected[:40], lines[:40]))
+
+
+def rand_string(r):
+    alpha = ["a", "z", "0", " ", "/", "\\", '"', "\b", "\f", "\n", "\r", "\t", "\x00", "\x1f", "\x7f", "\x80",
+             "\u00e4", "\u07ff", "\u0800", "\u20ac", "\uffff", "\U00010000", "\U0001f600", "\U0010ffff"]
+    return "".join(r.choice(alpha) for _ in range(r.randrange(r.choice([1, 3, 8, 40]))))
+
+
+def rand_number(r):
+    i = r.choice(["0", "1", "9", "10", "123456789", "9223372036854775807", "340282366920938463463374607431768211456"])
+    return Num(r.choice(["", "-"]) + i + r.choice(["", "", ".0", ".5", ".000123"]) +
+               r.choice(["", "", "e0", "E5", "e+12", "e-7", "E-0"]))
+
+
+def rand_value(r, depth):
+    k = r.randrange(8 if depth < 6 else 5)
+    if k == 0:
+        return rand_string(r)
+    if k == 1:
+        return rand_number(r)
+    if k == 2:
+        return r.choice([True, False])
+    if k == 3:
+        return None
+    if k == 4:
+        return r.choice(["", Num("0"), Pairs(), []])
+    if k in (5, 6):
+        return [rand_value(r, depth + 1) for _ in range(r.randrange(5))]
+    keys = [rand_string(r) for _ in range(r.randrange(5))]
+    if keys and r.randrange(4) == 0:
+        keys.append(keys[0])
+    return Pairs((key, rand_value(r, depth + 1)) for key in keys)
+
+
+def write_string(r, s):
+    short = {'"': '\\"', "\\": "\\\\", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t"}
+
+    def u(c):
+        h = units(c)
+        return "".join("\\u" + (h[i:i + 4].upper() if r.randrange(2) else h[i:i + 4]) for i in range(0, len(h), 4))
+
+    out = ['"']
+    for c in s:
+        if c in short:
+            out.append(short[c] if r.randrange(3) else u(c))
+        elif c < " ":
+            out.append(u(c))
+        elif c == "/" and r.randrange(2):
+            out.append("\\/")
+        elif r.randrange(4) == 0:
+            out.append(u(c))
+        else:
+            out.append(c)
+    out.append('"')
+    return "".join(out)
+
+
+def write_value(r, v):
+    """v as a document, with white space and escapes chosen at random."""
+
+    def ws():
+        return r.choice(["", "", "", " ", "\n", "\t ", "\r\n  "])
+
+    def go(x):
+        if isinstance(x, Pairs):
+            if not x:
+                return "{" + ws() + "}"
+            return "{" + ",".join(ws() + write_string(r, k) + ws() + ":" + ws() + go(y) + ws() for k, y in x) + "}"
+        if isinstance(x, list):
+            if not x:
+                return "[" + ws() + "]"
+            return "[" + ",".join(ws() + go(y) + ws() for y in x) + "]"
+        if isinstance(x, Num):
+            return str(x)
+        if isinstance(x, str):
+            return write_string(r, x)
+        if x is None:
+            return "null"
+        return "true" if x else "false"
+
+    return ws() + go(v) + ws()
+
+
+def compact(v):
+    if isinstance(v, Pairs):
+        return "{" + ",".join(json.dumps(k, ensure_ascii=False) + ":" + compact(y) for k, y in v) + "}"
+    if isinstance(v, list):
+        return "[" + ",".join(compact(y) for y in v) + "]"
+    if isinstance(v, Num):
+        return str(v)
+    return json.dumps(v, ensure_ascii=False)
+
+
+def rand_docs(env, count, seed):
+    r = random.Random(seed)
+    docs = []
+    for _ in range(count):
+        v = rand_value(r, 0)
+        docs.append((v, write_value(r, v).encode("utf-8")))
+    return docs
+
+
+FIXED_READS = [
+    (b'{"a":1}', ["{", "K 0061", "N 1", "}"]),
+    (b"[]", ["[", "]"]),
+    (b"{}", ["{", "}"]),
+    (b" \t\r\n[ 1 , 2 ]\n", ["[", "N 1", "N 2", "]"]),
+    (b'[[],{},[{}]]', ["[", "[", "]", "{", "}", "[", "{", "}", "]", "]"]),
+    (b'"x"', ["T 0078"]),
+    (b'""', ["T "]),
+    (b"true", ["B TRUE"]),
+    (b"false", ["B FALSE"]),
+    (b"null", ["Z"]),
+    (b"-0", ["N -0"]),
+    (b"0.5e+3", ["N 0.5e+3"]),
+    (b"1E2", ["N 1E2"]),
+    (BOM + b"[]", ["[", "]"]),
+    (b'"\\"\\\\\\/\\b\\f\\n\\r\\t\\u0041"', ["T 0022005c002f0008000c000a000d00090041"]),
+    ('"\u00e4\u00f6\u20ac\U0001f600"'.encode("utf-8"), ["T 00e400f620acd83dde00"]),
+    (b'"\\uD83D\\uDE00"', ["T d83dde00"]),
+    (b'"\\ud83d\\ude00x"', ["T d83dde000078"]),
+    (b'"\\u0000"', ["T 0000"]),
+    (b'"\x7f"', ["T 007f"]),
+    (b'"\xef\xbf\xbe\xef\xbf\xbf"', ["T fffeffff"]),
+    (b'{"a":1,"a":2}', ["{", "K 0061", "N 1", "K 0061", "N 2", "}"]),
+    (b'{"":null}', ["{", "K ", "Z", "}"]),
+    (b'{"a":{"b":[true]}}', ["{", "K 0061", "{", "K 0062", "[", "B TRUE", "]", "}", "}"]),
+]
+
+# What takes the place of something invalid stands where that was.
+REPLACED_READS = [
+    (b'"\\ud800\\n"', "fffd000a"),
+    (b'"\\ud800a"', "fffd0061"),
+    ('"\\ud800\u00e4"'.encode("utf-8"), "fffd00e4"),
+    (b'"\\ud800\\u0041"', "fffd0041"),
+    (b'"\\ud800\\ud800\\udc00"', "fffdd800dc00"),
+    (b'"\\udc00\\ud800"', "fffdfffd"),
+    (b'"a\\ud800"', "0061fffd"),
+    (b'"\\ud83d\\ude00\\ud83d"', "d83dde00fffd"),
+    (b'"\xffa"', "fffd0061"),
+    (b'"\xe2\x82a"', "fffd0061"),
+    (b'"\xf0\x9f\x98\\n"', "fffd000a"),
+    (b'"\xed\xa0\x80"', "fffdfffdfffd"),
+]
+
+# What must be refused; @@ marks the place of the error. Encoding where it says
+# so, else Malformed.
+M, E = "Malformed", "Encoding"
+REFUSED = [
+    (b"@@", M), (b"  \n @@", M), (b"@@x", M), (b"@@True", M), (b"tru@@", M), (b"tru@@x", M), (b"nul@@L", M),
+    (b"fals@@", M), (b"f@@", M), (b"@@NaN", M), (b"@@Infinity", M), (b"-@@Infinity", M), (b"@@+1", M), (b"@@.5", M),
+    (b"1.@@", M), (b"1.@@e5", M), (b"1e@@", M), (b"1e+@@", M), (b"1e@@x", M), (b"-@@", M), (b"0@@1", M), (b"-0@@1", M),
+    (b"1.5@@.5", M), (b"0@@x10", M), (b"1 @@2", M), (b'"a"@@"b"', M), (b"1@@\x00", M), (b"[1]@@]", M), (b"{}@@{}", M),
+    (b"null@@x", M), (b"true@@1", M),
+    (b"[@@", M), (b"[1@@", M), (b"[1,@@", M), (b"[1,@@]", M), (b"[@@,1]", M), (b"[1 @@2]", M), (b"[1,@@,2]", M),
+    (b"[1@@:2]", M), (b"[@@}", M), (b"[1@@}", M), (b"[[1]@@", M), (b"[01@@", M) if False else (b"[0@@1]", M),
+    (b"{@@", M), (b"{@@1:2}", M), (b'{"a"@@', M), (b'{"a" @@1}', M), (b'{"a":@@', M), (b'{"a":@@}', M),
+    (b'{"a":1@@', M), (b'{"a":1,@@', M), (b'{"a":1,@@}', M), (b'{"a":1 @@"b":2}', M), (b'{"a":1,@@2:3}', M),
+    (b"{@@,}", M), (b"{@@]", M), (b'{"a":1@@]', M), (b'{"a"@@,1}', M), (b'{"a"::@@1}'.replace(b"::@@", b":@@:"), M),
+    (b'{@@a:1}', M), (b"{@@'a':1}", M), (b"@@'a'", M), (b"[@@'x']", M), (b"[1@@/*c*/]", M), (b"@@//c\n1", M),
+    (b"[@@\x0b1]", M), (b"[@@\x0c1]", M), (b"[@@\xa01]", M),
+    (b'"@@', M), (b'"abc@@', M), (b'"a\\@@', M), (b'"@@\\q"', M), (b'"a@@\\x41"', M), (b'"\\u12@@G4"', M),
+    (b'"\\u12@@', M), (b'"\\u@@', M), (b'"\\u@@"', M), (b'"\\uD83D\\u@@', M),
+    (b'"a@@\x01b"', M), (b'"@@\n"', M), (b'"@@\t"', M), (b'"@@\x00"', M), (b'"@@\x1f"', M),
+    (b'"a@@\xffb"', E), (b'"@@\xc0\x80"', E), (b'"@@\xc1\xbf"', E), (b'"@@\xe0\x80\x80"', E), (b'"@@\xed\xa0\x80"', E),
+    (b'"@@\xed\xbf\xbf"', E), (b'"@@\xf4\x90\x80\x80"', E), (b'"@@\xf5\x80\x80\x80"', E), (b'"@@\xf0\x80\x80\x80"', E),
+    (b'"@@\x80"', E), (b'"@@\xbf"', E), (b'"@@\xc3"', E), (b'"@@\xe2\x82"', E), (b'"@@\xf0\x9f\x98"', E),
+    (b'"\xc3\xa4@@\xc3', E),
+    (b'"@@\\ud800"', E), (b'"@@\\udc00"', E), (b'"@@\\ud800\\u0041"', E), (b'"@@\\ud83d x"', E), (b'"@@\\ud800\\n"', E),
+    (b'"a@@\\ud800"', E), (b'"\\ud83d\\ude00@@\\ud83d"', E), (b'"@@\\ud800\\ud800\\udc00"', E),
+    (b'"@@\\udc00\\ud800"', E), (b'"@@\\ud800\xc3\xa4"', E),
+    (b'{"@@\xff":1}', E), (b'{"@@\\ud800":1}', E), (b"@@\xc3\xa4", M), (b"[@@\xff]", M),
+    (b"@@\xef\xbb", M), (b"@@\xef\xbbx", M), (b"@@\xef", M), (BOM + b"@@", M), (BOM + b"@@" + BOM + b"1", M),
+    (b"[1,\n 2,\n@@x]", M), (b'{\r\n"a":1,\r\n@@}', M), (BOM + b"[@@x]", M), (BOM + b"\n@@x", M),
+]
+
+
+def marked(entry):
+    """The bytes, and the failure to expect: problem, line, column, offset."""
+    doc, problem = entry
+    at = doc.index(b"@@")
+    data = doc[:at] + doc[at + 2:]
+    before = data[:at]
+    line = before.count(b"\n") + 1
+    start = before.rfind(b"\n") + 1
+    if data.startswith(BOM) and line == 1 and at >= 3:
+        start = 3
+    return data, "ERROR %s %d %d %d" % (problem, line, at - start + 1, at)
+
+
+def case_rfixed(env):
+    docs = [Read(d) for d, _ in FIXED_READS]
+    for (d, want), lines in zip(FIXED_READS, env.reads(docs)):
+        agree("fixed", d, lines, want)
+        if oracle(d) != want:
+            raise Failed("the expectation disagrees with Python: %r" % d)
+    for chunk in (WHOLE, 1, 3):
+        docs = [Read(d, chunk=chunk, replace=True) for d, _ in REPLACED_READS]
+        for (d, want), lines in zip(REPLACED_READS, env.reads(docs)):
+            agree("replaced", d, lines, ["T " + want])
+            if oracle(d, fix=True) != ["T " + want]:
+                raise Failed("the expectation disagrees with Python: %r" % d)
+
+
+def case_rerrors(env):
+    for how, chunk in (("e", WHOLE), ("s", WHOLE), ("e", 1), ("s", 1), ("e", 2), ("e", PIECES)):
+        cases = [marked(c) for c in REFUSED]
+        res = env.reads([Read(d, chunk=chunk, how=how) for d, _ in cases])
+        for (d, want), lines in zip(cases, res):
+            if oracle(d) is not None:
+                raise Failed("Python accepts what should be refused: %r" % d)
+            if lines[-2:] != [want, "AFTER Closed"]:
+                raise Failed("%s %d: %r: expected %s, got %s" % (how, chunk, d, want, lines[-3:]))
+
+
+def case_rrandom(env):
+    docs = rand_docs(env, env.args.count, SEED + 1)
+    res = env.reads([Read(d) for _, d in docs])
+    for (v, d), lines in zip(docs, res):
+        want = oracle(d)
+        if want != events(v):
+            raise Failed("the document does not say what the model says: %r" % d[:300])
+        agree("random", d, lines, want)
+    res = env.reads([Read(d, how="s") for _, d in docs])
+    for (v, d), lines in zip(docs, res):
+        agree("skip", d, lines, [])
+    res = env.reads([Read(d, how="w", depth=0) for _, d in docs])
+    for (v, d), lines in zip(docs, res):
+        agree("again", d, lines, ["W " + compact(v).encode("utf-8").hex()])
+
+
+def mutate(r, d):
+    d = bytearray(d)
+    for _ in range(r.choice([1, 1, 1, 2, 3])):
+        k = r.randrange(4)
+        at = r.randrange(len(d) + 1)
+        if k == 0 and at < len(d):
+            d[at] = r.choice([r.randrange(256), r.choice(b'"\\{}[],:0-.eEtfnu \n\x00\x80\xc3\xed\xf0\xff')])
+        elif k == 1 and at < len(d):
+            del d[at]
+        elif k == 2:
+            d.insert(at, r.choice([r.randrange(256), r.choice(b'"\\{}[],:0-.eEtfnu \n\x00\x80\xc3\xed\xf0\xff')]))
+        else:
+            del d[at:]
+    return bytes(d)
+
+
+def case_rfuzz(env):
+    r = random.Random(SEED + 2)
+    docs = rand_docs(env, env.args.count, SEED + 3)
+    bad = [mutate(r, docs[r.randrange(len(docs))][1]) for _ in range(env.args.count * 15)]
+    accepted = 0
+    res = env.reads([Read(d) for d in bad])
+    for d, lines in zip(bad, res):
+        want = oracle(d)
+        accepted += want is not None
+        agree("mutated", d, lines, want)
+    if not accepted or accepted == len(bad):
+        raise Failed("the mutations prove nothing: %d of %d accepted" % (accepted, len(bad)))
+    res = env.reads([Read(d, replace=True) for d in bad])
+    for d, lines in zip(bad, res):
+        agree("replaced", d, lines, oracle(d, fix=True))
+
+
+def case_rchunks(env):
+    docs = [d for _, d in rand_docs(env, env.args.count, SEED + 4)] + [d for d, _ in map(marked, REFUSED)]
+    whole = {how: env.reads([Read(d, how=how) for d in docs]) for how in "es"}
+    for chunk in (1, 2, 3, 5, PIECES):
+        for how in "es":
+            res = env.reads([Read(d, chunk=chunk, how=how) for d in docs])
+            for d, a, b in zip(docs, whole[how], res):
+                if a != b:
+                    raise Failed("pieces of %d: %r:\n  %s\n  %s" % (chunk, d[:200], a[-4:], b[-4:]))
+
+
+def code_points():
+    for c in range(0x10000):
+        if not 0xd800 <= c <= 0xdfff:
+            yield c
+    r = random.Random(SEED + 5)
+    for c in [0x10000, 0x10001, 0x1ffff, 0x20000, 0xfffff, 0x100000, 0x10fffe, 0x10ffff]:
+        yield c
+    for _ in range(5000):
+        yield r.randrange(0x10000, 0x110000)
+
+
+def case_rchars(env):
+    cps = list(code_points())
+    docs, wants = [], []
+    for g in range(0, len(cps), 200):
+        group = cps[g:g + 200]
+        strs = [chr(c) for c in group]
+        raw = [s for s in strs if s >= " " and s not in '"\\']
+
+        def esc(s):
+            h = units(s)
+            return "".join("\\u" + h[i:i + 4] for i in range(0, len(h), 4))
+
+        docs.append(("[" + ",".join('"%s"' % s for s in raw) + "]").encode("utf-8"))
+        wants.append(["["] + ["T " + units(s) for s in raw] + ["]"])
+        docs.append(("{" + ",".join('"%s":null' % s for s in raw) + "}").encode("utf-8"))
+        wants.append(["{"] + [x for s in raw for x in ("K " + units(s), "Z")] + ["}"])
+        docs.append(("[" + ",".join('"%s"' % esc(s) for s in strs) + "]").encode("ascii"))
+        wants.append(["["] + ["T " + units(s) for s in strs] + ["]"])
+    for d, want, lines in zip(docs, wants, env.reads([Read(d) for d in docs])):
+        agree("characters", d, lines, want)
+    for chunk in (FROM_TEXT,):
+        ds = [d.decode("utf-8") for d in docs]
+        for d, want, lines in zip(ds, wants, env.reads([Read(d, chunk=chunk) for d in ds])):
+            agree("text", d.encode("utf-8"), lines, want)
+    # every surrogate alone, and refused or replaced
+    alone = [b'"\\u%04x"' % c for c in range(0xd800, 0xe000)]
+    for d, lines in zip(alone, env.reads([Read(d) for d in alone])):
+        if lines[-2] != "ERROR Encoding 1 2 1":
+            raise Failed("%r: %s" % (d, lines))
+    for d, lines in zip(alone, env.reads([Read(d, replace=True) for d in alone])):
+        agree("replaced", d, lines, ["T fffd"])
+    # a pair on the edge of a piece of a text
+    for n in (16382, 16383, 16384, 32766, 32767, 32768):
+        s = '"' + "a" * n + "\U0001f600" + '"'
+        agree("edge", s[:9].encode("ascii"), env.reads([Read(s, chunk=FROM_TEXT)])[0],
+              ["T " + units("a" * n + "\U0001f600")])
+        s = '"' + "\u00e4" * n + "\U0001f600\u20ac" + '"'
+        agree("edge", s[:9].encode("utf-8"), env.reads([Read(s, chunk=FROM_TEXT)])[0],
+              ["T " + units("\u00e4" * n + "\U0001f600\u20ac")])
+    # a text with a surrogate alone
+    res = env.reads([Read('"a\ud800b"', chunk=FROM_TEXT), Read('"a\ud800b"', chunk=FROM_TEXT, replace=True)])
+    if res[0][-2] != "ERROR Encoding 1 3 2":
+        raise Failed("a surrogate alone in a text: %s" % res[0])
+    agree("alone in a text", b"", res[1], ["T 0061fffd0062"])
+
+
+def case_rutf8(env):
+    edge = [0x00, 0x7f, 0x80, 0x8f, 0x90, 0x9f, 0xa0, 0xbf, 0xc0, 0xc1, 0xc2, 0xdf, 0xe0, 0xe1, 0xec, 0xed, 0xee, 0xef,
+            0xf0, 0xf1, 0xf3, 0xf4, 0xf5, 0xff]
+    r = random.Random(SEED + 6)
+    seqs = [bytes([a]) for a in range(256)]
+    seqs += [bytes([a, b]) for a in range(0x80, 0x100) for b in range(256)]
+    seqs += [bytes([a, b, c]) for a in edge for b in edge for c in edge]
+    seqs += [bytes(r.choice(edge) for _ in range(4)) for _ in range(30000)]
+    docs = [b'"' + s + b'x"' for s in seqs]
+    for d, lines in zip(docs, env.reads([Read(d) for d in docs])):
+        agree("strict", d, lines, oracle(d))
+    for d, lines in zip(docs, env.reads([Read(d, replace=True) for d in docs])):
+        agree("replaced", d, lines, oracle(d, fix=True))
+    keys = [b'{"' + s + b'x":0}' for s in seqs[:3000]]
+    for d, lines in zip(keys, env.reads([Read(d, chunk=1) for d in keys])):
+        agree("key", d, lines, oracle(d))
+
+
+def number_results(env, texts):
+    env.batches += 1
+    name = "n%d" % env.batches
+    (env.work / name).write_text("".join(t + "\n" for t in texts), newline="\n", encoding="ascii")
+    env.rrun("numbers", name, name + ".out")
+    return (env.work / (name + ".out")).read_text(encoding="ascii").splitlines()
+
+
+def real_of(text):
+    return float(text)
+
+
+def case_rreals(env):
+    r = random.Random(SEED + 7)
+    texts = []
+    while len(texts) < 200000:
+        b = r.getrandbits(64)
+        if r.randrange(4) == 0:
+            b &= ~(0x7ff << 52)    # subnormal
+        x = struct.unpack("<d", struct.pack("<Q", b))[0]
+        if math.isfinite(x):
+            texts.append(r.choice([repr(x), "%.17e" % x, "%.3e" % x, "%.40e" % x]))
+    texts += ["5e-324", "2.4703282292062328e-324", "2.4703282292062327e-324", "2.2250738585072014e-308",
+              "2.2250738585072011e-308", "1.7976931348623157e308", "1.7976931348623158e308", "1.7976931348623159e308",
+              "1e308", "1e309", "-1e309", "1e-400", "-1e-400", "0e999999999999999999999", "1e-99999999999999999999",
+              "1e99999999999999999999", "0.0", "-0.0", "-0", "9007199254740993", "9007199254740992.5", "1e23",
+              "8.41e21", "2.0e-322", "0.000000000000000000000000000000000000000000000001",
+              "1" + "0" * 400 + "e-400", "0." + "0" * 400 + "1e401", "179769313486231580793728971405303415079934132710"
+              "037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671"
+              "505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719"
+              "074600444e0"]
+    res = number_results(env, texts)
+    for t, line in zip(texts, res):
+        f = line.split(" ")
+        want = real_of(t)
+        if not math.isfinite(want):
+            if f[3] != "BadValue":
+                raise Failed("%s: %s" % (t, line))
+            continue
+        got = float(f[3])
+        if struct.pack("<d", got) != struct.pack("<d", want):
+            raise Failed("%s: expected %r: %s" % (t, want, line))
+        if f[5] != t:
+            raise Failed("%s: number gives %s" % (t, line))
+
+
+def case_rints(env):
+    r = random.Random(SEED + 8)
+    good = [FIRST_INT, FIRST_INT + 1, LAST_INT, LAST_INT - 1, 0, 1, -1, 10, -10, 922337203685477580, -922337203685477580,
+            922337203685477581, 9223372036854775799, -9223372036854775799]
+    bad = [FIRST_INT - 1, LAST_INT + 1, 2 ** 64, -2 ** 64, 92233720368547758070, 10 ** 30, 9223372036854775810]
+    good += [r.randrange(FIRST_INT, LAST_INT) >> r.randrange(64) for _ in range(20000)]
+    texts = [str(n) for n in good + bad] + ["-0", "1.0", "1e2", "1E0", "0.0", "-0.0", "12e-1"]
+    res = number_results(env, texts)
+    for i, (t, line) in enumerate(zip(texts, res)):
+        f = line.split(" ")
+        if i < len(good):
+            if f[1] != str(good[i]):
+                raise Failed("%s: %s" % (t, line))
+        elif i < len(good) + len(bad) or t != "-0":
+            if f[1] != "BadValue":
+                raise Failed("%s: %s" % (t, line))
+        elif f[1] != "0":
+            raise Failed("%s: %s" % (t, line))
+
+
+def case_rnumbers(env):
+    r = random.Random(SEED + 9)
+    texts = ["", "-", "00", "01", "-01", "1.", ".1", "1e", "1e+", "+1", "1.e1", "0e", "1.5e", "--1", "1-", "1e1e1", "e1"]
+    while len(texts) < 60000:
+        texts.append("".join(r.choice("-+.eE0123456789") for _ in range(r.randrange(1, 9))))
+    for t, line in zip(texts, number_results(env, texts)):
+        f = line.split(" ")
+        if NUMBER.fullmatch(t):
+            if f[5] != t:
+                raise Failed("%r: %s" % (t, line))
+        elif f[5] != "Malformed":
+            raise Failed("%r is not a number: %s" % (t, line))
+    long_digits = b"1" * 70000
+    res = env.reads([Read(long_digits), Read(long_digits, number=0), Read(long_digits, number=0, chunk=7),
+                     Read(b"[0." + long_digits + b"]", number=0)])
+    if res[0][-2] != "ERROR Limit 1 65537 65536":
+        raise Failed("a long number: %s" % res[0])
+    agree("long", b"", res[1], ["N " + long_digits.decode()])
+    agree("long", b"", res[2], ["N " + long_digits.decode()])
+    agree("long", b"", res[3], ["[", "N 0." + long_digits.decode(), "]"])
+
+
+def nest(n, kind):
+    if kind == "a":
+        return b"[" * n + b"]" * n
+    if kind == "o":
+        return b'{"k":' * n + b"1" + b"}" * n
+    return b'[{"k":' * (n // 2) + b"1" + b"}]" * (n // 2)
+
+
+def case_rdepth(env):
+    for kind in "aom":
+        ok = nest(1000, kind)
+        over = nest(1002, kind) if kind == "m" else nest(1001, kind)
+        where = {"a": 1000, "o": 5 * 1000, "m": 501 * 6 - 6 + 1 + 5 - 1 - 5}[kind]
+        for how in "es":
+            res = env.reads([Read(ok, how=how), Read(over, how=how)])
+            if res[0][-1] != "OK" or res[1][-2:] != ["ERROR Limit 1 %d %d" % (where + 1, where), "AFTER Closed"]:
+                raise Failed("%s %s: %s %s" % (kind, how, res[0][-2:], res[1][-2:]))
+    shallow = env.reads([Read(b"[]", depth=1), Read(b"[[]]", depth=1), Read(b'{"a":[]}', depth=1), Read(b"1", depth=1)])
+    if shallow[0][-1] != "OK" or shallow[3][-1] != "OK" or shallow[1][-2] != "ERROR Limit 1 2 1" \
+            or shallow[2][-2] != "ERROR Limit 1 6 5":
+        raise Failed("a limit of 1: %s" % shallow)
+    deep = nest(1000000, "a")
+    res = env.reads([Read(deep, depth=0, how="s"), Read(deep, depth=0)])
+    if res[0][-1] != "OK" or res[1] != ["["] * 1000000 + ["]"] * 1000000 + ["OK"]:
+        raise Failed("a million levels: %s" % res[0][-2:])
+
+
+LIMITS = [
+    # (document with @@ where it is too long, maximum in WIDECHARs)
+    (b'"aaa@@a"', 3), (b'"aaaaaaaaaa@@aaaaaaaaaaaaaa"', 10), (b'"aa\\n@@a"', 3), (b'"aaa\\n@@"', 3), (b'"aa\xc3\xa4@@a"', 3),
+    (b'"aaa\xc3\xa4@@"', 3), (b'"\xf0\x9f\x98\x80@@a"', 2), (b'"a\xf0\x9f\x98\x80@@"', 2),
+    (b'"\\ud83d\\ude00@@a"', 2), (b'{"aaa@@a":1}', 3), (b'["aaa","aaa@@a"]', 3), (b'"a@@"', 0) if False else (b'"a@@b"', 1),
+]
+
+
+def case_rlimits(env):
+    for doc, m in LIMITS:
+        data, want = marked((doc, "Limit"))
+        for chunk in (WHOLE, 1, 3):
+            for how in "es":
+                lines = env.reads([Read(data, chunk=chunk, string=m, how=how)])[0]
+                if lines[-2:] != [want, "AFTER Closed"]:
+                    raise Failed("%r with %d: expected %s, got %s" % (data, m, want, lines[-2:]))
+    exact = [(b'"aaa"', 3), (b'"aa\\n"', 3), (b'"\xf0\x9f\x98\x80"', 2), (b'{"aaa":"bbb"}', 3), (b'""', 1)]
+    for data, m in exact:
+        for chunk in (WHOLE, 1):
+            agree("exact", data, env.reads([Read(data, chunk=chunk, string=m)])[0], oracle(data))
+    agree("no limit", b"", env.reads([Read(b'"' + b"a" * 200000 + b'"', string=0)])[0], ["T " + "0061" * 200000])
+    res = env.reads([Read(b"123", number=3), Read(b"1234", number=3), Read(b"-1.5e+3", number=7), Read(b"-1.5e+3", number=6),
+                     Read(b"[12,12345]", number=4)])
+    if res[0][-1] != "OK" or res[1][-2] != "ERROR Limit 1 4 3" or res[2][-1] != "OK" or res[3][-2] != "ERROR Limit 1 7 6" \
+            or res[4][-2] != "ERROR Limit 1 9 8":
+        raise Failed("the limit of numbers: %s" % res)
+    # a long string, longer than any buffer, in several ways
+    long = "x\u00e4\\\n" * 100000
+    d = json.dumps(long, ensure_ascii=False).encode("utf-8")
+    agree("long", b"", env.reads([Read(d, chunk=4099)])[0], ["T " + units(long)])
+    long_key = "k" * 70000
+    d = json.dumps({long_key: "v" * 70000}).encode("ascii")
+    agree("long key", b"", env.reads([Read(d)])[0], ["{", "K " + units(long_key), "T " + units("v" * 70000), "}"])
+
+
+def hexed(key):
+    return units(key)
+
+
+APIS = [
+    # how a program reads a known format
+    (b'{"books":[{"id":7,"title":"x","more":[1,{"a":2}]}],"other":true}',
+     [("object", "ok"), ("member", "TRUE"), ("is " + hexed("books"), "TRUE"), ("is " + hexed("book"), "FALSE"),
+      ("name", hexed("books")), ("array", "ok"), ("element", "TRUE"), ("object", "ok"), ("member", "TRUE"),
+      ("is " + hexed("id"), "TRUE"), ("int", "7"), ("member", "TRUE"), ("is " + hexed("title"), "TRUE"),
+      ("text", hexed("x")), ("member", "TRUE"), ("skip", "ok"), ("member", "FALSE"), ("element", "FALSE"),
+      ("member", "TRUE"), ("depth", "1"), ("skip", "ok"), ("member", "FALSE"), ("depth", "0"), ("peek", "EOF"),
+      ("finish", "ok"), ("peek", "ERROR Closed 1 65 64")]),
+    # the wrong kind takes nothing
+    (b'[1,"a",true,null]',
+     [("text", "ERROR Unexpected 1 1 0"), ("object", "ERROR Unexpected 1 1 0"), ("array", "ok"),
+      ("text", "ERROR Unexpected 1 2 1"), ("bool", "ERROR Unexpected 1 2 1"), ("null", "ERROR Unexpected 1 2 1"),
+      ("member", "ERROR Unexpected 1 2 1"), ("int", "1"), ("int", "ERROR Unexpected 1 4 3"), ("text", hexed("a")),
+      ("text", "ERROR Unexpected 1 8 7"), ("bool", "TRUE"), ("null", "ok"), ("peek", "ArrayEnd"),
+      ("element", "FALSE"), ("finish", "ok")]),
+    # a number that does not fit takes nothing either
+    (b'[1.5,99999999999999999999,1e999,1e2,-0]',
+     [("array", "ok"), ("int", "ERROR BadValue 1 2 1"), ("peek", "Number"), ("real", "1.5"),
+      ("int", "ERROR BadValue 1 6 5"), ("int", "ERROR BadValue 1 6 5"), ("number", "99999999999999999999"),
+      ("real", "ERROR BadValue 1 27 26"), ("skip", "ok"), ("int", "ERROR BadValue 1 33 32"), ("real", "100"),
+      ("int", "0"), ("element", "FALSE"), ("finish", "ok")]),
+    # element only in an array, and not twice for one value
+    (b"[1,2]", [("array", "ok"), ("element", "TRUE"), ("element", "ERROR Unexpected 1 2 1"), ("int", "1"),
+                ("element", "TRUE"), ("skip", "ok"), ("element", "FALSE"), ("finish", "ok")]),
+    (b'[[1],[]]', [("array", "ok"), ("element", "TRUE"), ("array", "ok"), ("element", "TRUE"), ("int", "1"),
+                   ("element", "FALSE"), ("element", "TRUE"), ("array", "ok"), ("element", "FALSE"),
+                   ("element", "FALSE"), ("finish", "ok")]),
+    (b'{"a":1}', [("object", "ok"), ("element", "ERROR Unexpected 1 2 1"), ("member", "TRUE"),
+                  ("element", "ERROR Unexpected 1 6 5"), ("int", "1"), ("element", "ERROR Unexpected 1 7 6"),
+                  ("member", "FALSE")]),
+    (b"1", [("element", "ERROR Unexpected 1 1 0"), ("member", "ERROR Unexpected 1 1 0"), ("end", "ERROR Unexpected 1 1 0"),
+            ("int", "1"), ("end", "ERROR Unexpected 1 2 1"), ("skip", "ERROR Unexpected 1 2 1"), ("finish", "ok")]),
+    # end leaves what is left
+    (b'{"a":[1,2,{"b":3}],"c":4}',
+     [("object", "ok"), ("member", "TRUE"), ("array", "ok"), ("element", "TRUE"), ("int", "1"), ("end", "ok"),
+      ("depth", "1"), ("member", "TRUE"), ("is " + hexed("c"), "TRUE"), ("end", "ok"), ("depth", "0"), ("finish", "ok")]),
+    (b'[{"x":[1]},2]', [("array", "ok"), ("element", "TRUE"), ("object", "ok"), ("member", "TRUE"), ("end", "ok"),
+                        ("depth", "1"), ("element", "TRUE"), ("int", "2"), ("end", "ok"), ("depth", "0"), ("finish", "ok")]),
+    (b'[1,[2]', [("array", "ok"), ("end", "ERROR Malformed 1 7 6"), ("peek", "ERROR Closed 1 7 6")]),
+    # a key lasts until its value is taken
+    (b'{"a":1,"b":[]}',
+     [("name", ""), ("object", "ok"), ("is " + hexed("a"), "FALSE"), ("member", "TRUE"), ("name", hexed("a")),
+      ("peek", "Number"), ("name", hexed("a")), ("is " + hexed("a"), "TRUE"), ("int", "1"), ("name", ""),
+      ("is " + hexed("a"), "FALSE"), ("member", "TRUE"), ("name", hexed("b")), ("array", "ok"), ("name", ""),
+      ("element", "FALSE"), ("member", "FALSE")]),
+    # keys that need decoding, and that a long value does not disturb
+    ('{"\u00e4\\n\U0001f600":"%s"}' % ("\u20ac" * 300), [
+        ("object", "ok"), ("member", "TRUE"), ("is " + hexed("\u00e4\n\U0001f600"), "TRUE"),
+        ("is " + hexed("\u00e4\n\U0001f601"), "FALSE"), ("is " + hexed("\u00e4\n"), "FALSE"),
+        ("text", hexed("\u20ac" * 300)), ("member", "FALSE")]),
+    ('{"%s":"%s"}' % ("k" * 1000, "\u20ac" * 1000), [
+        ("object", "ok"), ("member", "TRUE"), ("is " + hexed("k" * 1000), "TRUE"),
+        ("peek", "Text"), ("name", hexed("k" * 1000)), ("text", hexed("\u20ac" * 1000)), ("member", "FALSE")]),
+    # a value that fails halfway leaves the key alone
+    (b'{"abc":"\\u00e4x\\q"}', [
+        ("object", "ok"), ("member", "TRUE"), ("text", "ERROR Malformed 1 16 15"), ("name", hexed("abc")),
+        ("is " + hexed("abc"), "TRUE")]),
+    # the wrong order at the end
+    (b"[1]", [("finish", "ERROR Unexpected 1 1 0"), ("array", "ok"), ("finish", "ERROR Unexpected 1 2 1"), ("int", "1"),
+              ("finish", "ERROR Unexpected 1 3 2"), ("element", "FALSE"), ("finish", "ok"), ("close", "ok"),
+              ("peek", "ERROR Closed 1 4 3")]),
+    (b"[]", [("array", "ok"), ("skip", "ERROR Unexpected 1 2 1"), ("member", "ERROR Unexpected 1 2 1"),
+             ("peek", "ArrayEnd"), ("peek", "ArrayEnd"), ("element", "FALSE"), ("skip", "ERROR Unexpected 1 3 2"),
+             ("peek", "EOF"), ("peek", "EOF"), ("finish", "ok")]),
+    # close at any time
+    (b"[1]", [("array", "ok"), ("close", "ok"), ("close", "ok"), ("peek", "ERROR Closed 1 2 1"),
+              ("int", "ERROR Closed 1 2 1"), ("depth", "1")]),
+    # errors of the document are final
+    (b'[tru]', [("array", "ok"), ("element", "TRUE"), ("peek", "Bool"), ("bool", "ERROR Malformed 1 5 4"),
+                ("peek", "ERROR Closed 1 5 4"), ("bool", "ERROR Closed 1 5 4"), ("close", "ok")]),
+    (b'[1.]', [("array", "ok"), ("peek", "Number"), ("int", "ERROR Malformed 1 4 3"), ("skip", "ERROR Closed 1 4 3")]),
+    (b'["\\q"]', [("array", "ok"), ("skip", "ERROR Malformed 1 3 2"), ("peek", "ERROR Closed 1 5 4")]),
+    # where the reader is
+    (b'[1,\n  2]', [("pos", "1 1 0"), ("array", "ok"), ("pos", "1 2 1"), ("element", "TRUE"), ("pos", "1 2 1"), ("int", "1"),
+                    ("pos", "1 3 2"), ("element", "TRUE"), ("pos", "2 3 6"), ("int", "2"), ("pos", "2 4 7"),
+                    ("element", "FALSE"), ("pos", "2 5 8")]),
+]
+
+
+def case_rapi(env):
+    for chunk in (WHOLE, 1, 3):
+        env.batches += 1
+        name = "a%d" % env.batches
+        script = []
+        for doc, ops in APIS:
+            head = "DOC %d 0 1000 %d %d " % (chunk, MAX_STRING, MAX_NUMBER)
+            d = doc if isinstance(doc, bytes) else doc.encode("utf-8")
+            script.append(head + d.hex())
+            script += [op for op, _ in ops]
+            script.append("END")
+        (env.work / name).write_text("\n".join(script) + "\n", newline="\n", encoding="ascii")
+        out = env.rrun("api", name).split(".\n")
+        for (doc, ops), block in zip(APIS, out):
+            lines = block.splitlines()
+            want = [w for _, w in ops]
+            if lines != want:
+                for (op, w), got in zip(ops, lines):
+                    if w != got:
+                        raise Failed("pieces of %d: %r: %s: expected %s, got %s" % (chunk, doc[:60], op[:40], w, got))
+                raise Failed("%r: %s" % (doc[:60], lines))
+
+
+def case_rfeed(env):
+    path = env.work / "feed.json"
+    path.write_bytes(b'{"a":[1,2,3]}')
+    got = env.rrun("feed", path.name).replace("\r\n", "\n")
+    want = (READER / "expected" / "feed.txt").read_text(encoding="ascii")
+    if got != want:
+        raise Failed("feed:\n%s" % got)
+
+
+def write_big(path, mb):
+    n = size = 0
+    with open(path, "wb", buffering=1 << 20) as f:
+        f.write(b"[")
+        while size < mb * 1000000:
+            rec = ('%s{"id":%d,"title":"book %d \u00e4\u00f6","ratio":%d.5,"tags":["x\\n\\"y","x\\n\\"y"],"flag":true,'
+                   '"none":null,"rest":{"x":[1,2,3],"y":"zzzzzzzz"}}' % ("," if n else "", n, n, n)).encode("utf-8")
+            f.write(rec)
+            size += len(rec)
+            n += 1
+        f.write(b"]\n")
+    return n
+
+
+def case_rbig(env):
+    path = env.work / "big.json"
+    n = write_big(path, 200)
+    f = env.rrun("big", path.name, heap="64m").split()
+    if f[0] != str(n) or f[1] != "0" or float(f[2]) != n * n / 2:
+        raise Failed("%s records, the result is %s" % (n, f))
+    path.unlink()
+
+
+def speed_reader(env):
+    path = env.work / "speed.json"
+    write_big(path, 300)
+    for line in env.rrun("speed", path.name).splitlines():
+        print("SPEED     " + line, flush=True)
+    path.unlink()
+
+
+READER_CASES = {
+    "rfixed": case_rfixed,
+    "rerrors": case_rerrors,
+    "rrandom": case_rrandom,
+    "rfuzz": case_rfuzz,
+    "rchunks": case_rchunks,
+    "rchars": case_rchars,
+    "rutf8": case_rutf8,
+    "rreals": case_rreals,
+    "rints": case_rints,
+    "rnumbers": case_rnumbers,
+    "rdepth": case_rdepth,
+    "rlimits": case_rlimits,
+    "rapi": case_rapi,
+    "rfeed": case_rfeed,
+    "rbig": case_rbig,
+}
+
 CASES = {
     "fixed": case_fixed,
     "errors": case_errors,
@@ -790,11 +1615,12 @@ CASES = {
     "dups": case_dups,
     "sink": case_sink,
     "big": case_big,
+    **READER_CASES,
 }
 
 
 def main():
-    ap = argparse.ArgumentParser(description="tests of JsonWriter")
+    ap = argparse.ArgumentParser(description="tests of JsonWriter and JsonReader")
     ap.add_argument("cases", nargs="*")
     ap.add_argument("--java", default=str(Path(os.environ.get("JDK25", "")) / "bin" / "java") if os.environ.get("JDK25") else "java")
     ap.add_argument("--jar", default=str(ROOT / "m3j.jar"))
@@ -817,7 +1643,10 @@ def main():
     failed = 0
     start = time.time()
     try:
-        env.compile()
+        if args.speed or any(n not in READER_CASES for n in names):
+            env.compile()
+        if args.speed or any(n in READER_CASES for n in names):
+            env.compile(READER, env.reader_classes)
         for name in names:
             try:
                 CASES[name](env)
@@ -827,6 +1656,7 @@ def main():
                 print("FAIL      %s: %s" % (name, e), flush=True)
         if args.speed:
             speed(env)
+            speed_reader(env)
     except Failed as e:
         failed += 1
         print("FAIL      %s" % e, flush=True)

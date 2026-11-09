@@ -191,6 +191,11 @@ tree into one text and does not escape strings; the values of a `Json.T` are
 the text of the source, with its escapes and as bytes, and so they do not go
 through `JsonWriter.text`.
 
+`json/src/JsonReader.i3` and `JsonReader.m3` are also m3j's own: JSON read
+piece by piece from a `Rd.T`, in plain Modula-3. It follows RFC 8259 strictly
+and decodes strings, where `Json` holds the whole document and the text of its
+source.
+
 ## libbuf
 
 The package libbuf of CM3 5.12.0 (`m3-libs/libbuf`, with the notice of

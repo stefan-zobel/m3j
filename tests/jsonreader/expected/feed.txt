@@ -1,0 +1,6 @@
+failure at each place: wrong 0
+value read: depth 0, waiting FALSE
+finish: alerted
+after: Closed
+open and close: done
+the reader given stays open: TRUE
