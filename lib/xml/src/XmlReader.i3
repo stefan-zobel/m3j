@@ -157,7 +157,7 @@ TYPE
        the position of this token. White space around the value is ignored. *)
     toInt (t: TEXT): INTEGER RAISES {Error};
     toBool (t: TEXT): BOOLEAN RAISES {Error};   (* true, false, 1 or 0 *)
-    toReal (t: TEXT): LONGREAL RAISES {Error};
+    toReal (t: TEXT): LONGREAL RAISES {Error};  (* also INF, -INF and NaN *)
 
     (* Where the parser is: after the current token, from 1 and in
        characters. *)

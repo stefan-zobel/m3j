@@ -1,0 +1,13 @@
+start tag waits: []
+after text: [<a>x]
+start tag waits again: [<a>x]
+element done: [<a>x<b k="v"/>]
+finished: [<a>x<b k="v"/></a>]
+after finish: Closed
+close and flush again are harmless
+failing writers TRUE: raised TRUE, a prefix TRUE, closed afterwards TRUE
+Thread.Alerted came through
+after Thread.Alerted: Closed
+file: <?xml version="1.0" encoding="UTF-8"?><a><b>\c3\a4</b></a>
+error: no element is open
+closed after an error

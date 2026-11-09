@@ -1,4 +1,4 @@
-% exports of xml: a pull parser for XML, on the parser of the Java platform
+% exports of xml: a pull parser for XML, on the parser of the Java platform, and a writer
 _define_lib("xml")
 import_version("m3core", "JVM")
 import_version("libm3", "JVM")
@@ -7,3 +7,7 @@ _map_add_interface("M3jXml.i3", "xml", "src", "")
 _map_add_interface("M3jXmlFill.i3", "xml", "src", "")
 _map_add_interface("XmlReader.i3", "xml", "src", "")
 _map_add_module("XmlReader.m3", "xml", "src", "hidden")
+_map_add_interface("XmlName.i3", "xml", "src", "")
+_map_add_module("XmlName.m3", "xml", "src", "hidden")
+_map_add_interface("XmlWriter.i3", "xml", "src", "")
+_map_add_module("XmlWriter.m3", "xml", "src", "hidden")

@@ -629,6 +629,15 @@ The library is hybrid:
   an array, because an array passed to a callback is a copy that could not
   bring anything back. `Rd.Failure` and `Thread.Alerted` from it pass
   through the parser as exceptions of Java do.
+  `XmlWriter` of the same package uses nothing of the Java platform. The
+  writer of StAX checks neither names nor structure, puts `?` for a
+  character it cannot write, and leaves tabs and line ends in attributes,
+  which a parser then normalizes away; what remains after doing all that
+  here is little more than UTF-8. Names follow the tables of the fourth
+  edition of XML 1.0 (`XmlName`), because the parser of the Java platform
+  and expat refuse some 19 000 characters more than the fifth edition does:
+  a writer by the fifth edition would produce documents that `XmlReader`
+  cannot read.
   The package sysutils of cm3 (`lib/sysutils`) has the modules of cm3 for
   Windows and for POSIX merged into modules for both (`PathRepr`,
   `OSSpecials`), and its UNSAFE procedures are safe ones in `System`

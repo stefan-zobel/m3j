@@ -3,8 +3,8 @@
 
 MODULE XmlReader;
 
-IMPORT FileRd, FloatMode, Fmt, Java, Lex, M3jXml, M3jXmlFill, OSError, Rd, Scan,
-       Text, Thread;
+IMPORT FileRd, FloatMode, Fmt, IEEESpecial, Java, Lex, M3jXml, M3jXmlFill, OSError,
+       Rd, Scan, Text, Thread;
 
 TYPE
   Filler = M3jXmlFill.T OBJECT
@@ -321,8 +321,13 @@ PROCEDURE ToInt (t: T; v: TEXT): INTEGER RAISES {Error} =
   END ToInt;
 
 PROCEDURE ToReal (t: T; v: TEXT): LONGREAL RAISES {Error} =
+  VAR s: TEXT;
   BEGIN
     IF v # NIL THEN
+      s := Trim (v);
+      IF Text.Equal (s, "INF") THEN RETURN IEEESpecial.LongPosInf END;
+      IF Text.Equal (s, "-INF") THEN RETURN IEEESpecial.LongNegInf END;
+      IF Text.Equal (s, "NaN") THEN RETURN IEEESpecial.LongNan END;
       TRY
         RETURN Scan.LongReal (v);
       EXCEPT
@@ -340,14 +345,19 @@ PROCEDURE IsSpace (t: TEXT; i: INTEGER): BOOLEAN =
     END;
   END IsSpace;
 
+PROCEDURE Trim (v: TEXT): TEXT =
+  VAR a := 0; b := Text.Length (v);
+  BEGIN
+    WHILE a < b AND IsSpace (v, a) DO INC (a) END;
+    WHILE b > a AND IsSpace (v, b - 1) DO DEC (b) END;
+    RETURN Text.Sub (v, a, b - a);
+  END Trim;
+
 PROCEDURE ToBool (t: T; v: TEXT): BOOLEAN RAISES {Error} =
-  VAR a := 0; b: INTEGER; s: TEXT;
+  VAR s: TEXT;
   BEGIN
     IF v # NIL THEN
-      b := Text.Length (v);
-      WHILE a < b AND IsSpace (v, a) DO INC (a) END;
-      WHILE b > a AND IsSpace (v, b - 1) DO DEC (b) END;
-      s := Text.Sub (v, a, b - a);
+      s := Trim (v);
       IF Text.Equal (s, "true") OR Text.Equal (s, "1") THEN RETURN TRUE END;
       IF Text.Equal (s, "false") OR Text.Equal (s, "0") THEN RETURN FALSE END;
     END;

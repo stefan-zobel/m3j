@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -155,6 +155,25 @@ fetched and entities cannot expand, and depth, attributes, names and tokens
 have limits (`XmlReader.Options`). The first error of a document ends the
 reader, and `XmlReader.Error` says what went wrong and where. The parser is
 the one of the Java platform.
+
+`XmlWriter` is the other direction, written piece by piece to a `Wr.T`:
+
+```modula-3
+w := XmlWriter.ToWr (wr, XmlWriter.Options {indent := "  "});
+w.start ("catalog", uri := "urn:books");
+w.start ("book");
+w.attr ("id", Fmt.Int (id));
+w.element ("title", title);
+w.end ();
+w.end ();
+w.finish ();
+```
+
+It checks names, characters and the order of the calls, so that the result is
+a well-formed document that reads back as it was written; the first error ends
+the writer. Children take the namespace of their parent, and prefixes are
+declared where they are needed. The output is UTF-8. It is plain Modula-3,
+without the writer of the Java platform.
 
 ### Java APIs
 

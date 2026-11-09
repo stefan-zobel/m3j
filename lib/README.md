@@ -119,7 +119,8 @@ Not a package of cm3, whose `sgml` is of another kind: `XmlReader` (safe), a
 pull parser with namespaces, and two interfaces that it binds (`M3jXml`,
 `M3jXmlFill`) with `<*EXTERNAL ... :JAVA*>`. The class `m3j.rt.Xml` is a layer on
 the StAX parser of the Java platform; `docs/BACKEND.md` says why the parser is
-not bound directly.
+not bound directly. `XmlWriter` (safe) writes documents, with `XmlName` for the
+characters of names; both are plain Modula-3.
 
 ## netobj
 
