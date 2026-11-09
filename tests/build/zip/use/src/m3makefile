@@ -1,0 +1,5 @@
+% A program that imports the package zip.
+import ("libm3")
+import ("zip")
+implementation ("Main")
+program ("use")

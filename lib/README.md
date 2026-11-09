@@ -122,6 +122,17 @@ the StAX parser of the Java platform; `docs/BACKEND.md` says why the parser is
 not bound directly. `XmlWriter` (safe) writes documents, with `XmlName` for the
 characters of names; both are plain Modula-3.
 
+## zip
+
+Not a package of cm3, which has no compression: `Deflate` (safe), readers and
+writers for the gzip, zlib and raw formats, and `Zip` (safe), archives, on the
+compressor and the ZIP classes of the Java platform (`M3jZip`, `m3j.rt.Zip`).
+The Java side does no input or output; the modules move the bytes, so failures
+and alerts of a stream stay in Modula-3. The format of gzip is read and written
+in `Deflate`, because `GZIPInputStream` takes garbage after the data for its
+end. `m3j.rt.Zip` compares the CRC and the length of the entries of an archive,
+which `ZipFile` does not do.
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the
@@ -238,4 +249,6 @@ platform for `Process` (`m3j.rt.Proc`), and `M3jWeak`, the weak
 references of the Java platform for `WeakRef` (`m3j.rt.Weak`), and
 `M3jTls`, the engine of TLS of the Java platform for the module `TLS` of
 tls (`m3j.rt.Tls`), and `M3jHttp`, the client of HTTP of the Java platform
-for the module `HTTPClient` of http (`m3j.rt.Http`).
+for the module `HTTPClient` of http (`m3j.rt.Http`), and `M3jZip`, the
+compression and the archives of the Java platform for the modules `Deflate`
+and `Zip` of zip (`m3j.rt.Zip`).

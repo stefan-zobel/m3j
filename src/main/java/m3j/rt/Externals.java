@@ -254,6 +254,159 @@ public final class Externals {
         Http.abort(x);
     }
 
+    // M3jZip (m3j's modules Deflate and Zip): see Zip
+    public static Object M3jZip__NewInflate(boolean raw) {
+        return Zip.newInflate(raw);
+    }
+
+    public static void M3jZip__InflateFeed(Object z, byte[] b, int off, int n) {
+        Zip.inflateFeed(z, b, off, n);
+    }
+
+    public static long M3jZip__Inflate(Object z, byte[] b, int off, int n) {
+        return Zip.inflate(z, b, off, n);
+    }
+
+    public static boolean M3jZip__InflateNeedsInput(Object z) {
+        return Zip.inflateNeedsInput(z);
+    }
+
+    public static boolean M3jZip__InflateFinished(Object z) {
+        return Zip.inflateFinished(z);
+    }
+
+    public static long M3jZip__InflateRemaining(Object z) {
+        return Zip.inflateRemaining(z);
+    }
+
+    public static long M3jZip__InflateTotal(Object z) {
+        return Zip.inflateTotal(z);
+    }
+
+    public static void M3jZip__InflateReset(Object z) {
+        Zip.inflateReset(z);
+    }
+
+    public static void M3jZip__InflateEnd(Object z) {
+        Zip.inflateEnd(z);
+    }
+
+    public static void M3jZip__CrcByte(Object z, long b) {
+        Zip.crcByte(z, b);
+    }
+
+    public static long M3jZip__CrcValue(Object z) {
+        return Zip.crcValue(z);
+    }
+
+    public static void M3jZip__CrcReset(Object z) {
+        Zip.crcReset(z);
+    }
+
+    public static Object M3jZip__NewDeflate(long level, boolean raw) {
+        return Zip.newDeflate(level, raw);
+    }
+
+    public static void M3jZip__DeflateFeed(Object z, byte[] b, int off, int n) {
+        Zip.deflateFeed(z, b, off, n);
+    }
+
+    public static long M3jZip__Deflate(Object z, byte[] b, int off, int n, long mode) {
+        return Zip.deflate(z, b, off, n, mode);
+    }
+
+    public static boolean M3jZip__DeflateFinished(Object z) {
+        return Zip.deflateFinished(z);
+    }
+
+    public static long M3jZip__DeflateCrc(Object z) {
+        return Zip.deflateCrc(z);
+    }
+
+    public static long M3jZip__DeflateTotal(Object z) {
+        return Zip.deflateTotal(z);
+    }
+
+    public static void M3jZip__DeflateEnd(Object z) {
+        Zip.deflateEnd(z);
+    }
+
+    public static Object M3jZip__OpenArchive(String path, LongRef code) {
+        return Zip.openArchive(path, code);
+    }
+
+    public static void M3jZip__CloseArchive(Object a) {
+        Zip.closeArchive(a);
+    }
+
+    public static long M3jZip__ArchiveCount(Object a) {
+        return Zip.archiveCount(a);
+    }
+
+    public static long M3jZip__ArchiveFind(Object a, String name) {
+        return Zip.archiveFind(a, name);
+    }
+
+    public static String M3jZip__EntryName(Object a, long i) {
+        return Zip.entryName(a, i);
+    }
+
+    public static long M3jZip__EntrySize(Object a, long i) {
+        return Zip.entrySize(a, i);
+    }
+
+    public static long M3jZip__EntryCompressed(Object a, long i) {
+        return Zip.entryCompressed(a, i);
+    }
+
+    public static long M3jZip__EntryCrc(Object a, long i) {
+        return Zip.entryCrc(a, i);
+    }
+
+    public static long M3jZip__EntryTime(Object a, long i) {
+        return Zip.entryTime(a, i);
+    }
+
+    public static boolean M3jZip__EntryDirectory(Object a, long i) {
+        return Zip.entryDirectory(a, i);
+    }
+
+    public static Object M3jZip__EntryOpen(Object a, long i, LongRef code) {
+        return Zip.entryOpen(a, i, code);
+    }
+
+    public static long M3jZip__EntryRead(Object x, byte[] b, int off, int n) {
+        return Zip.entryRead(x, b, off, n);
+    }
+
+    public static void M3jZip__EntryClose(Object x) {
+        Zip.entryClose(x);
+    }
+
+    public static Object M3jZip__NewWriter() {
+        return Zip.newWriter();
+    }
+
+    public static long M3jZip__WriterAdd(Object w, String name, long millis, long level) {
+        return Zip.writerAdd(w, name, millis, level);
+    }
+
+    public static long M3jZip__WriterWrite(Object w, byte[] b, int off, int n) {
+        return Zip.writerWrite(w, b, off, n);
+    }
+
+    public static long M3jZip__WriterCloseEntry(Object w) {
+        return Zip.writerCloseEntry(w);
+    }
+
+    public static long M3jZip__WriterFinish(Object w) {
+        return Zip.writerFinish(w);
+    }
+
+    public static long M3jZip__WriterTake(Object w, byte[] b, int off, int n) {
+        return Zip.writerTake(w, b, off, n);
+    }
+
     // M3jNet (m3j's modules TCP and IP): see Net
     public static long M3jNet__Listen(long addr, long port) {
         return Net.listen(addr, port);

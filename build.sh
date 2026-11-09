@@ -22,7 +22,7 @@ rm -rf out && mkdir -p out
 "$JAVAC" --release 25 -Xlint:all -Werror -encoding UTF-8 -d out \
   $(find src/main/java -name '*.java')
 # the Modula-3 library that m3j brings (lib: m3core, libm3, tcp, netobj, sysutils, json and libbuf of cm3,
-# tls, http, xml, and the units of m3j), a resource of the jar
+# tls, http, xml, zip, and the units of m3j), a resource of the jar
 cp -r lib out/lib
 
 # The version of m3j (the file VERSION) as the Implementation-Version of the jar.

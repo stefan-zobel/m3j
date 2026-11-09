@@ -1,0 +1,44 @@
+source failure in the header: failure Test.Source
+source failure in the data: failure Test.Source
+alert: alerted
+closes without closeSource: 0
+closes with closeSource: 1
+seekable: FALSE, intermittent: TRUE, length: -1
+first: TRUE
+again: TRUE
+ready: TRUE
+rest: text 99999
+ready at the end: 1
+eof: TRUE
+after the data of a member, with the source waiting, ready: 0
+one member from a waiting source: text 8
+put to a failing target: failure Test.Target
+again: failure Test.Target
+flush: failure Test.Target
+close: failure Test.Target
+flushes, closes: 1 0
+flushes, closes with closeTarget: 2 1
+flushes after Finish: 0
+put after Finish: failure Deflate.Finished
+flush after Finish: ok
+close after Finish: ok
+put after Discard: failure Deflate.Unusable
+close after Discard: ok
+bytes after Discard: 0
+bytes of a second flush: 0
+flushed stream: 17 text 1
+put to an ended entry: failure Zip.EntryEnded
+flush of an ended entry: ok
+put to a closed entry: TRUE
+second a.txt: Zip.Duplicate
+put after finish: failure Zip.EntryEnded
+add after finish: Zip.Finished
+entries: 3
+two at a time: fs
+rest: text 4, text 5
+length: 5
+read after close: failure Deflate.Corrupt
+open after close: Deflate.Corrupt
+target of an archive: Test.Target
+add after a failure: Test.Target
+finish after a failure: Test.Target

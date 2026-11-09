@@ -1,0 +1,8 @@
+% exports of zip: compressed streams and archives, on the classes of the Java platform
+_define_lib("zip")
+import_version("m3core", "JVM")
+import_version("libm3", "JVM")
+_map_add_interface("Deflate.i3", "zip", "src", "")
+_map_add_module("Deflate.m3", "zip", "src", "hidden")
+_map_add_interface("Zip.i3", "zip", "src", "")
+_map_add_module("Zip.m3", "zip", "src", "hidden")

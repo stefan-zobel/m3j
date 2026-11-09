@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -228,6 +228,49 @@ follows RFC 8259 strictly and decodes escapes, so `text` gives the characters
 of the string. An error of the document names its line, column and offset and
 ends the reader; a value of the wrong kind or a number that does not fit takes
 nothing, and the program can go on. `Open` reads a file, `FromText` a text.
+
+### Compression
+
+The library zip reads and writes the formats of the Deflate family and ZIP
+archives, with the compressor of the Java platform. `Deflate` makes readers and
+writers, so it works with everything that takes a `Rd.T` or a `Wr.T`:
+
+```modula-3
+wr := Deflate.NewWr (FileWr.Open ("a.gz"), o := Deflate.WriteOptions {closeTarget := TRUE});
+Wr.PutText (wr, "Hello\n");
+Wr.Close (wr);
+
+rd := Deflate.NewRd (FileRd.Open ("a.gz"), o := Deflate.ReadOptions {closeSource := TRUE});
+text := Rd.GetText (rd, LAST (CARDINAL));
+Rd.Close (rd);
+```
+
+The format is an argument, `Format.Gzip` by default, or `Format.Zlib` or
+`Format.Raw`. Damaged data is an `Rd.Failure` with `Deflate.Corrupt` or
+`Deflate.Truncated`. Small input can expand enormously, so for data from
+elsewhere set `maxBytes`, beyond which the reader raises `Deflate.TooLarge`.
+`Wr.Flush` passes on what has been written so far, for streams that the other
+side reads as they come.
+
+`Zip` reads an archive from a file and writes one to any `Wr.T`:
+
+```modula-3
+r := Zip.Open ("a.zip");
+FOR i := 0 TO r.count () - 1 DO
+  IF Zip.SafeName (r.entry (i).name) THEN
+    text := Rd.GetText (r.open (i, maxBytes := 1000000), 1000000);
+  END;
+END;
+r.close ();
+
+w := Zip.ToWr (FileWr.Open ("b.zip"));
+Wr.PutText (w.add ("hello.txt"), "Hello\n");
+w.finish ();
+```
+
+The checksum of each entry is compared at its end. The name of an entry can be
+something like `../x`: a program that makes files from names must check them,
+and `SafeName` does. Encrypted archives and two entries of one name are refused.
 
 ### Java APIs
 
@@ -433,7 +476,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.
@@ -485,6 +528,7 @@ JDK25=/path/to/jdk-25 python3 tools/m3front_test.py             # CM3's front en
 JDK25=/path/to/jdk-25 python3 tools/bundle_test.py              # m3bundle, compiled by m3j, against cm3's
 JDK25=/path/to/jdk-25 python3 tools/build_test.py quake cases   # m3build: cm3's quake tests, packages of tests/build
 JDK25=/path/to/jdk-25 python3 tools/bind_test.py                # m3jbind: bindings of Java classes
+JDK25=/path/to/jdk-25 python3 tools/zip_test.py                 # the library zip, against Python's zlib, gzip, zipfile
 JDK25=/path/to/jdk-25 python3 tools/lsp_test.py                 # the language server (and the client of the
                                                                 # extension for Visual Studio Code, with node)
 JDK25=/path/to/jdk-25 python3 tools/perf.py                     # benchmarks (tests/bench)
