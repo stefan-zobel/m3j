@@ -8,7 +8,8 @@
    - RETURN of an array constructor that a TRY EXCEPT ELSE absorbs.
    - Operations on constant small sets, folded by the front end, passed to
      a READONLY formal and, with negative elements, to a value formal.
-   - Word.Divide and Long.Divide folded to a value beyond LAST(INTEGER). *)
+   - Word.Divide and Long.Divide folded to a value beyond LAST(INTEGER).
+   - BITSIZE, BYTESIZE and ADRSIZE of a type of size zero under EVAL. *)
 
 MODULE Main;
 
@@ -265,9 +266,28 @@ PROCEDURE Divides () =
     IO.Put(Fmt.LongUnsigned(LD1, 10) & " " & Fmt.LongUnsigned(LD2, 10) & "\n");
   END Divides;
 
+(* ------------------------------------------------ types of size zero *)
+
+TYPE
+  Empty = RECORD END;
+  NoElements = ARRAY [1 .. 0] OF INTEGER;
+
+PROCEDURE Sizes () =
+  VAR n: INTEGER;
+  BEGIN
+    EVAL BITSIZE(Empty);
+    EVAL BYTESIZE(Empty);
+    EVAL ADRSIZE(Empty);
+    EVAL BYTESIZE(NoElements);
+    n := BYTESIZE(Empty);
+    IO.Put(Fmt.Int(n) & " " & Fmt.Int(BITSIZE(NoElements)) & " "
+           & Fmt.Int(BYTESIZE(INTEGER)) & "\n");
+  END Sizes;
+
 BEGIN
   Packing();
   Returns();
   Sets();
   Divides();
+  Sizes();
 END Main.

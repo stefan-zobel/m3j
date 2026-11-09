@@ -762,7 +762,9 @@ affected, except for units that crash `M3C` before the stream is complete.
    the other operations of `Word` and `Long` do. One more turned up on
    the way: the front end took an element of an array at a constant
    index as aligned as the array, which a packed element after the first
-   is not; it now has the alignment of its offset. The M3CG that the
+   is not; it now has the alignment of its offset. `BITSIZE`, `BYTESIZE`
+   and `ADRSIZE` of a type of size zero under `EVAL`, where cm3 stops at
+   an `<*ASSERT*>` (the test `c120` of m3tests), compile. The M3CG that the
    front end writes for the modules of `tools/m3front_test.py` stays the
    same as that of cm3's front end. The changes are marked "Not in CM3"
    or "Not as in CM3" in the sources.

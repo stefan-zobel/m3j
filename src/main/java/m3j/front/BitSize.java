@@ -77,7 +77,9 @@ public final class BitSize {
         if (TypeExpr.split(e, t)) {
             Type.compile(t[0]);
             Type.checkInfo(t[0], info);
-            AssertError.check(info.size > 0, "BitSize");
+            // Not as in CM3: a type can have the size zero (an empty record),
+            // which its <*ASSERT info.size > 0*> rejects.
+            AssertError.check(info.size >= 0, "BitSize");
             CG.load_intt(Math.floorDiv(info.size + unit - 1, unit));
             return;
         }
