@@ -1,0 +1,3 @@
+INTERFACE Asserted;
+
+END Asserted.

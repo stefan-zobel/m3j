@@ -539,6 +539,158 @@
   }
  },
  {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/forms/src/Asserted.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "warning: 'u' is NOT unused!",
+     "range": {
+      "end": {
+       "character": 28,
+       "line": 37
+      },
+      "start": {
+       "character": 27,
+       "line": 37
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'v' is not used",
+     "range": {
+      "end": {
+       "character": 7,
+       "line": 29
+      },
+      "start": {
+       "character": 6,
+       "line": 29
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'late' is not used",
+     "range": {
+      "end": {
+       "character": 10,
+       "line": 24
+      },
+      "start": {
+       "character": 6,
+       "line": 24
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'W' is not used",
+     "range": {
+      "end": {
+       "character": 36,
+       "line": 14
+      },
+      "start": {
+       "character": 35,
+       "line": 14
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'field' is not used",
+     "range": {
+      "end": {
+       "character": 33,
+       "line": 14
+      },
+      "start": {
+       "character": 28,
+       "line": 14
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'inComment' is not used",
+     "range": {
+      "end": {
+       "character": 26,
+       "line": 14
+      },
+      "start": {
+       "character": 17,
+       "line": 14
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'c' is not used",
+     "range": {
+      "end": {
+       "character": 15,
+       "line": 14
+      },
+      "start": {
+       "character": 14,
+       "line": 14
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'inText' is not used",
+     "range": {
+      "end": {
+       "character": 12,
+       "line": 14
+      },
+      "start": {
+       "character": 6,
+       "line": 14
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    },
+    {
+     "message": "warning: 'Fmt' is not used",
+     "range": {
+      "end": {
+       "character": 10,
+       "line": 5
+      },
+      "start": {
+       "character": 7,
+       "line": 5
+      }
+     },
+     "severity": 2,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/forms/src/Unused.m3"
+  }
+ },
+ {
   "id": 9999,
   "jsonrpc": "2.0",
   "result": null

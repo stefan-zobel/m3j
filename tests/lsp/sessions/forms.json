@@ -1,5 +1,5 @@
 {
- "comment": "wide literals, whose value is computed, NEW of an object type made from a name, and forms of the language: legal ones without a message, the values of Long and Word through duplicated case labels, errors that the checker has to survive",
+ "comment": "wide literals, whose value is computed, NEW of an object type made from a name, and forms of the language: legal ones without a message, the values of Long and Word through duplicated case labels, errors that the checker has to survive, names used only in an ASSERT or DEBUG pragma",
  "steps": [
   {
    "send": {
@@ -255,6 +255,64 @@
       "version": 1,
       "text": {
        "$text": "forms/src/Refused.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Refused.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Asserted.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Asserted.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Asserted.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Unused.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Unused.m3"
       }
      }
     }
