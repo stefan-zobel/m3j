@@ -264,6 +264,9 @@ final class Http {
     private static String fields(HttpHeaders h) {
         StringBuilder b = new StringBuilder();
         for (Map.Entry<String, List<String>> e : h.map().entrySet()) {
+            if (e.getKey().startsWith(":")) {
+                continue; // a pseudo-header of HTTP/2, such as :status
+            }
             for (String v : e.getValue()) {
                 b.append(e.getKey()).append(": ").append(v).append('\n');
             }
