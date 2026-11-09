@@ -24,7 +24,8 @@ MODULE M3CTypeCheck;
 (* See the file COPYRIGHT for a full description.              *)
 
 (* Changed for m3j: the supertype of an object type may be an opaque type
-   with the bound REFANY, the type of a binding of a Java class. *)
+   with the bound REFANY, the type of a binding of a Java class. The
+   arguments of "&" have to be assignable to TEXT, not subtypes of it. *)
 
 IMPORT Text, Fmt;
 
@@ -118,8 +119,10 @@ PROCEDURE Textcat(b: M3AST_AS.BINARY) RAISES {}=
   BEGIN
     IF M3CTypeChkUtil.IsNormalEXP(b.as_exp1) AND
         M3CTypeChkUtil.IsNormalEXP(b.as_exp2) THEN
-      IF M3CTypeChkUtil.IsSubTypeOfText(b.as_exp1.sm_exp_type_spec) AND
-          M3CTypeChkUtil.IsSubTypeOfText(b.as_exp2.sm_exp_type_spec) THEN
+      IF M3CTypeRelation.Assignable(M3CStdTypes.Text(),
+             b.as_exp1.sm_exp_type_spec, TRUE) AND
+          M3CTypeRelation.Assignable(M3CStdTypes.Text(),
+             b.as_exp2.sm_exp_type_spec, TRUE) THEN
         (* no problem *)
       ELSE
         M3Error.Report(b,

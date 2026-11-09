@@ -24,7 +24,9 @@
 (* Changed for m3j: the value of a wide character literal and of a wide
    text literal, which failed in a NARROW to the type of the literals
    that are not wide; a wide character literal starts with W; CHV knows
-   the digits A to F of a hexadecimal escape. *)
+   the digits A to F of a hexadecimal escape. A word operation with
+   arguments of the wrong type, reported by the type check, has no value
+   instead of failing in a NARROW. *)
 
 MODULE M3CBackEnd_C  EXPORTS M3CBackEnd, M3CBackEnd_C;
 
@@ -931,6 +933,39 @@ PROCEDURE RoundToByte(n: INTEGER): INTEGER RAISES {}=
     RETURN er;
   END RoundToByte;
 
+(* Whether the arguments fit a word operation on the type of the first:
+   a count or a position is an INTEGER, the others have the type of the
+   first. *)
+PROCEDURE WordArgsOK(
+    w: M3CWordProcs.T;
+    READONLY args: ARRAY OF M3AST_SM.Exp_value)
+    : BOOLEAN
+    RAISES {}=
+  VAR
+    firstCount := NUMBER(args);
+  BEGIN
+    CASE w OF
+    | M3CWordProcs.T.Shift, M3CWordProcs.T.RightShift,
+      M3CWordProcs.T.Rotate, M3CWordProcs.T.RightRotate,
+      M3CWordProcs.T.Extract =>
+        firstCount := 1;
+    | M3CWordProcs.T.Insert =>
+        firstCount := 2;
+    ELSE
+    END;
+    FOR i := 1 TO LAST(args) DO
+      IF i < firstCount THEN
+        IF ISTYPE(args[i], Integer_value) #
+            ISTYPE(args[0], Integer_value) THEN
+          RETURN FALSE;
+        END;
+      ELSIF NOT ISTYPE(args[i], Integer_value) THEN
+        RETURN FALSE;
+      END;
+    END;
+    RETURN TRUE;
+  END WordArgsOK;
+
 PROCEDURE WordOp_C(
     w: M3CWordProcs.T;
     READONLY args: ARRAY OF M3AST_SM.Exp_value;
@@ -938,6 +973,9 @@ PROCEDURE WordOp_C(
     : M3CBackEnd.NumStatus
     RAISES {}=
   BEGIN
+    IF NOT WordArgsOK(w, args) THEN
+      RETURN M3CBackEnd.NumStatus.Unknown;
+    END;
     TYPECASE args[0] OF
     | Integer_value =>
       RETURN M3CBackEnd_Int_Integer.WordOp(w, args, er);

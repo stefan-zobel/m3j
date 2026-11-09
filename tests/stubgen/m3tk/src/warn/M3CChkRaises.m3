@@ -21,6 +21,9 @@
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
 
+(* Changed for m3j: an exception named in a FATAL pragma can have an
+   underscore in its name. *)
+
 MODULE M3CChkRaises;
 
 IMPORT ASCII, Text, Fmt, Rd, RdExtras, TextRd, Thread;
@@ -365,7 +368,7 @@ PROCEDURE Fatal(
                 "exception names or ANY expected after FATAL");
     ELSE
       CONST
-        NotAlphaNumeric = ASCII.All - ASCII.AlphaNumerics;
+        NotIdentChar = ASCII.All - ASCII.AlphaNumerics - ASCII.Set{'_'};
       TYPE
         Save = REF RECORD next: Save; excId: M3AST_AS.Exc_id END;
       VAR
@@ -379,13 +382,13 @@ PROCEDURE Fatal(
         LOOP
           TRY
             CheckAtAlpha(s);
-            first := RdExtras.GetText(s, terminate := NotAlphaNumeric);
+            first := RdExtras.GetText(s, terminate := NotIdentChar);
             IF Text.Equal(first, "ANY") THEN count := -1; EXIT END;
             second := NIL;
             defId := FindDefId(handle, first);
             IF Rd.Index(s) # length AND Rd.GetChar(s) = '.' THEN
               CheckAtAlpha(s);
-              second := RdExtras.GetText(s, terminate := NotAlphaNumeric);
+              second := RdExtras.GetText(s, terminate := NotIdentChar);
               IF defId # NIL THEN
                 defId := FindInInterface(handle, defId, second);
               END;

@@ -22,6 +22,9 @@
 (* See the file COPYRIGHT for a full description.              *)
 
 
+(* Changed for m3j: the procedures of the interface Long are constant
+   expressions too. *)
+
 MODULE M3CWordProcs;
 
 IMPORT Text, TextRefTbl;
@@ -74,7 +77,7 @@ PROCEDURE Initialize(): TextRefTbl.T RAISES {}=
 
 VAR
   table_g := Initialize();
-  word_g: M3CId.T := NIL;
+  word_g, long_g: M3CId.T := NIL;
 
 
 PROCEDURE IsWordCall(call: M3AST_AS.Call; VAR t: T): BOOLEAN RAISES {}=
@@ -86,8 +89,12 @@ PROCEDURE IsWordCall(call: M3AST_AS.Call; VAR t: T): BOOLEAN RAISES {}=
       VAR
         hId: REFANY;
       BEGIN
-        IF word_g = NIL THEN word_g := M3CId.Enter("Word") END;
-        IF defId.tmp_unit_id.lx_symrep = word_g THEN
+        IF word_g = NIL THEN
+          word_g := M3CId.Enter("Word");
+          long_g := M3CId.Enter("Long");
+        END;
+        IF defId.tmp_unit_id.lx_symrep = word_g OR
+            defId.tmp_unit_id.lx_symrep = long_g THEN
           IF table_g.get(M3CId.ToText(defId.lx_symrep), hId) THEN
             t := NARROW(hId, REF T)^;
             RETURN TRUE;

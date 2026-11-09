@@ -161,8 +161,14 @@ PROCEDURE WordOp(
     | M3CWordProcs.T.Minus =>
       r := WordType.Minus(a0, NARROW(args[1], T).sm_value);
     | M3CWordProcs.T.Divide =>
+      IF NARROW(args[1], T).sm_value = Zero THEN
+        RETURN M3CBackEnd.NumStatus.Overflow;
+      END;
       r := WordType.Divide(a0, NARROW(args[1], T).sm_value);
     | M3CWordProcs.T.Mod =>
+      IF NARROW(args[1], T).sm_value = Zero THEN
+        RETURN M3CBackEnd.NumStatus.Overflow;
+      END;
       r := WordType.Mod(a0, NARROW(args[1], T).sm_value);
     | M3CWordProcs.T.And =>
       r := WordType.And(a0, NARROW(args[1], T).sm_value);

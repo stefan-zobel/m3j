@@ -1,0 +1,3 @@
+INTERFACE Accepted;
+
+END Accepted.

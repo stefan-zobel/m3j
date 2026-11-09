@@ -23,7 +23,7 @@
 
 (* Changed for m3j: "NAME OBJECT ... END" as an argument that can be a
    type, as in NEW (T OBJECT ... END), failed in a NARROW to an expression
-   instead of giving the type back. *)
+   instead of giving the type back. METHODS can be empty before OVERRIDES. *)
 
 MODULE M3CParse;
 
@@ -771,7 +771,8 @@ PROCEDURE Object(
       ELSE
         o.as_fields_s := SeqM3AST_AS_Fields.Null;
       END;
-      IF At(t, M3CToken.METHODS_) AND t.lexer.current() # M3CToken.END_ THEN
+      IF At(t, M3CToken.METHODS_) AND
+          NOT (t.lexer.current() IN OverridesOrEnd) THEN
         o.as_method_s := Methods(t, OverridesOrEnd, term);
       ELSE
         o.as_method_s := SeqM3AST_AS_Method.Null;

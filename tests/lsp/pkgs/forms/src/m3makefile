@@ -2,4 +2,7 @@
 import ("libm3")
 implementation ("Main")
 module ("Labels")
+module ("Accepted")
+module ("Values")
+module ("Refused")
 program ("forms")

@@ -168,6 +168,377 @@
   }
  },
  {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [],
+   "uri": "file:<work>/forms/src/Accepted.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 6,
+       "line": 25
+      },
+      "start": {
+       "character": 4,
+       "line": 25
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 18,
+       "line": 20
+      },
+      "start": {
+       "character": 4,
+       "line": 20
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 12,
+       "line": 18
+      },
+      "start": {
+       "character": 4,
+       "line": 18
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 18,
+       "line": 16
+      },
+      "start": {
+       "character": 4,
+       "line": 16
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "duplicated case label",
+     "range": {
+      "end": {
+       "character": 7,
+       "line": 14
+      },
+      "start": {
+       "character": 4,
+       "line": 14
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/forms/src/Values.m3"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "diagnostics": [
+    {
+     "message": "type error in arguments to text concatentation operator",
+     "range": {
+      "end": {
+       "character": 14,
+       "line": 25
+      },
+      "start": {
+       "character": 11,
+       "line": 25
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 14,
+       "line": 25
+      },
+      "start": {
+       "character": 11,
+       "line": 25
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 10
+      },
+      "start": {
+       "character": 10,
+       "line": 10
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 24,
+       "line": 9
+      },
+      "start": {
+       "character": 22,
+       "line": 9
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 9
+      },
+      "start": {
+       "character": 10,
+       "line": 9
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 22,
+       "line": 8
+      },
+      "start": {
+       "character": 20,
+       "line": 8
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 8
+      },
+      "start": {
+       "character": 10,
+       "line": 8
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 22,
+       "line": 7
+      },
+      "start": {
+       "character": 21,
+       "line": 7
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 7
+      },
+      "start": {
+       "character": 10,
+       "line": 7
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "Identifier 'Not_Declared' not declared",
+     "range": {
+      "end": {
+       "character": 5,
+       "line": 19
+      },
+      "start": {
+       "character": 2,
+       "line": 19
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "type error in arguments to text concatentation operator",
+     "range": {
+      "end": {
+       "character": 12,
+       "line": 24
+      },
+      "start": {
+       "character": 9,
+       "line": 24
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 12,
+       "line": 24
+      },
+      "start": {
+       "character": 9,
+       "line": 24
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 27,
+       "line": 14
+      },
+      "start": {
+       "character": 24,
+       "line": 14
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression cannot be evaluated",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 14
+      },
+      "start": {
+       "character": 10,
+       "line": 14
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression overflow",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 13
+      },
+      "start": {
+       "character": 10,
+       "line": 13
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "expression overflow",
+     "range": {
+      "end": {
+       "character": 13,
+       "line": 12
+      },
+      "start": {
+       "character": 10,
+       "line": 12
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 17,
+       "line": 11
+      },
+      "start": {
+       "character": 16,
+       "line": 11
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    },
+    {
+     "message": "actual parameter not assignable to formal",
+     "range": {
+      "end": {
+       "character": 29,
+       "line": 10
+      },
+      "start": {
+       "character": 27,
+       "line": 10
+      }
+     },
+     "severity": 1,
+     "source": "m3tk"
+    }
+   ],
+   "uri": "file:<work>/forms/src/Refused.m3"
+  }
+ },
+ {
   "id": 9999,
   "jsonrpc": "2.0",
   "result": null

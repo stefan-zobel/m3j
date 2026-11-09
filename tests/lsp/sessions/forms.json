@@ -1,5 +1,5 @@
 {
- "comment": "wide literals, whose value is computed, and NEW of an object type made from a name",
+ "comment": "wide literals, whose value is computed, NEW of an object type made from a name, and forms of the language: legal ones without a message, the values of Long and Word through duplicated case labels, errors that the checker has to survive",
  "steps": [
   {
    "send": {
@@ -168,6 +168,93 @@
       "version": 1,
       "text": {
        "$text": "forms/src/Labels.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Labels.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Accepted.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Accepted.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Accepted.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Values.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Values.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didClose",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Values.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "forms/src/Refused.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "forms/src/Refused.m3"
       }
      }
     }

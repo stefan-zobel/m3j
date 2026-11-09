@@ -30,9 +30,9 @@ CONST
   MaxArgCount = 4;
 
 PROCEDURE IsWordCall(call: M3AST_AS.Call; VAR t: T): BOOLEAN RAISES {};
-(* Is the given call a call of a procedure in the 'Word' interface? If so
-return TRUE and set 't' to indicate which procedure is being called. If not
-return FALSE and leave 't' untouched. *)
+(* Is the given call a call of a procedure in the 'Word' or 'Long'
+interface? If so return TRUE and set 't' to indicate which procedure is
+being called. If not return FALSE and leave 't' untouched. *)
 
 PROCEDURE ArgCount(t: T): CARDINAL RAISES {};
 (* Return the number of arguments required by the given call. *)
