@@ -104,7 +104,7 @@ PROCEDURE Connect (url: TEXT; READONLY o := Defaults): T RAISES {Error, Thread.A
     END;
     M3jSql.SetProperty (p, "user", o.user);
     M3jSql.SetProperty (p, "password", o.password);
-    h := M3jSql.Connect (url, p, o.driver, o.timeout, MAX (o.fetch, 1), f);
+    h := M3jSql.Connect (url, p, o.driver, o.connectTimeout, o.timeout, MAX (o.fetch, 1), f);
     IF h = NIL THEN Raise (M3jSql.Kind (f), f) END;
     RETURN NEW (T, h := h);
   END Connect;

@@ -327,14 +327,21 @@ final class Sql {
         volatile boolean closed;
         /** Set by close before it cancels the current call. */
         volatile boolean closing;
+        /** Whether the driver is sqlite-jdbc (see dropKeys). */
+        boolean sqlite;
         /** The statement that the current call executes, for cancel. */
         volatile Statement running;
 
         Conn(double timeout, long fetch) {
-            this.timeout = timeout > 0 ? Math.max(1, (long) Math.ceil(Math.min(timeout, 1e8) * 1e9)) : 0;
+            this.timeout = nanos(timeout);
             this.fetch = (int) Math.max(1, Math.min(fetch, 1 << 20));
             worker.start();
         }
+    }
+
+    /** Seconds as nanoseconds for a wait; 0 (no limit) if not positive. */
+    private static long nanos(double seconds) {
+        return seconds > 0 ? Math.max(1, (long) Math.ceil(Math.min(seconds, 1e8) * 1e9)) : 0;
     }
 
     /** Waits for k: null when it is done, ALERT or EXPIRED when the wait was given up. */
@@ -447,6 +454,11 @@ final class Sql {
      * What a call that was given up returns is closed.
      */
     private static Object run(Conn c, Op op, long grace, ObjRef fail) {
+        return run(c, op, grace, c.timeout, fail);
+    }
+
+    /** As run, with a time for the call in nanoseconds (0: none). */
+    private static Object run(Conn c, Op op, long grace, long timeout, ObjRef fail) {
         if (c.closed || c.closing) {
             return failedObject(fail, CLOSED, "the connection is closed");
         }
@@ -460,7 +472,7 @@ final class Sql {
             c.running = null;
             Call k = new Call(op, false);
             c.worker.queue.add(k);
-            Object w = await(k, c.timeout > 0 ? System.nanoTime() + c.timeout : 0);
+            Object w = await(k, timeout > 0 ? System.nanoTime() + timeout : 0);
             if (w == null) {
                 c.running = null;
                 if (k.thrown != null) {
@@ -488,7 +500,7 @@ final class Sql {
                 abort(c);
             }
             return w == ALERT ? failedObject(fail, ALERTED, null)
-                              : failedObject(fail, TIMEOUT, "the call did not end within the time of the connection");
+                              : failedObject(fail, TIMEOUT, "the call did not end in time");
         } finally {
             c.lock.unlock();
         }
@@ -591,7 +603,8 @@ final class Sql {
         }
     }
 
-    static Object connect(String url, Object props, String driverClass, double timeout, long fetch, ObjRef fail) {
+    static Object connect(String url, Object props, String driverClass, double connectTimeout, double timeout,
+                          long fetch, ObjRef fail) {
         if (url == null) {
             failed(fail, NO_DRIVER, "no URL");
             return null;
@@ -614,9 +627,10 @@ final class Sql {
                     return null;
                 }
                 c.c = x;
+                c.sqlite = x.getClass().getName().startsWith("org.sqlite.");
             }
             return c;
-        }, 0, fail);
+        }, 0, nanos(connectTimeout), fail);
         if (r == FAILED) {
             boolean stop;
             synchronized (c) {
@@ -986,6 +1000,7 @@ final class Sql {
                     }
                     c.running = ps;
                     int[] n = ps.executeBatch();
+                    dropKeys(s);
                     long[] counts = new long[n.length];
                     for (int k = 0; k < n.length; k++) {
                         counts[k] = n[k] >= 0 ? n[k] : -1;
@@ -1010,6 +1025,7 @@ final class Sql {
                 return x;
             }
             long n = ps.executeUpdate();
+            dropKeys(s);
             s.executed = true;
             return n;
         }, GRACE, fail);
@@ -1022,6 +1038,26 @@ final class Sql {
             count.set((Long) r);
         }
         return 0;
+    }
+
+    /**
+     * sqlite-jdbc runs a query for the generated keys after each INSERT,
+     * also when no keys were asked for, and keeps it open. An open query
+     * keeps a cancel (sqlite3_interrupt) in effect: every later statement of
+     * the connection would fail. So it is closed here unless the keys are
+     * wanted.
+     */
+    private static void dropKeys(Stmt s) {
+        if (s.conn.sqlite && !s.keys) {
+            try {
+                ResultSet k = s.ps.getGeneratedKeys();
+                if (k != null) {
+                    k.close();
+                }
+            } catch (SQLException | RuntimeException e) {
+                // nothing open
+            }
+        }
     }
 
     static long batchCount(Object o, long i) {

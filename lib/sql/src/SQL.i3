@@ -26,9 +26,10 @@
    own; a "T" may be used by several threads, but a "Stmt" with its values
    and a "Rows" are for one thread at a time. A call that waits for the
    database ends with "Thread.Alerted" when the thread is alerted, and with
-   "Kind.Timeout" when it takes longer than the "timeout" of the options:
-   its statement is then cancelled; a driver that does not end it within a
-   few seconds loses its connection ("Kind.Closed" afterwards).
+   "Kind.Timeout" when it takes longer than the "timeout" of the options
+   (by default there is no limit): its statement is then cancelled; a
+   driver that does not end it within a few seconds loses its connection
+   ("Kind.Closed" afterwards).
 
    Rows are fetched "fetch" at a time and kept in memory, each value whole,
    also large ones ("CLOB", "BLOB"). Close what is no longer needed:
@@ -77,7 +78,8 @@ TYPE
     properties: REF ARRAY OF Property := NIL;  (* further properties of the driver *)
     driver: TEXT := NIL;     (* the Java class of the driver, for drivers that do not
                                 register as a service *)
-    timeout := 30.0D0;       (* seconds, for connecting and for each call; <= 0: none *)
+    connectTimeout := 30.0D0;  (* seconds for connecting; <= 0: no limit *)
+    timeout := 0.0D0;        (* seconds for each later call; <= 0: no limit *)
     fetch: CARDINAL := 256;  (* rows fetched at a time *)
   END;
 

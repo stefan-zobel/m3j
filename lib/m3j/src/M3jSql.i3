@@ -50,10 +50,11 @@ PROCEDURE NewProperties (): REFANY;
 PROCEDURE SetProperty (p: REFANY; name, value: TEXT);
 
 <*EXTERNAL "M3jSql__Connect"*>
-PROCEDURE Connect (url: TEXT; props: REFANY; driver: TEXT; timeout: LONGREAL; fetch: INTEGER;
-                   VAR fail: REFANY): REFANY;
+PROCEDURE Connect (url: TEXT; props: REFANY; driver: TEXT; connectTimeout, timeout: LONGREAL;
+                   fetch: INTEGER; VAR fail: REFANY): REFANY;
 (* A connection, or NIL with "fail" set. "driver" NIL looks for a driver
-   that accepts the URL. *)
+   that accepts the URL. "connectTimeout" limits connecting, "timeout"
+   each later call; not positive: no limit. *)
 
 <*EXTERNAL "M3jSql__Close"*>
 PROCEDURE Close (c: REFANY);

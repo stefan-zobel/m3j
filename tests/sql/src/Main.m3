@@ -9,7 +9,7 @@
    (NIL) or "h" and their hexadecimal digits. C, S and R are numbers of
    connections, statements and rows, 0 to 63.
 
-     connect C URL USER PASSWORD TIMEOUT FETCH DRIVER [NAME VALUE]...
+     connect C URL USER PASSWORD CONNECTTIMEOUT TIMEOUT FETCH DRIVER [NAME VALUE]...
      close C
      exec C SQL            ok COUNT
      query C R SQL         ok COLUMNS
@@ -28,8 +28,8 @@
      next R                ok 1 or ok 0
      get R I KIND          the value as for "bind"; null gives 1 for NULL
      row R                 ok VALUE... of each column: "-" for NULL, bytes
-                           for columns of the type Bytes, else "t" and the
-                           text
+                           for columns of the type Bytes and for bytes that
+                           have no text, else "t" and the text
      count R               reads to the end: ok ROWS SUM (of column 1)
      cols R                ok NAME:TYPENAME:TYPE:PRECISION:SCALE:NULLABLE...
      find R NAME           ok I
@@ -250,7 +250,14 @@ PROCEDURE Row (r: SQL.Rows): TEXT RAISES {SQL.Error} =
       ELSIF r.column (i).type = SQL.Type.Bytes THEN
         out := out & " " & HexBytes (r.bytes (i));
       ELSE
-        out := out & " t" & Hex16 (r.text (i));
+        TRY
+          out := out & " t" & Hex16 (r.text (i));
+        EXCEPT
+        | SQL.Error (f) =>
+            (* bytes in a column of another type, as SQLite has them *)
+            IF f.kind # SQL.Kind.Type THEN RAISE SQL.Error (f) END;
+            out := out & " " & HexBytes (r.bytes (i));
+        END;
       END;
     END;
     RETURN out;
@@ -323,17 +330,18 @@ PROCEDURE InsertApply (x: Inserter): REFANY =
 (* requests *)
 
 PROCEDURE Connect (READONLY w: ARRAY OF TEXT): TEXT RAISES {SQL.Error, Thread.Alerted} =
-  VAR o := SQL.Defaults;  k := (NUMBER (w) - 8) DIV 2;
+  VAR o := SQL.Defaults;  k := (NUMBER (w) - 9) DIV 2;
   BEGIN
     o.user := Arg (w[3]);
     o.password := Arg (w[4]);
-    o.timeout := Scan.LongReal (w[5]);
-    o.fetch := Int (w[6]);
-    o.driver := Arg (w[7]);
+    o.connectTimeout := Scan.LongReal (w[5]);
+    o.timeout := Scan.LongReal (w[6]);
+    o.fetch := Int (w[7]);
+    o.driver := Arg (w[8]);
     IF k > 0 THEN
       o.properties := NEW (REF ARRAY OF SQL.Property, k);
       FOR i := 0 TO k - 1 DO
-        o.properties[i] := SQL.Property {name := Arg (w[8 + 2 * i]), value := Arg (w[9 + 2 * i])};
+        o.properties[i] := SQL.Property {name := Arg (w[9 + 2 * i]), value := Arg (w[10 + 2 * i])};
       END;
     END;
     conns[Int (w[1])] := SQL.Connect (Arg (w[2]), o);

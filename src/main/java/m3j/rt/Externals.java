@@ -366,9 +366,9 @@ public final class Externals {
         Sql.setProperty(p, name, value);
     }
 
-    public static Object M3jSql__Connect(String url, Object props, String driver, double timeout, long fetch,
-                                         ObjRef fail) {
-        return Sql.connect(url, props, driver, timeout, fetch, fail);
+    public static Object M3jSql__Connect(String url, Object props, String driver, double connectTimeout,
+                                         double timeout, long fetch, ObjRef fail) {
+        return Sql.connect(url, props, driver, connectTimeout, timeout, fetch, fail);
     }
 
     public static void M3jSql__Close(Object c) {

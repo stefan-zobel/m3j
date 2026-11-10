@@ -1,0 +1,5 @@
+% A program that imports the library sql.
+import ("libm3")
+import ("sql")
+implementation ("Main")
+program ("use")

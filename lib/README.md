@@ -176,6 +176,33 @@ thread; an alert or a timeout ends the wait of the caller, not the request,
 and the `SFTP.T` is `Busy` while one of its files is open. `SSHRep` is shared
 by the modules of the package only.
 
+## sql
+
+Not a package of cm3, though its interface follows the one of cm3's `DB`
+(m3-db): `SQL` (safe), relational databases through JDBC (`java.sql`),
+with statements whose values are parameters (`?`), typed getters for the
+columns and errors with the SQLSTATE of the driver, through `M3jSql` and
+`m3j.rt.Sql`. m3j brings no driver: a program names its jar with
+`java_classpath` or `-cp`, and the bridge finds it as a service of the class
+loader of the thread (`-run` sets that loader), else through `DriverManager`;
+`Options.driver` names the class of a driver that is no service. All calls of
+the driver for a connection run on one thread of its own, since an alert
+interrupts the thread of the caller and a driver may close its files when an
+interrupt hits its input or output: the caller waits for that thread, and an
+alert or a timeout cancels the statement (`Statement.cancel`); a driver that
+does not end the call within five seconds loses its connection. Values of
+parameters stay in the bridge until the statement is executed. Rows come in
+blocks of `fetch`, converted to a few Java types that the getters read
+without the driver; texts, decimal numbers and dates of SQLite, which has no
+types of columns, are converted from what it keeps. The kind of an error comes
+from the class of the exception of the driver, else from the class of its
+SQLSTATE, else, for SQLite, which has no SQLSTATE, from its result code.
+sqlite-jdbc keeps a query for the generated keys of each `INSERT` open, which
+would keep a cancel of SQLite in effect for every later statement of the
+connection; the bridge closes it unless the statement was prepared with
+`keys`. Rows that a program leaves open still keep such a cancel in effect
+(SQLite ends it only when no statement runs), until they are closed.
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the
@@ -296,4 +323,5 @@ for the module `HTTPClient` of http (`m3j.rt.Http`), and `M3jZip`, the
 compression and the archives of the Java platform for the modules `Deflate`
 and `Zip` of zip (`m3j.rt.Zip`), and `M3jCrypto`, the cryptography of the
 Java platform for the package crypto (`m3j.rt.Crypto`), and `M3jSsh`, the
-copy of JSch for the package ssh (`m3j.rt.Ssh`).
+copy of JSch for the package ssh (`m3j.rt.Ssh`), and `M3jSql`, JDBC of the
+Java platform for the package sql (`m3j.rt.Sql`).
