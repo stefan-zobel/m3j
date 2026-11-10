@@ -9,7 +9,8 @@
 The cases:
 
   codec    escapes, dates and basic authentication against the standard
-           library of Python, with fixed and with random values
+           library of Python, with fixed and with random values, also of
+           characters above 255 and of surrogates
   headers  tests/http/src/Main.m3 prints the behavior of HTTP.Headers; the
            output, checked by hand, is tests/http/expected/headers.txt
   table    requests on a raw socket with the expected status and whether the
@@ -154,6 +155,23 @@ BAD_ESCAPES = ["%", "%4", "a%", "a%4", "%G0", "%0G", "%%", "%-1", "% 1"]
 BAD_AUTH = ["", "Basic", "Basic ", "Basic  ", "Bearer dTpw", "Basicc dTpw", "Basic dTp", "Basic dTp!", "Basic =Tpw",
             "Basic d=pw", "Basic dT=w", "Basic dTpw=", "Basic dTpw====", "Basic dGVzdA==", "Basic\tdTpw", "Basic dTpw "]
 
+# Base64 whose last character has bits left over that are not zero: lax
+# decoders read "u:" and "u:pw", the strict one refuses it
+NONCANONICAL_AUTH = ["Basic dTp=", "Basic dTpwdx=="]
+
+
+def wide_bytes(units):
+    """The bytes that HTTP.Escape and HTTP.BasicAuth make of the UTF-16 code
+    units: a character up to 255 is a byte, a larger one goes out in UTF-8, a
+    pair of surrogates as one character, a surrogate without a partner as
+    U+FFFD."""
+    text = b"".join(u.to_bytes(2, "big") for u in units).decode("utf-16-be", errors="replace")
+    return b"".join(bytes([ord(c)]) if ord(c) <= 0xFF else c.encode("utf-8") for c in text)
+
+
+def arg16(units):
+    return "".join("%04x" % u for u in units) if units else "-"
+
 TOKENS = ["a", "Content-Type", "!#$%&'*+-.^_`|~09AZaz"]
 NOT_TOKENS = ["", " ", "a b", "a:b", "a\r", "a\n", "(x)", "a,b", "a\tb", "\x7f", "\xe9", "a/b", "a=b", "[", "{", '"']
 VALUES = ["", "a b", "a\tb", "\xe9\xff", "x" * 1000, "a,b;c=\"d\""]
@@ -220,6 +238,44 @@ def case_codec(env):
     ask("B %s %s" % (arg(b"a:b"), arg(b"c")), "bad")
     for s in BAD_AUTH:
         ask("A " + arg(s.encode()), "bad")
+    for s in NONCANONICAL_AUTH:
+        if base64.b64decode(s[6:]) not in (b"u:", b"u:pw"):
+            raise Failed("Python reads %r differently" % s)
+        ask("A " + arg(s.encode()), "bad")
+
+    # characters above 255 and surrogates, with and without a partner
+    def unit():
+        k = rnd.randrange(7)
+        if k == 0:
+            return [rnd.randrange(0x20, 0x7F)]
+        if k == 1:
+            return [rnd.randrange(0x80, 0x100)]
+        if k == 2:
+            return [rnd.randrange(0x100, 0x800)]
+        if k == 3:
+            return [rnd.choice([rnd.randrange(0x800, 0xD800), rnd.randrange(0xE000, 0x10000)])]
+        if k == 4:
+            c = rnd.randrange(0x10000, 0x110000) - 0x10000
+            return [0xD800 + c // 1024, 0xDC00 + c % 1024]
+        if k == 5:
+            return [rnd.randrange(0xD800, 0xDC00)]
+        return [rnd.randrange(0xDC00, 0xE000)]
+
+    texts = [[], [0x61, 0xE9, 0x20AC], [0xD83D, 0xDE00], [0xD800, 0xDC00], [0xDBFF, 0xDFFF], [0xD800], [0xDBFF],
+             [0xDC00], [0xDFFF], [0xD800, 0xD800, 0xDC00], [0xDC00, 0xD800], [0x61, 0xD800], [0xD800, 0x61],
+             [0xD83D, 0xDE00, 0xDE00], [0xFF, 0x100], [0x7FF, 0x800], [0xD7FF, 0xE000, 0xFFFD, 0xFFFF], [0x20, 0x2B, 0x20AC]]
+    for _ in range(1000):
+        texts.append([u for _ in range(rnd.randrange(1, 12)) for u in unit()])
+    for units in texts:
+        b = wide_bytes(units)
+        ask("X " + arg16(units), urllib.parse.quote_from_bytes(b, safe="").encode().hex())
+        ask("Y " + arg16(units), urllib.parse.quote_plus(b, safe="").encode().hex())
+    for i in range(0, len(texts) - 1, 2):
+        user = [0x2D if u == 0x3A else u for u in texts[i]]
+        password = texts[i + 1]
+        ask("Z %s %s" % (arg16(user), arg16(password)),
+            (b"Basic " + base64.b64encode(wide_bytes(user) + b":" + wide_bytes(password))).hex())
+    ask("Z %s %s" % (arg16([0x20AC, 0x3A]), arg16([0x61])), "bad")
 
     for s in TOKENS:
         ask("N " + arg(s.encode("latin-1")), "1")

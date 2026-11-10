@@ -75,7 +75,8 @@ PROCEDURE Escape (t: TEXT; form := FALSE): TEXT;
 (* "t" with percent escapes in place of all the bytes outside the unreserved
    characters of RFC 3986: letters, digits and "-._~". With "form", for
    application/x-www-form-urlencoded, a space becomes "+". A character
-   above 255 is taken as a Unicode character and goes out in UTF-8. *)
+   above 255 is taken as a Unicode character and goes out in UTF-8, a pair
+   of surrogates as the one character it stands for. *)
 
 PROCEDURE Unescape (t: TEXT; form := FALSE): TEXT RAISES {Error};
 (* The bytes that "t" stands for. With "form", "+" stands for a space.
@@ -100,7 +101,9 @@ PROCEDURE BasicAuth (user, password: TEXT): TEXT RAISES {Error};
 
 PROCEDURE ParseBasicAuth (value: TEXT; VAR user, password: TEXT): BOOLEAN;
 (* Set "user" and "password" from the value of an "Authorization" field and
-   return "TRUE", if it is of the scheme "Basic" and well formed. *)
+   return "TRUE", if it is of the scheme "Basic" and well formed. The
+   Base64 must be padded, and the bits that are left over in its last
+   character must be zero. *)
 
 PROCEDURE Reason (status: INTEGER): TEXT;
 (* The usual reason phrase of the status code, or "" if it has none. *)

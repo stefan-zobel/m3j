@@ -6,45 +6,27 @@
 (* Changes for m3j: Copyright (c) 2026 the m3j authors, distributed under
    the MIT license in the file LICENSE. *)
 
-(* The tables and the outline of the escapes and of FormatDate come from
-   the package m3-www/http of CM3; the rest is new. *)
+(* The tables and the outline of FormatDate come from the package
+   m3-www/http of CM3; the rest is new. *)
 
 MODULE HTTP;
 
-IMPORT Atom, AtomList, Date, Fmt, Text, TextExtras, Time;
+IMPORT Atom, AtomList, Base64, Date, Fmt, Text, TextExtras, Time, URI;
 
 CONST
-  Unreserved = SET OF CHAR {'A' .. 'Z', 'a' .. 'z', '0' .. '9', '-', '.', '_', '~'};
   TokenChars = SET OF CHAR {'A' .. 'Z', 'a' .. 'z', '0' .. '9', '!', '#', '$', '%',
                             '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~'};
-  Hex = ARRAY [0 .. 15] OF CHAR {'0', '1', '2', '3', '4', '5', '6', '7',
-                                 '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+  HighFirst = 16_D800;
+  LowFirst = 16_DC00;
+  LowLast = 16_DFFF;
+  Replacement = 16_FFFD;
 
   WeekDay3 = ARRAY Date.WeekDay OF TEXT {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   WeekDayFull = ARRAY Date.WeekDay OF TEXT {"Sunday", "Monday", "Tuesday", "Wednesday",
                                             "Thursday", "Friday", "Saturday"};
   Month3 = ARRAY Date.Month OF TEXT {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
-  Base64Decode = ARRAY CHAR OF INTEGER {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, (* +, / *)
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, (* 0..9 *)
-    -1, 00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, (* A..O *)
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, (* P..Z *)
-    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, (* a..o *)
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, ..};            (* p..z *)
-
-  Base64Encode = ARRAY [0 .. 63] OF CHAR {
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-    'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-    'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-    'w', 'x', 'y', 'z', '0', '1', '2', '3',
-    '4', '5', '6', '7', '8', '9', '+', '/'};
 
 REVEAL
   Headers = HeadersPublic BRANDED "HTTP.Headers" OBJECT
@@ -169,9 +151,15 @@ PROCEDURE ValidValue (value: TEXT): BOOLEAN =
   END ValidValue;
 
 (* The bytes of "t": a character up to 255 is a byte, a larger one goes out
-   in UTF-8. *)
-PROCEDURE Bytes (t: TEXT): REF ARRAY OF CHAR =
-  VAR n := Text.Length (t);  size := 0;  c: INTEGER;  r: REF ARRAY OF CHAR;  j := 0;
+   in UTF-8. A pair of surrogates goes out as the one character it stands
+   for, and a surrogate without a partner as U+FFFD, as in "Utf8.Encode". *)
+PROCEDURE Bytes (t: TEXT): TEXT =
+  VAR
+    n := Text.Length (t);
+    w: REF ARRAY OF WIDECHAR;
+    r: REF ARRAY OF CHAR;
+    i, j := 0;
+    c: INTEGER;
 
   PROCEDURE Put (b: INTEGER) =
     BEGIN
@@ -180,27 +168,27 @@ PROCEDURE Bytes (t: TEXT): REF ARRAY OF CHAR =
     END Put;
 
   BEGIN
-    FOR i := 0 TO n - 1 DO
-      c := ORD (Text.GetWideChar (t, i));
-      IF c <= 16_FF THEN
-        INC (size);
-      ELSIF c <= 16_7FF THEN
-        INC (size, 2);
-      ELSIF c <= 16_FFFF THEN
-        INC (size, 3);
-      ELSE
-        INC (size, 4);
+    IF NOT Text.HasWideChars (t) THEN RETURN t END;
+    w := NEW (REF ARRAY OF WIDECHAR, n);
+    r := NEW (REF ARRAY OF CHAR, 3 * n);
+    Text.SetWideChars (w^, t);
+    WHILE i < n DO
+      c := ORD (w[i]);
+      INC (i);
+      IF c >= HighFirst AND c <= LowLast THEN
+        IF c < LowFirst AND i < n AND ORD (w[i]) >= LowFirst AND ORD (w[i]) <= LowLast THEN
+          c := 16_10000 + (c - HighFirst) * 1024 + ORD (w[i]) - LowFirst;
+          INC (i);
+        ELSE
+          c := Replacement;
+        END;
       END;
-    END;
-    r := NEW (REF ARRAY OF CHAR, size);
-    FOR i := 0 TO n - 1 DO
-      c := ORD (Text.GetWideChar (t, i));
       IF c <= 16_FF THEN
         Put (c);
-      ELSIF c <= 16_7FF THEN
+      ELSIF c < 16_800 THEN
         Put (16_C0 + c DIV 64);
         Put (16_80 + c MOD 64);
-      ELSIF c <= 16_FFFF THEN
+      ELSIF c < 16_10000 THEN
         Put (16_E0 + c DIV 4096);
         Put (16_80 + c DIV 64 MOD 64);
         Put (16_80 + c MOD 64);
@@ -211,70 +199,19 @@ PROCEDURE Bytes (t: TEXT): REF ARRAY OF CHAR =
         Put (16_80 + c MOD 64);
       END;
     END;
-    RETURN r;
+    RETURN Text.FromChars (SUBARRAY (r^, 0, j));
   END Bytes;
 
 PROCEDURE Escape (t: TEXT; form := FALSE): TEXT =
-  VAR b := Bytes (t);  size := 0;  r: REF ARRAY OF CHAR;  j := 0;  c: CHAR;
   BEGIN
-    FOR i := 0 TO LAST (b^) DO
-      IF b[i] IN Unreserved OR form AND b[i] = ' ' THEN
-        INC (size);
-      ELSE
-        INC (size, 3);
-      END;
-    END;
-    r := NEW (REF ARRAY OF CHAR, size);
-    FOR i := 0 TO LAST (b^) DO
-      c := b[i];
-      IF c IN Unreserved THEN
-        r[j] := c;
-        INC (j);
-      ELSIF form AND c = ' ' THEN
-        r[j] := '+';
-        INC (j);
-      ELSE
-        r[j] := '%';
-        r[j + 1] := Hex[ORD (c) DIV 16];
-        r[j + 2] := Hex[ORD (c) MOD 16];
-        INC (j, 3);
-      END;
-    END;
-    RETURN Text.FromChars (r^);
+    RETURN URI.Escape (Bytes (t), form := form);
   END Escape;
 
-PROCEDURE HexValue (c: CHAR): INTEGER =
-  BEGIN
-    CASE c OF
-    | '0' .. '9' => RETURN ORD (c) - ORD ('0');
-    | 'A' .. 'F' => RETURN ORD (c) - ORD ('A') + 10;
-    | 'a' .. 'f' => RETURN ORD (c) - ORD ('a') + 10;
-    ELSE RETURN -1;
-    END;
-  END HexValue;
-
 PROCEDURE Unescape (t: TEXT; form := FALSE): TEXT RAISES {Error} =
-  VAR n := Text.Length (t);  r := NEW (REF ARRAY OF CHAR, n);  i := 0;  j := 0;
-      c: CHAR;  high, low: INTEGER;
+  VAR r: TEXT;
   BEGIN
-    IF Text.HasWideChars (t) THEN RAISE Error (BadEscape ()) END;
-    WHILE i < n DO
-      c := Text.GetChar (t, i);
-      INC (i);
-      IF c = '%' THEN
-        IF i + 2 > n THEN RAISE Error (BadEscape ()) END;
-        high := HexValue (Text.GetChar (t, i));
-        low := HexValue (Text.GetChar (t, i + 1));
-        IF high < 0 OR low < 0 THEN RAISE Error (BadEscape ()) END;
-        c := VAL (high * 16 + low, CHAR);
-        INC (i, 2);
-      ELSIF form AND c = '+' THEN
-        c := ' ';
-      END;
-      r[j] := c;
-      INC (j);
-    END;
-    RETURN Text.FromChars (SUBARRAY (r^, 0, j));
+    IF NOT URI.Unescape (t, r, form) THEN RAISE Error (BadEscape ()) END;
+    RETURN r;
   END Unescape;
 
 (* The text of the error does not come from the message, because atoms are
@@ -435,81 +372,17 @@ PROCEDURE ParseDate (t: TEXT; VAR r: Time.T): BOOLEAN =
     RETURN TRUE;
   END ParseDate;
 
-PROCEDURE Base64 (READONLY b: ARRAY OF CHAR): TEXT =
-  VAR n := NUMBER (b);  r := NEW (REF ARRAY OF CHAR, (n + 2) DIV 3 * 4);
-      i := 0;  j := 0;  v: INTEGER;
-  BEGIN
-    WHILE n - i >= 3 DO
-      v := ORD (b[i]) * 65536 + ORD (b[i + 1]) * 256 + ORD (b[i + 2]);
-      r[j] := Base64Encode[v DIV 262144];
-      r[j + 1] := Base64Encode[v DIV 4096 MOD 64];
-      r[j + 2] := Base64Encode[v DIV 64 MOD 64];
-      r[j + 3] := Base64Encode[v MOD 64];
-      INC (i, 3);
-      INC (j, 4);
-    END;
-    IF n - i = 1 THEN
-      v := ORD (b[i]);
-      r[j] := Base64Encode[v DIV 4];
-      r[j + 1] := Base64Encode[v MOD 4 * 16];
-      r[j + 2] := '=';
-      r[j + 3] := '=';
-    ELSIF n - i = 2 THEN
-      v := ORD (b[i]) * 256 + ORD (b[i + 1]);
-      r[j] := Base64Encode[v DIV 1024];
-      r[j + 1] := Base64Encode[v DIV 16 MOD 64];
-      r[j + 2] := Base64Encode[v MOD 16 * 4];
-      r[j + 3] := '=';
-    END;
-    RETURN Text.FromChars (r^);
-  END Base64;
-
-(* The bytes of the Base64 in "t" from the index "start" on into "r", and
-   their number; -1 if it is malformed. *)
-PROCEDURE FromBase64 (t: TEXT; start: INTEGER; VAR r: ARRAY OF CHAR): INTEGER =
-  VAR n := Text.Length (t) - start;  j := 0;  i := start;  last := start + n - 4;
-      a, b, c, d: INTEGER;  c2, c3: CHAR;
-  BEGIN
-    IF n MOD 4 # 0 THEN RETURN -1 END;
-    WHILE i <= last DO
-      a := Base64Decode[Text.GetChar (t, i)];
-      b := Base64Decode[Text.GetChar (t, i + 1)];
-      c2 := Text.GetChar (t, i + 2);
-      c3 := Text.GetChar (t, i + 3);
-      IF a < 0 OR b < 0 THEN RETURN -1 END;
-      r[j] := VAL (a * 4 + b DIV 16, CHAR);
-      INC (j);
-      IF i = last AND c2 = '=' THEN
-        IF c3 # '=' THEN RETURN -1 END;
-      ELSIF i = last AND c3 = '=' THEN
-        c := Base64Decode[c2];
-        IF c < 0 THEN RETURN -1 END;
-        r[j] := VAL (b MOD 16 * 16 + c DIV 4, CHAR);
-        INC (j);
-      ELSE
-        c := Base64Decode[c2];
-        d := Base64Decode[c3];
-        IF c < 0 OR d < 0 THEN RETURN -1 END;
-        r[j] := VAL (b MOD 16 * 16 + c DIV 4, CHAR);
-        r[j + 1] := VAL (c MOD 4 * 64 + d, CHAR);
-        INC (j, 2);
-      END;
-      INC (i, 4);
-    END;
-    RETURN j;
-  END FromBase64;
-
 PROCEDURE BasicAuth (user, password: TEXT): TEXT RAISES {Error} =
-  VAR i: CARDINAL := 0;
+  VAR u := Bytes (user);  i: CARDINAL := 0;
   BEGIN
-    IF TextExtras.FindChar (user, ':', i) THEN
+    IF TextExtras.FindChar (u, ':', i) THEN
       RAISE Error (AtomList.List2 (BadMessage, Atom.FromText ("colon in a user name")));
     END;
-    RETURN "Basic " & Base64 (Bytes (user & ":" & password)^);
+    RETURN "Basic " & Base64.Encode (u & ":" & Bytes (password));
   END BasicAuth;
 
 PROCEDURE ParseBasicAuth (value: TEXT; VAR user, password: TEXT): BOOLEAN =
-  VAR n := Text.Length (value);  i := 5;  m: INTEGER;  r: REF ARRAY OF CHAR;
+  VAR n := Text.Length (value);  i := 5;  k: CARDINAL := 0;  r: TEXT;
   BEGIN
     IF n < 7 OR Text.HasWideChars (value)
          OR NOT TextExtras.CIEqual (Text.Sub (value, 0, 5), "Basic")
@@ -517,17 +390,13 @@ PROCEDURE ParseBasicAuth (value: TEXT; VAR user, password: TEXT): BOOLEAN =
       RETURN FALSE;
     END;
     WHILE i < n AND Text.GetChar (value, i) = ' ' DO INC (i) END;
-    r := NEW (REF ARRAY OF CHAR, (n - i) DIV 4 * 3 + 3);
-    m := FromBase64 (value, i, r^);
-    IF m < 0 THEN RETURN FALSE END;
-    FOR k := 0 TO m - 1 DO
-      IF r[k] = ':' THEN
-        user := Text.FromChars (SUBARRAY (r^, 0, k));
-        password := Text.FromChars (SUBARRAY (r^, k + 1, m - k - 1));
-        RETURN TRUE;
-      END;
+    IF NOT Base64.Decode (Text.Sub (value, i), r)
+         OR NOT TextExtras.FindChar (r, ':', k) THEN
+      RETURN FALSE;
     END;
-    RETURN FALSE;
+    user := Text.Sub (r, 0, k);
+    password := Text.Sub (r, k + 1);
+    RETURN TRUE;
   END ParseBasicAuth;
 
 PROCEDURE Reason (status: INTEGER): TEXT =

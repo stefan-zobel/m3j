@@ -46,6 +46,21 @@ PROCEDURE FromHex (t: TEXT): TEXT =
     RETURN Text.FromChars (r^);
   END FromHex;
 
+(* The text whose UTF-16 code units are the groups of four hexadecimal digits
+   of "t"; the units may be surrogates without a partner. *)
+PROCEDURE FromHex16 (t: TEXT): TEXT =
+  VAR n := Text.Length (t) DIV 4;  r := NEW (REF ARRAY OF WIDECHAR, n);  v: INTEGER;
+  BEGIN
+    FOR i := 0 TO n - 1 DO
+      v := 0;
+      FOR k := 4 * i TO 4 * i + 3 DO
+        v := v * 16 + Text.FindChar (HexDigits, Text.GetChar (t, k));
+      END;
+      r[i] := VAL (v, WIDECHAR);
+    END;
+    RETURN Text.FromWideChars (r^);
+  END FromHex16;
+
 PROCEDURE ToHex (t: TEXT): TEXT =
   VAR n := Text.Length (t);  r := NEW (REF ARRAY OF CHAR, 2 * n);  c: INTEGER;
   BEGIN
@@ -101,7 +116,8 @@ PROCEDURE TryParseBasic (t: TEXT): TEXT =
   END TryParseBasic;
 
 (* One request: a letter, a space and then arguments in hexadecimal, an
-   empty argument being a single dash. *)
+   empty argument being a single dash. The arguments of "X", "Y" and "Z" are
+   UTF-16 code units, those of the others bytes. *)
 PROCEDURE Answer (line: TEXT): TEXT
   RAISES {FloatMode.Trap, Lex.Error} =
   VAR op := Text.GetChar (line, 0);  rest := Text.Sub (line, 2);  sp := Text.FindChar (rest, ' ');
@@ -109,7 +125,13 @@ PROCEDURE Answer (line: TEXT): TEXT
 
   PROCEDURE Arg (t: TEXT): TEXT =
     BEGIN
-      IF Text.Equal (t, "-") THEN RETURN "" ELSE RETURN FromHex (t) END;
+      IF Text.Equal (t, "-") THEN
+        RETURN "";
+      ELSIF op = 'X' OR op = 'Y' OR op = 'Z' THEN
+        RETURN FromHex16 (t);
+      ELSE
+        RETURN FromHex (t);
+      END;
     END Arg;
 
   BEGIN
@@ -122,6 +144,9 @@ PROCEDURE Answer (line: TEXT): TEXT
     CASE op OF
     | 'E' => RETURN ToHex (HTTP.Escape (a));
     | 'F' => RETURN ToHex (HTTP.Escape (a, form := TRUE));
+    | 'X' => RETURN ToHex (HTTP.Escape (a));
+    | 'Y' => RETURN ToHex (HTTP.Escape (a, form := TRUE));
+    | 'Z' => RETURN TryBasic (a, b);
     | 'U' => RETURN TryUnescape (a, FALSE);
     | 'V' => RETURN TryUnescape (a, TRUE);
     | 'D' => RETURN HTTP.FormatDate (FLOAT (Scan.Int (rest), LONGREAL));

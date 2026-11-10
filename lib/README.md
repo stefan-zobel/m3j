@@ -141,9 +141,8 @@ which `ZipFile` does not do.
 
 Not a package of cm3: `Hex`, `Utf8`, `Base64` (RFC 4648, strict), `URI`
 (RFC 3986: parts, resolution, normalization, queries and escapes) and `RFC3339`,
-all safe and in plain Modula-3. The private Base64 and escapes of `HTTP` are
-older and stay, because `HTTP.ParseBasicAuth` takes values that `Base64.Decode`
-refuses.
+all safe and in plain Modula-3. The escapes and the basic authentication of
+`HTTP` are built on `URI` and `Base64`.
 
 ## crypto
 
