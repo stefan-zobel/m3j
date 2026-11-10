@@ -112,7 +112,10 @@ Corporation, `http/src/COPYRIGHT`): `HTTP` (fields of messages, escapes,
 dates, basic authentication), `HTTPServer` (safe; HTTP/1.1 on any
 `ConnFD.T`) and `HTTPClient` (the client of the Java platform, through
 `M3jHttp` and `m3j.rt.Http`). Both use `Deflate` of zip for
-`Content-Encoding: gzip`.
+`Content-Encoding: gzip`. `HTTPCookie` (RFC 6265 and the rules of browsers)
+and `Multipart` (streaming reader and writer of `multipart/form-data`, RFC
+2046 and 7578) are safe Modula-3; the writer takes its random boundaries
+from crypto, so http imports crypto and encoding.
 
 ## xml
 

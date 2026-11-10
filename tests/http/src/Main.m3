@@ -16,12 +16,15 @@
               server and client in this program, over TCP and TLS
      gzclient BASE KEYSTORE CA
               compression in the client, against a server of Python and
-              against the server of this program *)
+              against the server of this program
+     cookie   answers requests on the standard input about "HTTPCookie"
+     multipart
+              answers requests on the standard input about "Multipart" *)
 
 MODULE Main;
 
-IMPORT Deflate, Fmt, HTTP, HTTPClient, HTTPServer, IO, IP, Params, Process, Rd, RdClass, Scan, Stdio,
-       TCP, Text, TextRd, TextWr, Thread, Time, TLS, Wr;
+IMPORT Deflate, Fmt, HTTP, HTTPClient, HTTPCookie, HTTPServer, IO, IP, Multipart, Params, Process, Rd,
+       RdClass, Scan, Stdio, TCP, Text, TextRd, TextWr, Thread, Time, TLS, Wr;
 IMPORT Atom, AtomList, FloatMode, Lex;
 
 <*FATAL Rd.Failure, Wr.Failure, Thread.Alerted*>
@@ -223,6 +226,331 @@ PROCEDURE Headers () =
     END;
   END Headers;
 
+(* cookies and multipart bodies *)
+
+(* An argument: "-" for NIL, "x" and the bytes in hexadecimal, or "w" and
+   the characters in hexadecimal, four digits each. *)
+PROCEDURE Opt (t: TEXT): TEXT =
+  VAR n: INTEGER;  w: REF ARRAY OF WIDECHAR;  b: TEXT;
+  BEGIN
+    IF Text.Equal (t, "-") THEN RETURN NIL END;
+    IF Text.GetChar (t, 0) = 'w' THEN
+      b := FromHex (Text.Sub (t, 1));
+      n := Text.Length (b) DIV 2;
+      w := NEW (REF ARRAY OF WIDECHAR, n);
+      FOR i := 0 TO n - 1 DO
+        w[i] := VAL (ORD (Text.GetChar (b, 2 * i)) * 256 + ORD (Text.GetChar (b, 2 * i + 1)), WIDECHAR);
+      END;
+      RETURN Text.FromWideChars (w^);
+    END;
+    RETURN FromHex (Text.Sub (t, 1));
+  END Opt;
+
+PROCEDURE ShowOpt (t: TEXT): TEXT =
+  BEGIN
+    IF t = NIL THEN RETURN "-" END;
+    RETURN "x" & ToHex (t);
+  END ShowOpt;
+
+(* The pieces of "line" between the separators "sep". *)
+PROCEDURE Split (line: TEXT; sep: CHAR): REF ARRAY OF TEXT =
+  VAR n := 1;  start := 0;  end: INTEGER;  r: REF ARRAY OF TEXT;
+  BEGIN
+    FOR i := 0 TO Text.Length (line) - 1 DO
+      IF Text.GetChar (line, i) = sep THEN INC (n) END;
+    END;
+    r := NEW (REF ARRAY OF TEXT, n);
+    FOR k := 0 TO n - 1 DO
+      end := Text.FindChar (line, sep, start);
+      IF end < 0 THEN end := Text.Length (line) END;
+      r[k] := Text.Sub (line, start, end - start);
+      start := end + 1;
+    END;
+    RETURN r;
+  END Split;
+
+PROCEDURE CookieFlags (READONLY c: HTTPCookie.T): TEXT =
+  VAR f := "";
+  BEGIN
+    IF c.secure THEN f := f & "s" END;
+    IF c.httpOnly THEN f := f & "h" END;
+    CASE c.sameSite OF
+    | HTTPCookie.SameSite.Unset =>
+    | HTTPCookie.SameSite.Strict => f := f & "S";
+    | HTTPCookie.SameSite.Lax => f := f & "L";
+    | HTTPCookie.SameSite.None => f := f & "N";
+    END;
+    IF Text.Length (f) = 0 THEN f := "-" END;
+    RETURN f;
+  END CookieFlags;
+
+PROCEDURE ShowTime (t: Time.T): TEXT =
+  BEGIN
+    IF t = HTTPCookie.NoExpires THEN RETURN "-" END;
+    RETURN Fmt.LongReal (t, Fmt.Style.Fix, 0);
+  END ShowTime;
+
+(* f NAME VALUE PATH DOMAIN EXPIRES MAXAGE FLAGS: Format
+   p VALUE: ParseSetCookie
+   g NAME [FIELD VALUE]...: Get on these fields *)
+PROCEDURE CookieAnswer (w: REF ARRAY OF TEXT): TEXT RAISES {FloatMode.Trap, Lex.Error} =
+  VAR c: HTTPCookie.T;  f: TEXT;  h: HTTP.Headers;
+  BEGIN
+    CASE Text.GetChar (w[0], 0) OF
+    | 'f' =>
+        c.name := Opt (w[1]);
+        c.value := Opt (w[2]);
+        c.path := Opt (w[3]);
+        c.domain := Opt (w[4]);
+        IF NOT Text.Equal (w[5], "-") THEN c.expires := Scan.LongReal (w[5]) END;
+        c.maxAge := Scan.Int (w[6]);
+        f := w[7];
+        c.secure := Text.FindChar (f, 's') >= 0;
+        c.httpOnly := Text.FindChar (f, 'h') >= 0;
+        IF Text.FindChar (f, 'S') >= 0 THEN
+          c.sameSite := HTTPCookie.SameSite.Strict;
+        ELSIF Text.FindChar (f, 'L') >= 0 THEN
+          c.sameSite := HTTPCookie.SameSite.Lax;
+        ELSIF Text.FindChar (f, 'N') >= 0 THEN
+          c.sameSite := HTTPCookie.SameSite.None;
+        END;
+        TRY
+          RETURN "ok " & ShowOpt (HTTPCookie.Format (c));
+        EXCEPT
+        | HTTP.Error (e) => RETURN "err " & ErrorText (e);
+        END;
+    | 'p' =>
+        IF NOT HTTPCookie.ParseSetCookie (Opt (w[1]), c) THEN RETURN "no" END;
+        RETURN "ok " & ShowOpt (c.name) & " " & ShowOpt (c.value) & " " & ShowOpt (c.path) & " "
+                 & ShowOpt (c.domain) & " " & ShowTime (c.expires) & " " & Fmt.Int (c.maxAge) & " "
+                 & CookieFlags (c);
+    | 'g' =>
+        h := HTTP.NewHeaders ();
+        FOR i := 1 TO (LAST (w^) - 1) DIV 2 DO
+          h.add (Opt (w[2 * i]), Opt (w[2 * i + 1]));
+        END;
+        RETURN ShowOpt (HTTPCookie.Get (h, Opt (w[1])));
+    ELSE RETURN "unknown";
+    END;
+  END CookieAnswer;
+
+TYPE
+  (* The bytes of another reader in pieces of "size", or of the lengths 1, 2,
+     ... 17, 1, ... for a "size" of 0; a first piece of "first" if that is
+     positive. *)
+  ChunkRd = Rd.T OBJECT
+    src: Rd.T;
+    size: CARDINAL;
+    first := 0;
+    next := 1;
+  OVERRIDES
+    seek := ChunkSeek;
+    length := NoLength;
+  END;
+
+  (* The bytes of "data", then a failure. *)
+  FailingRd = Rd.T OBJECT
+    data: TEXT;
+    pos := 0;
+  OVERRIDES
+    seek := FailingSeek;
+    length := NoLength;
+  END;
+
+PROCEDURE ChunkSeek (r: ChunkRd; <*UNUSED*> pos: CARDINAL; <*UNUSED*> dontBlock: BOOLEAN): RdClass.SeekResult
+  RAISES {Rd.Failure, Thread.Alerted} =
+  VAR size := r.size;  n: CARDINAL;
+  BEGIN
+    IF r.first > 0 THEN
+      size := r.first;
+      r.first := 0;
+    ELSIF size = 0 THEN
+      size := r.next;
+      r.next := r.next MOD 17 + 1;
+    END;
+    n := Rd.GetSub (r.src, SUBARRAY (r.buff^, 0, MIN (size, NUMBER (r.buff^))));
+    IF n = 0 THEN RETURN RdClass.SeekResult.Eof END;
+    r.st := 0;
+    r.lo := r.cur;
+    r.hi := r.cur + n;
+    RETURN RdClass.SeekResult.Ready;
+  END ChunkSeek;
+
+PROCEDURE NoLength (<*UNUSED*> r: Rd.T): INTEGER =
+  BEGIN
+    RETURN -1;
+  END NoLength;
+
+PROCEDURE FailingSeek (r: FailingRd; <*UNUSED*> p: CARDINAL; <*UNUSED*> dontBlock: BOOLEAN): RdClass.SeekResult
+  RAISES {Rd.Failure} =
+  VAR n := MIN (NUMBER (r.buff^), Text.Length (r.data) - r.pos);
+  BEGIN
+    IF n = 0 THEN RAISE Rd.Failure (AtomList.List1 (Atom.FromText ("Test.Broken"))) END;
+    Text.SetChars (r.buff^, Text.Sub (r.data, r.pos, n));
+    INC (r.pos, n);
+    r.st := 0;
+    r.lo := r.cur;
+    r.hi := r.cur + n;
+    RETURN RdClass.SeekResult.Ready;
+  END FailingSeek;
+
+(* "a": the data at once; "c" and a size: pieces of that size; "s" and a
+   position: a first piece up to there, then the rest. *)
+PROCEDURE Source (how, data: TEXT): Rd.T RAISES {FloatMode.Trap, Lex.Error} =
+  VAR src := TextRd.New (data);
+  BEGIN
+    CASE Text.GetChar (how, 0) OF
+    | 'c' =>
+        RETURN NEW (ChunkRd, src := src, size := Scan.Int (Text.Sub (how, 1)),
+                    buff := NEW (REF ARRAY OF CHAR, 70000), st := 0, lo := 0, hi := 0, cur := 0,
+                    intermittent := TRUE, seekable := FALSE, closed := FALSE);
+    | 's' =>
+        RETURN NEW (ChunkRd, src := src, size := 65536, first := Scan.Int (Text.Sub (how, 1)),
+                    buff := NEW (REF ARRAY OF CHAR, 70000), st := 0, lo := 0, hi := 0, cur := 0,
+                    intermittent := TRUE, seekable := FALSE, closed := FALSE);
+    | 'f' =>
+        RETURN NEW (FailingRd, data := data, buff := NEW (REF ARRAY OF CHAR, 7), st := 0, lo := 0,
+                    hi := 0, cur := 0, intermittent := TRUE, seekable := FALSE, closed := FALSE);
+    ELSE
+      RETURN src;
+    END;
+  END Source;
+
+(* "-" or six numbers with commas: maxParts, maxHeaderBytes, maxHeaders,
+   maxPreamble, maxPartBytes, maxTotalBytes. *)
+PROCEDURE ParseLimits (t: TEXT): Multipart.Limits RAISES {FloatMode.Trap, Lex.Error} =
+  VAR l := Multipart.Defaults;  v: REF ARRAY OF TEXT;
+  BEGIN
+    IF Text.Equal (t, "-") THEN RETURN l END;
+    v := Split (t, ',');
+    l.maxParts := Scan.Int (v[0]);
+    l.maxHeaderBytes := Scan.Int (v[1]);
+    l.maxHeaders := Scan.Int (v[2]);
+    l.maxPreamble := Scan.Int (v[3]);
+    l.maxPartBytes := Scan.Int (v[4]);
+    l.maxTotalBytes := Scan.Int (v[5]);
+    RETURN l;
+  END ParseLimits;
+
+(* All of "rd", in pieces of 7 bytes. *)
+PROCEDURE ReadPieces (rd: Rd.T): TEXT RAISES {Rd.Failure, Thread.Alerted} =
+  VAR buf: ARRAY [0 .. 6] OF CHAR;  n: CARDINAL;  wr := TextWr.New ();
+  BEGIN
+    LOOP
+      n := Rd.GetSub (rd, buf);
+      IF n = 0 THEN RETURN TextWr.ToText (wr) END;
+      Wr.PutString (wr, SUBARRAY (buf, 0, n));
+    END;
+  END ReadPieces;
+
+PROCEDURE StaleRead (rd: Rd.T): TEXT =
+  BEGIN
+    TRY
+      EVAL Rd.GetChar (rd);
+      RETURN "data";
+    EXCEPT
+    | Rd.EndOfFile => RETURN "eof";
+    | Rd.Failure (e) => RETURN Atom.ToText (e.head);
+    END;
+  END StaleRead;
+
+PROCEDURE CountFields (h: HTTP.Headers): INTEGER =
+  VAR it := h.iterate ();  name, value: TEXT;  n := 0;
+  BEGIN
+    WHILE it.next (name, value) DO INC (n) END;
+    RETURN n;
+  END CountFields;
+
+(* The parts of a multipart body: "a" reads each body, "k" none, "h" its
+   first 5 bytes, "z" none and then the old body after "next", "e" each
+   body and then the old body after "next". *)
+PROCEDURE ReadParts (rd: Rd.T; boundary: TEXT; READONLY l: Multipart.Limits; mode: CHAR): TEXT =
+  VAR r := Multipart.NewReader (rd, boundary, l);  p: Multipart.Part;  out := TextWr.New ();
+      prev: Rd.T := NIL;  buf: ARRAY [0 .. 4] OF CHAR;  n: CARDINAL;
+  BEGIN
+    TRY
+      WHILE r.next (p) DO
+        IF prev # NIL THEN Wr.PutText (out, " stale:" & StaleRead (prev)) END;
+        Wr.PutText (out, " P " & ShowOpt (p.name) & " " & ShowOpt (p.filename) & " "
+                           & ShowOpt (p.contentType) & " " & Fmt.Int (CountFields (p.headers)) & " ");
+        CASE mode OF
+        | 'a' => Wr.PutText (out, ShowOpt (ReadPieces (p.body)));
+        | 'h' =>
+            n := Rd.GetSub (p.body, buf);
+            Wr.PutText (out, ShowOpt (Text.FromChars (SUBARRAY (buf, 0, n))));
+        | 'z' => Wr.PutText (out, "?");  prev := p.body;
+        | 'e' => Wr.PutText (out, ShowOpt (ReadPieces (p.body)));  prev := p.body;
+        ELSE Wr.PutText (out, "?");
+        END;
+      END;
+      IF prev # NIL THEN Wr.PutText (out, " stale:" & StaleRead (prev)) END;
+      Wr.PutText (out, " | end");
+    EXCEPT
+    | Rd.Failure (e) =>
+        Wr.PutText (out, " | err " & ErrorText (e));
+        TRY
+          EVAL r.next (p);
+          Wr.PutText (out, " again:none");
+        EXCEPT
+        | Rd.Failure (e2) =>
+            IF e2 = e THEN Wr.PutText (out, " again:same") ELSE Wr.PutText (out, " again:other") END;
+        END;
+    END;
+    RETURN TextWr.ToText (out);
+  END ReadParts;
+
+(* PARTS are "name,filename,type,body". *)
+PROCEDURE WriteParts (w: REF ARRAY OF TEXT): TEXT =
+  VAR wr := TextWr.New ();  mw := Multipart.NewWriter (wr, Opt (w[1]));  f: REF ARRAY OF TEXT;
+  BEGIN
+    TRY
+      FOR i := 2 TO LAST (w^) DO
+        IF Text.Length (w[i]) > 0 THEN
+          f := Split (w[i], ',');
+          Wr.PutText (mw.part (Opt (f[0]), Opt (f[1]), Opt (f[2])), Opt (f[3]));
+        END;
+      END;
+      mw.finish ();
+      RETURN "ok " & ShowOpt (mw.contentType ()) & " " & ShowOpt (TextWr.ToText (wr));
+    EXCEPT
+    | HTTP.Error (e) => RETURN "err " & ShowOpt (TextWr.ToText (wr)) & " " & ErrorText (e);
+    END;
+  END WriteParts;
+
+(* r SOURCE LIMITS MODE BOUNDARY BODY: ReadParts
+   w BOUNDARY PART...: WriteParts
+   b CONTENTTYPE: Boundary
+   v BOUNDARY: ValidBoundary *)
+PROCEDURE MultipartAnswer (w: REF ARRAY OF TEXT): TEXT RAISES {FloatMode.Trap, Lex.Error} =
+  BEGIN
+    CASE Text.GetChar (w[0], 0) OF
+    | 'r' =>
+        RETURN ReadParts (Source (w[1], Opt (w[5])), Opt (w[4]), ParseLimits (w[2]),
+                          Text.GetChar (w[3], 0));
+    | 'w' => RETURN WriteParts (w);
+    | 'b' => RETURN ShowOpt (Multipart.Boundary (Opt (w[1])));
+    | 'v' => RETURN Flag (Multipart.ValidBoundary (Opt (w[1])));
+    ELSE RETURN "unknown";
+    END;
+  END MultipartAnswer;
+
+(* Answers the lines on the standard input. *)
+PROCEDURE Lines (cookie: BOOLEAN) =
+  <*FATAL FloatMode.Trap, Lex.Error*>
+  VAR w: REF ARRAY OF TEXT;  answer: TEXT;
+  BEGIN
+    TRY
+      LOOP
+        w := Split (Rd.GetLine (Stdio.stdin), ' ');
+        IF cookie THEN answer := CookieAnswer (w) ELSE answer := MultipartAnswer (w) END;
+        Wr.PutText (Stdio.stdout, answer & "\n");
+      END;
+    EXCEPT
+    | Rd.EndOfFile =>
+    END;
+    Wr.Flush (Stdio.stdout);
+  END Lines;
+
 (* the test server *)
 
 TYPE
@@ -364,6 +692,44 @@ PROCEDURE Fail (atom: Atom.T) RAISES {Wr.Failure} =
     RAISE Wr.Failure (AtomList.List1 (atom));
   END Fail;
 
+(* The parts of a form, one line each; all are read before the response
+   starts, so that an error becomes the status. *)
+PROCEDURE FormParts (req: HTTPServer.Request; resp: HTTPServer.Response)
+  RAISES {Rd.Failure, Wr.Failure, Thread.Alerted} =
+  VAR l := Multipart.Defaults;  r: Multipart.Reader;  p: Multipart.Part;  out := TextWr.New ();
+  BEGIN
+    l.maxPartBytes := QueryInt (req, "maxpart", 0);
+    r := Multipart.NewReader (req.body, Multipart.Boundary (req.headers.get ("Content-Type")), l);
+    WHILE r.next (p) DO
+      Wr.PutText (out, ShowOpt (p.name) & " " & ShowOpt (p.filename) & " " & ShowOpt (p.contentType)
+                         & " " & ShowOpt (ReadPieces (p.body)) & "\n");
+    END;
+    Wr.PutText (resp.body (), TextWr.ToText (out));
+  END FormParts;
+
+(* Sets cookies and shows those of the request. *)
+PROCEDURE SetCookies (req: HTTPServer.Request; resp: HTTPServer.Response)
+  RAISES {Wr.Failure, Thread.Alerted} =
+  <*FATAL HTTP.Error*>
+  CONST Names = ARRAY OF TEXT {"plain", "full", "dated", "gone", "old", "missing"};
+  VAR wr: Wr.T;
+  BEGIN
+    resp.headers.add ("Set-Cookie", HTTPCookie.Format (HTTPCookie.T {name := "plain", value := "v1"}));
+    resp.headers.add ("Set-Cookie", HTTPCookie.Format (
+      HTTPCookie.T {name := "full", value := "v2", path := "/", maxAge := 3600, httpOnly := TRUE,
+                    sameSite := HTTPCookie.SameSite.Lax}));
+    resp.headers.add ("Set-Cookie", HTTPCookie.Format (
+      HTTPCookie.T {name := "dated", value := "\"q\"", path := "/", expires := 4102444800.0D0}));
+    resp.headers.add ("Set-Cookie", HTTPCookie.Format (
+      HTTPCookie.T {name := "gone", value := "x", path := "/", maxAge := 0}));
+    resp.headers.add ("Set-Cookie", HTTPCookie.Format (
+      HTTPCookie.T {name := "old", value := "y", path := "/", expires := 0.0D0}));
+    wr := resp.body ();
+    FOR i := FIRST (Names) TO LAST (Names) DO
+      Wr.PutText (wr, Names[i] & "=" & ShowOpt (HTTPCookie.Get (req.headers, Names[i])) & "\n");
+    END;
+  END SetCookies;
+
 PROCEDURE TestRequest (<*UNUSED*> h: Test; req: HTTPServer.Request; resp: HTTPServer.Response)
   RAISES {Rd.Failure, Wr.Failure, Thread.Alerted} =
   VAR path := req.path;  wr: Wr.T;
@@ -455,6 +821,10 @@ PROCEDURE TestRequest (<*UNUSED*> h: Test; req: HTTPServer.Request; resp: HTTPSe
       BEGIN
         Wr.PutText (resp.body (), ReadAll (Deflate.NewRd (req.body, o := o)));
       END;
+    ELSIF Text.Equal (path, "/form") THEN
+      FormParts (req, resp);
+    ELSIF Text.Equal (path, "/cookies") THEN
+      SetCookies (req, resp);
     ELSIF Text.Equal (path, "/shutdown") THEN
       EVAL Thread.Fork (NEW (Stopper));
       Wr.PutText (resp.body (), "stopping\n");
@@ -1096,6 +1466,10 @@ BEGIN
       Together (Params.Get (2), Params.Get (3));
     ELSIF Text.Equal (test, "gzclient") THEN
       GzClient (Params.Get (2), Params.Get (3), Params.Get (4));
+    ELSIF Text.Equal (test, "cookie") THEN
+      Lines (TRUE);
+    ELSIF Text.Equal (test, "multipart") THEN
+      Lines (FALSE);
     ELSE
       IO.Put ("unknown test\n");
       Process.Exit (2);

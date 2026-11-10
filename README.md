@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -130,6 +130,23 @@ Both ends do `Content-Encoding: gzip`. A handler calls `resp.compress ()`
 before `resp.body ()` for what is worth compressing, and the server does so if
 the client accepts it. The client offers gzip and undoes it by itself, which
 `Options.decompress := FALSE` turns off; `resp.decoded` tells what happened.
+
+`HTTPCookie` makes `Set-Cookie` fields and refuses the cookies that browsers
+would drop, reads them back from the `Cookie` fields of a request, and parses
+`Set-Cookie` the lenient way of RFC 6265 for a client. `Multipart` reads and
+writes forms in `multipart/form-data` as streams:
+
+```modula-3
+r := Multipart.NewReader (req.body, Multipart.Boundary (req.headers.get ("Content-Type")));
+WHILE r.next (p) DO
+  IF p.filename # NIL THEN Store (p.body) END;   (* p.filename comes from the client *)
+END;
+```
+
+The reader has limits for the number of parts, their heads and bodies and the
+whole, and rejects what readers are known to read differently; its errors are
+those of the server (`HTTP.BadMessage`, `HTTP.TooLarge`), so a handler that
+lets them pass answers 400 or 413.
 
 ### XML
 

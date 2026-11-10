@@ -26,6 +26,16 @@ The cases:
   gzclient compression in the client, against http.server of Python and the
            server of m3j; the output, checked by hand, is
            tests/http/expected/gzclient.txt
+  cookie   HTTPCookie: tables of RFC 6265 and of the rules of browsers, every
+           character, random dates against a second reading of RFC 6265,
+           http.cookies of Python, and requests and curl against the server
+  multipart
+           Multipart: tables of valid and malformed bodies, exact limits,
+           every split of the input and every truncation, forms of urllib3
+           and requests_toolbelt, the writer read by python-multipart and
+           requests_toolbelt, and requests and curl against the server;
+           needs the Python packages requests, requests_toolbelt and
+           python-multipart
 
 Without arguments all cases run. --speed also measures the rates of a server
 on this machine, for information. JAVA defaults to $JDK25/bin/java, else java
@@ -35,14 +45,18 @@ from the PATH; JAR to m3j.jar in the root of m3j.
 import argparse
 import base64
 import calendar
+import datetime
 import email.utils
 import gzip
 import hashlib
 import http
 import http.client
+import http.cookies
 import http.server
+import math
 import os
 import random
+import re
 import shutil
 import socket
 import ssl
@@ -1379,6 +1393,990 @@ def case_gzclient(env):
     compare("gzclient", out, (TESTS / "expected" / "gzclient.txt").read_text())
 
 
+# cookies and multipart bodies
+
+def cx(t):
+    """An argument of the tests cookie and multipart: "-" for None, "x" and
+    the bytes in hexadecimal, or "w" and the text in UTF-16 if it has
+    characters above 255."""
+    if t is None:
+        return "-"
+    if isinstance(t, str):
+        if any(ord(c) > 255 for c in t):
+            return "w" + t.encode("utf-16-be").hex()
+        t = t.encode("latin-1")
+    return "x" + t.hex()
+
+
+def batch(env, test, lines):
+    """The answers of Main.m3 to the lines, one each."""
+    out = env.run(test, data=("\n".join(lines) + "\n").encode("ascii")).replace("\r\n", "\n").split("\n")
+    if out and out[-1] == "":
+        out.pop()
+    if len(out) != len(lines):
+        raise Failed("%s: %d answers to %d lines: %r" % (test, len(out), len(lines), out[-3:]))
+    return out
+
+
+def expect_all(what, lines, got, want):
+    bad = [(l, g, w) for l, g, w in zip(lines, got, want) if g != w]
+    if bad:
+        l, g, w = bad[0]
+        raise Failed("%s: %d wrong, the first:\n  line %s\n  got  %s\n  want %s" % (what, len(bad), l[:300], g[:300], w[:300]))
+
+
+def http_date(t):
+    d = datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=math.floor(t))
+    return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (WEEK[(d.weekday() + 1) % 7], d.day, MON[d.month - 1], d.year,
+                                                     d.hour, d.minute, d.second)
+
+
+def b_(t):
+    return t if isinstance(t, bytes) else t.encode("latin-1")
+
+
+TCHARS = b"!#$%&'*+-.^_`|~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+OCTETS = bytes([0x21, *range(0x23, 0x2C), *range(0x2D, 0x3B), *range(0x3C, 0x5C), *range(0x5D, 0x7F)])
+PATH_CHARS = bytes([*range(0x20, 0x3B), *range(0x3C, 0x7F)])
+DOMAIN_CHARS = b"-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+EARLIEST = -11644473600
+LATEST = 253402300800
+
+
+def cookie_format(name, value, path=None, domain=None, expires=None, maxage=-1, flags="-"):
+    """What Format makes of a valid cookie."""
+    r = b_(name) + b"=" + b_(value)
+    if expires is not None:
+        r += b"; Expires=" + http_date(expires).encode()
+    if maxage != -1:
+        r += b"; Max-Age=%d" % maxage
+    if domain is not None:
+        r += b"; Domain=" + b_(domain)
+    if path is not None:
+        r += b"; Path=" + b_(path)
+    if "s" in flags:
+        r += b"; Secure"
+    if "h" in flags:
+        r += b"; HttpOnly"
+    for f, word in (("S", b"Strict"), ("L", b"Lax"), ("N", b"None")):
+        if f in flags:
+            r += b"; SameSite=" + word
+    return r
+
+
+def format_line(name, value, path=None, domain=None, expires=None, maxage=-1, flags="-"):
+    return "f %s %s %s %s %s %d %s" % (cx(name), cx(value), cx(path), cx(domain),
+                                       "-" if expires is None else repr(expires), maxage, flags)
+
+
+FORMAT_OK = [
+    dict(name="a", value="b"),
+    dict(name="id", value="a3fWa", path="/", maxage=2592000, flags="shL"),
+    dict(name="e", value=""),
+    dict(name="q", value='"abc"'),
+    dict(name="q", value='""'),
+    dict(name="o", value=OCTETS),
+    dict(name="o", value=b'"' + OCTETS + b'"'),
+    dict(name=TCHARS, value="v"),
+    dict(name="d", value="1", expires=784111777),
+    dict(name="d", value="1", expires=784111777.9),
+    dict(name="d", value="1", expires=0),
+    dict(name="d", value="1", expires=EARLIEST),
+    dict(name="d", value="1", expires=LATEST - 1),
+    dict(name="m", value="1", maxage=0),
+    dict(name="m", value="1", maxage=2 ** 63 - 1),
+    dict(name="c", value="1", domain="example.org"),
+    dict(name="c", value="1", domain=".Example-1.org"),
+    dict(name="c", value="1", domain=DOMAIN_CHARS),
+    dict(name="p", value="1", path=b"/" + PATH_CHARS),
+    dict(name="s", value="1", flags="sS"),
+    dict(name="s", value="1", flags="sN"),
+    dict(name="h", value="1", flags="h"),
+    dict(name="__Secure-x", value="1", flags="s"),
+    dict(name="__secure-x", value="1", flags="s"),
+    dict(name="__Host-x", value="1", path="/", flags="s"),
+    dict(name="__HOST-", value="1", path="/", flags="sh"),
+    dict(name="__Hostx", value="1"),
+    dict(name="all", value="v", path="/p", domain="d.org", expires=784111777, maxage=5, flags="shS"),
+    dict(name="n" * 2048, value="v" * 2048),
+    dict(name="p", value="1", path="/" + "a" * 1023),
+    dict(name="c", value="1", domain="a" * 1024),
+]
+
+# the attributes, with exact texts, that the tables above rely on
+FORMAT_ANCHORS = [
+    (dict(name="id", value="a3fWa", path="/", maxage=2592000, flags="shL"),
+     b"id=a3fWa; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Lax"),
+    (dict(name="all", value="v", path="/p", domain="d.org", expires=784111777, maxage=5, flags="shS"),
+     b"all=v; Expires=Sun, 06 Nov 1994 08:49:37 GMT; Max-Age=5; Domain=d.org; Path=/p; Secure; HttpOnly; "
+     b"SameSite=Strict"),
+    (dict(name="d", value="1", expires=0), b"d=1; Expires=Thu, 01 Jan 1970 00:00:00 GMT"),
+    (dict(name="d", value="1", expires=EARLIEST), b"d=1; Expires=Mon, 01 Jan 1601 00:00:00 GMT"),
+    (dict(name="d", value="1", expires=LATEST - 1), b"d=1; Expires=Fri, 31 Dec 9999 23:59:59 GMT"),
+    (dict(name="s", value="1", flags="sN"), b"s=1; Secure; SameSite=None"),
+]
+
+
+def format_bad():
+    """Cookies that Format rejects, with the expected answer."""
+    bad = lambda d: "err HTTP.BadMessage (%s)" % d
+    large = lambda d: "err HTTP.TooLarge (%s)" % d
+    cases = []
+    for c in range(256):
+        if c not in TCHARS:
+            cases.append((dict(name=b"a" + bytes([c]), value="v"), bad("invalid name of a cookie")))
+        if c not in OCTETS:
+            cases.append((dict(name="a", value=b"x" + bytes([c]) + b"y"), bad("invalid value of a cookie")))
+        if c not in PATH_CHARS:
+            cases.append((dict(name="a", value="v", path=b"/a" + bytes([c])), bad("invalid path of a cookie")))
+        if c not in DOMAIN_CHARS:
+            cases.append((dict(name="a", value="v", domain=b"a" + bytes([c])), bad("invalid domain of a cookie")))
+    for name in ["", "w\u20ac"]:
+        cases.append((dict(name=name, value="v"), bad("invalid name of a cookie")))
+    for value in ['"', '"abc', 'abc"', '"a"b"', '"a b"', "a\u20ac", 'a"b']:
+        cases.append((dict(name="a", value=value), bad("invalid value of a cookie")))
+    for path in ["", "a", "a/", "/\u20ac"]:
+        cases.append((dict(name="a", value="v", path=path), bad("invalid path of a cookie")))
+    for domain in ["", "\u20ac"]:
+        cases.append((dict(name="a", value="v", domain=domain), bad("invalid domain of a cookie")))
+    for t in [EARLIEST - 1, EARLIEST - 0.5, LATEST, LATEST + 1e9]:
+        cases.append((dict(name="a", value="v", expires=t), bad("expiry of a cookie out of range")))
+    for m in [-2, -1000, -2 ** 63]:
+        cases.append((dict(name="a", value="v", maxage=m), bad("negative Max-Age of a cookie")))
+    cases.append((dict(name="a", value="v", flags="N"), bad("SameSite=None without Secure")))
+    cases.append((dict(name="a", value="v", flags="hN"), bad("SameSite=None without Secure")))
+    for name in ["__Secure-a", "__SECURE-a", "__secure-"]:
+        cases.append((dict(name=name, value="v"), bad("cookie with the prefix __Secure- without Secure")))
+    host = bad("cookie with the prefix __Host- without Secure, Path=/ or with Domain")
+    for kw in [dict(path="/"), dict(flags="s"), dict(path="/a", flags="s"), dict(path="//", flags="s"),
+               dict(path="/", domain="a.org", flags="s")]:
+        cases.append((dict(name="__Host-a", value="v", **kw), host))
+        cases.append((dict(name="__host-a", value="v", **kw), host))
+    cases.append((dict(name="n" * 2048, value="v" * 2049), large("cookie larger than 4096 bytes")))
+    cases.append((dict(name="n" * 4097, value=""), large("cookie larger than 4096 bytes")))
+    cases.append((dict(name="a", value="v", path="/" + "a" * 1024), large("path of a cookie too long")))
+    cases.append((dict(name="a", value="v", domain="a" * 1025), large("domain of a cookie too long")))
+    return cases
+
+
+def parsed(name, value, path=None, domain=None, expires=None, maxage=-1, flags="-"):
+    """The answer to "p" for a valid field."""
+    return "ok %s %s %s %s %s %d %s" % (cx(name), cx(value), cx(path), cx(domain),
+                                        "-" if expires is None else "%d" % expires, maxage, flags)
+
+
+MAX_INT = 2 ** 63 - 1
+
+PARSE = [
+    ("a=b", parsed("a", "b")),
+    ("  a  =  b  ", parsed("a", "b")),
+    ("\ta\t=\tb\t", parsed("a", "b")),
+    ("a=b c", parsed("a", "b c")),
+    ("a=", parsed("a", "")),
+    ("a=b=c", parsed("a", "b=c")),
+    ('a="b"', parsed("a", '"b"')),
+    ('a="b; c"', parsed("a", '"b')),
+    ("a=b;", parsed("a", "b")),
+    ("a=b;;;", parsed("a", "b")),
+    ("a=\xe9\xff", parsed("a", "\xe9\xff")),
+    ("a,b=c", parsed("a,b", "c")),
+    ("=b", None),
+    (" =b", None),
+    ("a", None),
+    ("", None),
+    ("a;b=c", None),
+    (";a=b", None),
+    ("a=b\x01", None),
+    ("a=b; Path=/\x00", None),
+    ("a=b\x7f", None),
+    ("a=b\r\n", None),
+    ("a=b\n", None),
+    ("a=\u20ac", None),
+    ("a=b; Path", parsed("a", "b")),
+    ("a=b; Path=", parsed("a", "b")),
+    ("a=b; Path=x", parsed("a", "b")),
+    ("a=b; Path=/x", parsed("a", "b", path="/x")),
+    ("a=b; path=/x", parsed("a", "b", path="/x")),
+    ("a=b; PATH = /x y ", parsed("a", "b", path="/x y")),
+    ("a=b; Path=/x; Path=y", parsed("a", "b")),
+    ("a=b; Path=/x; Path=/y", parsed("a", "b", path="/y")),
+    ("a=b; Path=/x=y", parsed("a", "b", path="/x=y")),
+    ("a=b; Domain=", parsed("a", "b")),
+    ("a=b; Domain", parsed("a", "b")),
+    ("a=b; Domain=.Example.ORG", parsed("a", "b", domain="example.org")),
+    ("a=b; domain=example.org; Domain=", parsed("a", "b", domain="example.org")),
+    ("a=b; Domain=.", parsed("a", "b", domain="")),
+    ("a=b; Domain=..x", parsed("a", "b", domain=".x")),
+    ("a=b; Domain=\xc9X", parsed("a", "b", domain="\xc9x")),
+    ("a=b; Max-Age=0", parsed("a", "b", maxage=0)),
+    ("a=b; Max-Age=-1", parsed("a", "b", maxage=0)),
+    ("a=b; Max-Age=-0", parsed("a", "b", maxage=0)),
+    ("a=b; max-age=123", parsed("a", "b", maxage=123)),
+    ("a=b; Max-Age= 5 ", parsed("a", "b", maxage=5)),
+    ("a=b; Max-Age=+5", parsed("a", "b")),
+    ("a=b; Max-Age=1a", parsed("a", "b")),
+    ("a=b; Max-Age=", parsed("a", "b")),
+    ("a=b; Max-Age=-", parsed("a", "b")),
+    ("a=b; Max-Age=--1", parsed("a", "b")),
+    ("a=b; Max-Age=1 2", parsed("a", "b")),
+    ("a=b; Max-Age=9223372036854775807", parsed("a", "b", maxage=MAX_INT)),
+    ("a=b; Max-Age=9223372036854775808", parsed("a", "b", maxage=MAX_INT)),
+    ("a=b; Max-Age=99999999999999999999999999", parsed("a", "b", maxage=MAX_INT)),
+    ("a=b; Max-Age=-99999999999999999999999999", parsed("a", "b", maxage=0)),
+    ("a=b; Max-Age=5; Max-Age=x", parsed("a", "b", maxage=5)),
+    ("a=b; Max-Age=5; Max-Age=7", parsed("a", "b", maxage=7)),
+    ("a=b; Max-Age=0005", parsed("a", "b", maxage=5)),
+    ("a=b; Secure", parsed("a", "b", flags="s")),
+    ("a=b; SECURE=no", parsed("a", "b", flags="s")),
+    ("a=b; httponly", parsed("a", "b", flags="h")),
+    ("a=b; Secure ; HttpOnly", parsed("a", "b", flags="sh")),
+    ("a=b; Secured", parsed("a", "b")),
+    ("a=b; SameSite=Strict", parsed("a", "b", flags="S")),
+    ("a=b; samesite=lax", parsed("a", "b", flags="L")),
+    ("a=b; SameSite=NONE", parsed("a", "b", flags="N")),
+    ("a=b; SameSite=bogus", parsed("a", "b")),
+    ("a=b; SameSite=", parsed("a", "b")),
+    ("a=b; SameSite", parsed("a", "b")),
+    ("a=b; SameSite=Lax; SameSite=x", parsed("a", "b")),
+    ("a=b; SameSite = Lax ", parsed("a", "b", flags="L")),
+    ("a=b; foo=bar; Comment=x; Version=1", parsed("a", "b")),
+    ("a=b; Expires=Thu, 01 Jan 1970 00:00:00 GMT", parsed("a", "b", expires=0)),
+    ("a=b; Expires=Sun, 06 Nov 1994 08:49:37 GMT; Expires=bad", parsed("a", "b", expires=784111777)),
+    ("a=b; Expires=Sun, 06 Nov 1994 08:49:37 GMT; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+     parsed("a", "b", expires=0)),
+    ("n" * 2048 + "=" + "v" * 2048, parsed("n" * 2048, "v" * 2048)),
+    ("n" * 2048 + "=" + "v" * 2049, None),
+    ("n" * 4097 + "=", None),
+    ("n" * 2048 + " = " + "v" * 2048 + " ", parsed("n" * 2048, "v" * 2048)),
+    ("a=b; Path=/" + "p" * 1023, parsed("a", "b", path="/" + "p" * 1023)),
+    ("a=b; Path=/" + "p" * 1024, parsed("a", "b")),
+    ("a=b; Path=/x; Path=/" + "p" * 1024, parsed("a", "b", path="/x")),
+    ("a=b; Domain=" + "d" * 1024, parsed("a", "b", domain="d" * 1024)),
+    ("a=b; Domain=" + "d" * 1025, parsed("a", "b")),
+    ("a=b; Unknown=" + "u" * 5000, parsed("a", "b")),
+    ("a=b; Path=  /" + "p" * 1023 + "  ", parsed("a", "b", path="/" + "p" * 1023)),
+    ("a=b; Secure; " + "x" * 3000, parsed("a", "b", flags="s")),
+]
+
+MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+DATE_DELIMITERS = bytes([0x09, *range(0x20, 0x30), *range(0x3B, 0x41), *range(0x5B, 0x61), *range(0x7B, 0x7F)])
+
+
+def cookie_date(b):
+    """Section 5.1.1 of RFC 6265, written down separately: the time or None."""
+    tokens = [t for t in re.split(b"[" + re.escape(DATE_DELIMITERS) + b"]+", b) if t]
+    found = {}
+    for t in tokens:
+        m = re.fullmatch(rb"(\d{1,2}):(\d{1,2}):(\d{1,2})(?:\D.*)?", t, re.S)
+        if "time" not in found and m:
+            found["time"] = tuple(int(g) for g in m.groups())
+            continue
+        m = re.fullmatch(rb"(\d{1,2})(?:\D.*)?", t, re.S)
+        if "day" not in found and m:
+            found["day"] = int(m.group(1))
+            continue
+        if "month" not in found and t[:3].lower().decode("latin-1") in MONTHS:
+            found["month"] = MONTHS.index(t[:3].lower().decode("latin-1")) + 1
+            continue
+        m = re.fullmatch(rb"(\d{2,4})(?:\D.*)?", t, re.S)
+        if "year" not in found and m:
+            found["year"] = int(m.group(1))
+    if len(found) < 4:
+        return None
+    year = found["year"]
+    if 70 <= year <= 99:
+        year += 1900
+    elif year <= 69:
+        year += 2000
+    h, mi, s = found["time"]
+    if not 1 <= found["day"] <= 31 or year < 1601 or h > 23 or mi > 59 or s > 59:
+        return None
+    try:
+        d = datetime.datetime(year, found["month"], found["day"], h, mi, s)
+    except ValueError:
+        return None
+    return (d - datetime.datetime(1970, 1, 1)) // datetime.timedelta(seconds=1)
+
+
+T94 = 784111777
+DATES = [
+    ("Sun, 06 Nov 1994 08:49:37 GMT", T94),
+    ("Sunday, 06-Nov-94 08:49:37 GMT", T94),
+    ("Sun Nov  6 08:49:37 1994", T94),
+    ("Thu, 01-Jan-1970 00:00:00 GMT", 0),
+    ("Wed, 21 Oct 2015 07:28:00 GMT", 1445412480),
+    ("6 nov 1994 8:49:37", T94),
+    ("06 NOVEMBER 1994 08:49:37", T94),
+    ("1994 Nov 06 08:49:37", T94),
+    ("08:49:37 06 Nov 94", T94),
+    ("08:49:37 06 Nov 69", 3150953377),
+    ("08:49:37 06 Nov 70", 26729377),
+    ("06 Nov 00 08:49:37", 973500577),
+    ("06 Nov 0 08:49:37", None),
+    ("01 Jan 1601 00:00:00", EARLIEST),
+    ("31 Dec 9999 23:59:59", LATEST - 1),
+    ("Sun, 06 Nov 1994 08:49:37 GMT+05:00", T94),
+    ("Sun, 06 Nov 1994 08:49:37.123 GMT", T94),
+    ("xx Sun, 06 Nov 1994 08:49:37 GMT yy", T94),
+    ("6th Nov 1994 08:49:37", T94),
+    ("Nov 06 08:49:37 1994 1995", T94),
+    ("08:49:37 1994 Nov 06", T94),
+    ("06 1994 Nov 08:49:37", T94),
+    ("1 1 Nov 08:49:37", None),
+    ("10 11 Nov 08:49:37", 1320914977),
+    ("29 Feb 2000 00:00:00", 951782400),
+    ("", None),
+    ("Sun, 06 Nov 1994", None),
+    ("Sun, 31 Feb 1994 08:49:37 GMT", None),
+    ("Sun, 00 Nov 1994 08:49:37 GMT", None),
+    ("32 Nov 1994 08:49:37", None),
+    ("06 Nov 1994 24:00:00", None),
+    ("06 Nov 1994 23:60:00", None),
+    ("06 Nov 1994 23:59:60", None),
+    ("06 Nov 1600 00:00:00", None),
+    ("31 Dec 1600 23:59:59", None),
+    ("06 Nov 1994 8:49:375", None),
+    ("06 Nov 1994 123:49:37", None),
+    ("06 Xyz 1994 08:49:37", None),
+    ("06 Nov 19945 08:49:37", None),
+    ("29 Feb 1900 00:00:00", None),
+    ("06 No 1994 08:49:37", None),
+    ("06-Nov-1994-08:49:37", T94),
+    ("06/Nov/1994/08:49:37", T94),
+    ("Nov061994 08:49:37", None),
+]
+
+
+def random_date(rng):
+    """A date of a few random tokens, often valid."""
+    pool = [
+        lambda: str(rng.randint(0, 40)).zfill(rng.choice([1, 2])),
+        lambda: rng.choice(MONTHS + ["MAR", "Sept", "december", "ja", "xyz"]) + rng.choice(["", "", "x", "1"]),
+        lambda: str(rng.randint(0, 12000)).zfill(rng.choice([1, 2, 3, 4])),
+        lambda: ":".join(str(rng.randint(0, 70)).zfill(rng.choice([1, 2])) for _ in range(rng.choice([2, 3, 3, 3, 4]))),
+        lambda: rng.choice(["Sun", "Monday", "GMT", "UTC", "+0100", "1st", "2nd", "\xe9t\xe9", "x9"]),
+        lambda: str(rng.randint(0, 99)) + rng.choice(["th", ":", "a", "9"]),
+    ]
+    tokens = [rng.choice(pool)() for _ in range(rng.randint(1, 7))]
+    seps = [c for c in DATE_DELIMITERS.decode("latin-1") if c != ";"]
+    return "".join(t + "".join(rng.choice(seps) for _ in range(rng.randint(1, 2))) for t in tokens).strip(" \t")
+
+
+def get_line(name, fields):
+    return "g %s %s" % (cx(name), " ".join("%s %s" % (cx(f), cx(v)) for f, v in fields))
+
+
+GETS = [
+    ("b", [("Cookie", "a=1; b=2")], "2"),
+    ("a", [("Cookie", "a=1; b=2")], "1"),
+    ("c", [("Cookie", "a=1; b=2")], None),
+    ("a", [("Cookie", "  a = 1 ;b=2")], "1"),
+    ("A", [("Cookie", "a=1")], None),
+    ("a", [("Cookie", "b=1"), ("Cookie", "a=2")], "2"),
+    ("a", [("Cookie", "a=1; a=2")], "1"),
+    ("a", [("Cookie", "a=b=c")], "b=c"),
+    ("a", [("Cookie", 'a="x y"')], '"x y"'),
+    ("a", [("Cookie", "a=")], ""),
+    ("a", [("Cookie", "flag; a=1")], "1"),
+    ("flag", [("Cookie", "flag; a=1")], None),
+    ("a", [("Set-Cookie", "a=1"), ("X-Cookie", "a=2"), ("cookie", "a=3")], "3"),
+    ("", [("Cookie", "=v; a=1")], "v"),
+    ("a", [], None),
+    ("a", [("Cookie", "")], None),
+    ("a", [("Cookie", ";;a=1;;")], "1"),
+    ("b", [("Cookie", "a=1;b")], None),
+]
+
+
+def case_cookie(env):
+    lines, want = [], []
+    for kw, text in FORMAT_ANCHORS:
+        compare("Format anchor", cookie_format(**kw), text)
+    for kw in FORMAT_OK:
+        lines.append(format_line(**kw))
+        want.append("ok " + cx(cookie_format(**kw)))
+    for kw, w in format_bad():
+        lines.append(format_line(**kw))
+        want.append(w)
+    for value, w in PARSE:
+        lines.append("p " + cx(value))
+        want.append(w or "no")
+    for d, t in DATES:
+        compare("date table " + d, cookie_date(d.encode("latin-1")), t)
+        lines.append("p " + cx("a=b; Expires=" + d))
+        want.append(parsed("a", "b", expires=t))
+    rng = random.Random(SEED)
+    for _ in range(3000):
+        d = random_date(rng)
+        lines.append("p " + cx("a=b; Expires=" + d))
+        want.append(parsed("a", "b", expires=cookie_date(d.encode("latin-1"))))
+    for name, fields, value in GETS:
+        lines.append(get_line(name, fields))
+        want.append(cx(value))
+    got = batch(env, "cookie", lines)
+    expect_all("cookie", lines, got, want)
+
+    # the standard library of Python reads what Format makes
+    for kw in FORMAT_OK:
+        text = cookie_format(**kw).decode("latin-1")
+        if b" " in b_(kw.get("path") or b"") or kw["value"] in ('""', b'"' + OCTETS + b'"'):
+            continue
+        c = http.cookies.SimpleCookie()
+        c.load(text)
+        name = b_(kw["name"]).decode("latin-1")
+        if list(c) != [name]:
+            raise Failed("SimpleCookie of %r: %r" % (text, list(c)))
+        m = c[name]
+        check("SimpleCookie value " + text, m.coded_value, b_(kw["value"]).decode("latin-1"))
+        check("SimpleCookie path " + text, m["path"], b_(kw.get("path") or b"").decode("latin-1"))
+        check("SimpleCookie domain " + text, m["domain"], b_(kw.get("domain") or b"").decode("latin-1"))
+        check("SimpleCookie max-age " + text, m["max-age"], "" if kw.get("maxage", -1) == -1 else str(kw["maxage"]))
+        check("SimpleCookie expires " + text, m["expires"],
+              "" if kw.get("expires") is None else http_date(kw["expires"]))
+        flags = kw.get("flags", "-")
+        check("SimpleCookie secure " + text, bool(m["secure"]), "s" in flags)
+        check("SimpleCookie httponly " + text, bool(m["httponly"]), "h" in flags)
+        check("SimpleCookie samesite " + text, m["samesite"],
+              {"S": "Strict", "L": "Lax", "N": "None"}.get(([f for f in flags if f in "SLN"] or [""])[0], ""))
+
+    # clients against the server
+    try:
+        import requests
+    except ImportError:
+        raise Failed("the package requests of Python is missing")
+    srv = Server(env)
+    try:
+        url = "http://127.0.0.1:%d/cookies" % srv.port
+        c = http.client.HTTPConnection("127.0.0.1", srv.port, timeout=10)
+        c.request("GET", "/cookies")
+        r = c.getresponse()
+        r.read()
+        check("Set-Cookie fields", r.msg.get_all("Set-Cookie"),
+              ["plain=v1", "full=v2; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+               'dated="q"; Expires=Fri, 01 Jan 2100 00:00:00 GMT; Path=/',
+               "gone=x; Max-Age=0; Path=/", "old=y; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/"])
+        c.close()
+        none = "plain=-\nfull=-\ndated=-\ngone=-\nold=-\nmissing=-\n"
+        stored = "plain=%s\nfull=%s\ndated=%s\ngone=-\nold=-\nmissing=-\n" % (cx("v1"), cx("v2"), cx('"q"'))
+        s = requests.Session()
+        check("requests first", s.get(url, timeout=10).text, none)
+        jar = {k.name: k for k in s.cookies}
+        check("requests jar", sorted(jar), ["dated", "full", "plain"])
+        check("requests path", (jar["plain"].path, jar["full"].path), ("/", "/"))
+        check("requests expires", jar["dated"].expires, 4102444800)
+        if not 3500 < jar["full"].expires - time.time() < 3700:
+            raise Failed("requests: Max-Age gives %r" % jar["full"].expires)
+        check("requests HttpOnly", jar["full"].has_nonstandard_attr("HttpOnly"), True)
+        check("requests second", s.get(url, timeout=10).text, stored)
+
+        curl = shutil.which("curl") or r"C:\Windows\System32\curl.exe"
+        if Path(curl).exists():
+            jarfile = env.work / "cookies.txt"
+            for want in (none, stored):
+                r = subprocess.run([curl, "-s", "-S", "--max-time", "20", "-b", str(jarfile), "-c", str(jarfile), url],
+                                   capture_output=True, timeout=30)
+                check("curl", (r.returncode, r.stdout.decode("latin-1").replace("\r\n", "\n")), (0, want))
+            rows = {}
+            for line in jarfile.read_text().splitlines():
+                if line and (not line.startswith("#") or line.startswith("#HttpOnly_")):
+                    f = line.split("\t")
+                    rows[f[5]] = (f[0].startswith("#HttpOnly_"), f[2], f[4], f[6])
+            check("curl jar", sorted(rows), ["dated", "full", "plain"])
+            # curl keeps a cookie for 400 days at most, as draft-ietf-httpbis-rfc6265bis asks
+            dated = rows["dated"]
+            if not (dated[3] == '"q"' and dated[:2] == (False, "/")
+                    and (dated[2] == "4102444800" or abs(int(dated[2]) - time.time() - 400 * 86400) < 86400)):
+                raise Failed("curl jar dated: %r" % (dated,))
+            check("curl jar full", rows["full"][:2], (True, "/"))
+        else:
+            print("          no curl")
+    finally:
+        srv.stop()
+
+
+# multipart
+
+def quote_param(t):
+    return b'"' + t.replace(b"\\", b"\\\\") + b'"'
+
+
+def py_write(boundary, parts):
+    """What Multipart.Writer makes of the parts (name, filename, type, body)."""
+    out = b""
+    for i, (n, f, c, b) in enumerate(parts):
+        out += (b"\r\n" if i else b"") + b"--" + boundary + b"\r\nContent-Disposition: form-data; name=" + quote_param(n)
+        if f is not None:
+            out += b"; filename=" + quote_param(f)
+        out += b"\r\n"
+        if c is None and f is not None:
+            c = b"application/octet-stream"
+        if c is not None:
+            out += b"Content-Type: " + c + b"\r\n"
+        out += b"\r\n" + b
+    return out + (b"\r\n" if parts else b"") + b"--" + boundary + b"--\r\n"
+
+
+def write_line(boundary, parts):
+    return "w %s %s" % (cx(boundary), " ".join(",".join(cx(v) for v in p) for p in parts))
+
+
+def read_line(body, boundary=b"B", source="a", limits="-", mode="a"):
+    return "r %s %s %s %s %s" % (source, limits, mode, cx(boundary), cx(body))
+
+
+def shown(parts, end="end", mode="a"):
+    """The answer to "r": parts are (name, filename, type, fields, body)."""
+    s = ""
+    for n, f, c, k, b in parts:
+        body = {"a": cx(b), "k": "?", "h": cx(b[:5] if b is not None else b"")}[mode]
+        s += " P %s %s %s %d %s" % (cx(n), cx(f), cx(c), k, body)
+    return s + " | " + end
+
+
+def mp_err(what, kind="BadMessage"):
+    return "err HTTP.%s (%s) again:same" % (kind, what)
+
+
+TRUNCATED = mp_err("multipart body without its last boundary")
+CD = b"Content-Disposition: form-data; "
+
+
+def mp_part(head, body=b"", b=b"B"):
+    return b"--" + b + b"\r\n" + head + b"\r\n" + body + b"\r\n"
+
+
+def mp_body(*parts, b=b"B", pre=b"", epi=b""):
+    return pre + b"".join(parts) + b"--" + b + b"--" + epi
+
+
+ONE = (b"a", None, None, 1, b"x")
+
+# (body, boundary, parts or None, end)
+MP_TABLE = [
+    (mp_body(), b"B", [], "end"),
+    (mp_body(epi=b"\r\nepilogue"), b"B", [], "end"),
+    (mp_body(epi=b"garbage without a line end"), b"B", [], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x"), pre=b"preamble\r\n"), b"B", [ONE], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x"), pre=b"\r\n"), b"B", [ONE], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x"), pre=b"--B\r\n"), b"B", None, mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"", b"body")), b"B", [(None, None, None, 0, b"body")], "end"),
+    (mp_body(mp_part(b"X-A: 1\r\n", b"")), b"B", [(None, None, None, 1, b"")], "end"),
+    (b"--B \t \r\n" + CD + b'name="a"\r\n\r\nx\r\n--B\t\r\n\r\ny\r\n--B--', b"B",
+     [ONE, (None, None, None, 0, b"y")], "end"),
+    (b"--B" + b" " * 1024 + b"\r\n\r\nx\r\n--B--", b"B", [(None, None, None, 0, b"x")], "end"),
+    (b"--B" + b" " * 1025 + b"\r\n\r\nx\r\n--B--", b"B", [], mp_err("too many spaces after a boundary")),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"\r\n--b\r\n--BB?\r--B\n\r\n-")), b"B", None, mp_err("garbage after a boundary")),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"\r\n--b\r\n--\r\n--A\r--B\n\r\n-")), b"B",
+     [(b"a", None, None, 1, b"\r\n--b\r\n--\r\n--A\r--B\n\r\n-")], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x--B")), b"B", [(b"a", None, None, 1, b"x--B")], "end"),
+    (b"--B\r\n" + CD + b'name="a"\r\n\r\n--B--', b"B", None, mp_err("boundary right after the head of a part")),
+    (b"--B\r\n\r\n--B\r\n\r\nx\r\n--B--", b"B", None, mp_err("boundary right after the head of a part")),
+    (b"--B\r\n\r\n--Bx\r\n--B--", b"B", None, mp_err("boundary right after the head of a part")),
+    (b"--B\r\n\r\n--x\r\n--B--", b"B", [(None, None, None, 0, b"--x")], "end"),
+    (b"--Bx\r\n\r\nx\r\n--B--", b"B", [], mp_err("garbage after a boundary")),
+    (b"--B\n\r\nx\r\n--B--", b"B", [], mp_err("garbage after a boundary")),
+    (b"--B\rX\r\n\r\nx\r\n--B--", b"B", [], mp_err("garbage after a boundary")),
+    (b"--B \r\r\n\r\nx\r\n--B--", b"B", [], mp_err("garbage after a boundary")),
+    (b"--B-\r\n\r\nx\r\n--B--", b"B", [], mp_err("garbage after a boundary")),
+    (b"--B\r\n\r\nx\r\n--B-x", b"B", None, mp_err("garbage after a boundary")),
+    (b"--B\nA: b\n\nx\n--B--\n", b"B", [], mp_err("garbage after a boundary")),
+    (b"", b"B", [], TRUNCATED),
+    (b"no boundary at all", b"B", [], TRUNCATED),
+    (b"--B", b"B", [], TRUNCATED),
+    (b"--B-", b"B", [], TRUNCATED),
+    (b"--B\r", b"B", [], TRUNCATED),
+    (b"--B  ", b"B", [], TRUNCATED),
+    (b"--B\r\nA: b", b"B", [], TRUNCATED),
+    (b"--B\r\nA: b\r\n", b"B", [], TRUNCATED),
+    (b"--B\r\n\r\nx", b"B", None, TRUNCATED),
+    (b"--B\r\n\r\nx\r\n--B", b"B", None, TRUNCATED),
+    (b"--B\r\n\r\nx\r\n--B\r\n", b"B", None, TRUNCATED),
+    (mp_body(mp_part(b"A b: c\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"A : c\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b": c\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"Abc\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"A: b\x00c\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"A: b\nC: d\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"A: b\rC: d\r\n")), b"B", [], mp_err("malformed field in the head of a part")),
+    (mp_body(mp_part(b"A: b\r\n c\r\n")), b"B", [], mp_err("folded field in the head of a part")),
+    (mp_body(mp_part(b"A: b\r\n\tc\r\n")), b"B", [], mp_err("folded field in the head of a part")),
+    (mp_body(mp_part(b"A:b\r\nC:  d \t\r\nE:\r\n")), b"B", [(None, None, None, 3, b"")], "end"),
+    (mp_body(mp_part(b"A: \xe9\xff\r\n")), b"B", [(None, None, None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\nContent-Disposition: form-data; name="b"\r\n')), b"B", [],
+     mp_err("two Content-Disposition fields in a part")),
+    (mp_body(mp_part(b"Content-Type: a/b\r\ncontent-type: a/b\r\n")), b"B", [],
+     mp_err("two Content-Type fields in a part")),
+    (mp_body(mp_part(CD + b'name="a"; NAME="b"\r\n')), b"B", [], mp_err("two names of a part")),
+    (mp_body(mp_part(CD + b'filename="a"; filename="b"\r\n')), b"B", [], mp_err("two file names of a part")),
+    (mp_body(mp_part(CD + b"name\r\n")), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b'name="a\r\n')), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b"name=a b\r\n")), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b"name =a\r\n")), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b"name= a\r\n")), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b"name=\r\n")), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(b"Content-Disposition: form-data name=a\r\n")), b"B", [],
+     mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(b"Content-Disposition: ; name=a\r\n")), b"B", [],
+     mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(b"Content-Disposition: \r\n")), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b'name="a"; =b\r\n')), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b'name="a""b"\r\n')), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b'name="a"x\r\n')), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b'name=a"b\r\n')), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(CD + b'name="a\\"\r\n')), b"B", [], mp_err("malformed Content-Disposition of a part")),
+    (mp_body(mp_part(b'Content-Disposition: form-data;name=a;filename=b.txt;\r\n')), b"B",
+     [(b"a", b"b.txt", None, 1, b"")], "end"),
+    (mp_body(mp_part(b'content-disposition: attachment ; NAME="a" ; FileName="C:\\dir\\x.txt"\r\n')), b"B",
+     [(b"a", b"C:\\dir\\x.txt", None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b'name="a\\"b"; filename="c\\\\d"\r\n')), b"B", [(b'a"b', b"c\\d", None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b'name="a\\\\\\x"\r\n')), b"B", [(b"a\\\\x", None, None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b'name=""; filename=""\r\n')), b"B", [(b"", b"", None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b'name="a;b=c"\r\n')), b"B", [(b"a;b=c", None, None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b"name=a/b:c\xe9\r\n")), b"B", [(b"a/b:c\xe9", None, None, 1, b"")], "end"),
+    (mp_body(mp_part(CD + b"name=\"a\"; filename*=UTF-8''%e2%82%ac.txt\r\n")), b"B", [(b"a", None, None, 1, b"")],
+     "end"),
+    (mp_body(mp_part(CD + b'name="n\xc3\xa4me"; filename="f\xc3\xa4.txt"\r\nContent-Type:  text/plain \r\n', b"t")),
+     b"B", [(b"n\xc3\xa4me", b"f\xc3\xa4.txt", b"text/plain", 2, b"t")], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x", b=b"a'()+_,-./:=? b"), b=b"a'()+_,-./:=? b"), b"a'()+_,-./:=? b",
+     [(b"a", None, None, 1, b"x")], "end"),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x", b=b"B" * 70), b=b"B" * 70), b"B" * 70, [(b"a", None, None, 1, b"x")], "end"),
+    (mp_body(), b"B" * 71, [], mp_err("missing or invalid boundary of a multipart body")),
+    (mp_body(), b"B ", [], mp_err("missing or invalid boundary of a multipart body")),
+    (mp_body(), b"", [], mp_err("missing or invalid boundary of a multipart body")),
+    (mp_body(), None, [], mp_err("missing or invalid boundary of a multipart body")),
+    (mp_body(mp_part(CD + b'name="a"\r\n', b"x", b=b"b"), b=b"b"), b"B", [], TRUNCATED),
+]
+
+BCHARS = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'()+_,-./:=? "
+
+BOUNDARIES = [
+    ("multipart/form-data; boundary=abc", b"abc"),
+    ('MULTIPART/Mixed;BOUNDARY="a b"', b"a b"),
+    ('multipart/form-data; boundary="' + "x" * 70 + '"', b"x" * 70),
+    ('multipart/form-data; boundary="' + "x" * 71 + '"', None),
+    ('multipart/form-data; boundary="ab "', None),
+    ('multipart/form-data; boundary=""', None),
+    ("multipart/form-data", None),
+    ("multipart/form-data;", None),
+    ("text/plain; boundary=a", None),
+    ("multipart/form-data; boundary=a; boundary=b", None),
+    ("multipart/form-data; boundary=a; Boundary=a", None),
+    ("multipart/form-data; charset=utf-8; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW",
+     b"----WebKitFormBoundary7MA4YWxkTrZu0gW"),
+    ("multipart/form-data; boundary=a=b", b"a=b"),
+    ("multipart/form-data; boundary = a", None),
+    ("multipart/form-data; boundary= a", None),
+    ("multipart/form-data;boundary=a", b"a"),
+    (" multipart/form-data ; boundary=a ", b"a"),
+    ("multipart/form-data; boundary=a;", b"a"),
+    ("multipart/form-data;; boundary=a", b"a"),
+    ("multipart/form-data; boundary=a b", None),
+    ('multipart/form-data; boundary="a\\"b"', None),
+    ('multipart/form-data; boundary="unterminated', None),
+    ("multipart/form-data; =a", None),
+    ("multipart; boundary=a", None),
+    ("multipart/; boundary=a", None),
+    ("multipart /form-data; boundary=a", None),
+    ("multipart/form-data; boundary=\xe9", None),
+    ("multipart/form-data; boundary=\u20ac", None),
+    ("multipart/form-data; boundary=a\x00", None),
+    (None, None),
+]
+
+
+def limits_body():
+    """A body of three parts, and the values of its limits."""
+    head1 = CD + b'name="a"\r\nContent-Type: text/plain\r\nX-A: 1\r\n'
+    body = mp_body(mp_part(head1, b"0123456789"), mp_part(CD + b'name="b"\r\n', b"abc"), mp_part(b"", b"xy"),
+                   pre=b"pre\r\n", epi=b"\r\nepilogue")
+    parts = [(b"a", None, b"text/plain", 3, b"0123456789"), (b"b", None, None, 1, b"abc"), (None, None, None, 0, b"xy")]
+    exact = dict(parts=3, header=len(head1) + 2, headers=3, preamble=5, part=10, total=body.index(b"--B--") + 5)
+    return body, parts, exact
+
+
+def limits_text(parts=1000, header=16384, headers=32, preamble=65536, part=0, total=0):
+    return "%d,%d,%d,%d,%d,%d" % (parts, header, headers, preamble, part, total)
+
+
+SPLIT_BOUNDARY = b"XyZ"
+
+
+def split_body():
+    """A body whose content comes close to the boundary in many ways."""
+    b = SPLIT_BOUNDARY
+    c1 = b"\r\n--Xy\r\r\n-\r\n--\r\n--X"
+    c2 = b"x--XyZ\r\n\r--xyz\r\n--XYZ"
+    c3 = b"\r\r\r\n\r\n--Xy"
+    body = (b"pre\r\n--XyZ\r\n" + CD + b'name="a"\r\n\r\n' + c1 + b"\r\n--XyZ \t\r\n" + CD
+            + b'name="b"; filename="f.txt"\r\nContent-Type: text/plain\r\n\r\n' + c2 + b"\r\n--XyZ\r\n\r\n" + c3
+            + b"\r\n--XyZ--\r\nepi")
+    parts = [(b"a", None, None, 1, c1), (b"b", b"f.txt", b"text/plain", 2, c2), (None, None, None, 0, c3)]
+    return body, b, parts
+
+
+def random_name(rng, filename=False):
+    """Bytes that Multipart.Writer accepts as a name, without backslashes
+    and slashes, which the parsers of Python treat in their own ways."""
+    chars = [c for c in range(0x20, 0x100) if c not in (0x22, 0x5C, 0x2F, 0x7F)]
+    n = rng.choice([0, 1, 5, 20]) if not filename else rng.choice([1, 8])
+    return bytes(rng.choice(chars) for _ in range(n))
+
+
+def random_content(rng, boundary):
+    """Bytes with pieces of the delimiter, but never all of it."""
+    pieces = [b"\r", b"\n", b"\r\n", b"-", b"--", b"\r\n--", b"\r\n--" + boundary[:-1], b"--" + boundary, b"x", b" "]
+    while True:
+        n = rng.choice([0, 1, 2, 10, 100, 1000, 6000])
+        out = b"".join(rng.choice(pieces) if rng.random() < 0.3 else rng.randbytes(rng.randint(1, 30))
+                       for _ in range(n // 10 + 1))[:n]
+        if b"\r\n--" + boundary not in out and not out.startswith(b"--" + boundary):
+            return out
+
+
+def random_form(rng, boundary):
+    parts = []
+    for _ in range(rng.randint(0, 5)):
+        filename = random_name(rng, True) if rng.random() < 0.4 else None
+        ctype = rng.choice([None, b"text/plain", b"application/x-m3; a=1"]) if rng.random() < 0.6 else None
+        parts.append((random_name(rng), filename, ctype, random_content(rng, boundary)))
+    return parts
+
+
+def python_parts(body, boundary):
+    """The parts of a body by python-multipart: (headers, data)."""
+    import python_multipart.multipart as pm
+    parts = []
+
+    def begin():
+        parts.append([[], b""])
+
+    def field(b, s, e):
+        parts[-1][0].append([b[s:e], b""])
+
+    def value(b, s, e):
+        parts[-1][0][-1][1] += b[s:e]
+
+    def data(b, s, e):
+        parts[-1][1] += b[s:e]
+
+    p = pm.MultipartParser(boundary, {"on_part_begin": begin, "on_header_field": field, "on_header_value": value,
+                                      "on_part_data": data}, max_header_count=100)
+    p.write(body)
+    p.finalize()
+    return [(dict((k.lower(), v) for k, v in h), d) for h, d in parts]
+
+
+def check_written(what, boundary, parts, body):
+    """Compares a body that Multipart.Writer made with the parts, by two
+    parsers of Python."""
+    from requests_toolbelt.multipart import decoder
+    import python_multipart.multipart as pm
+    got = python_parts(body, boundary)
+    check(what + ": parts by python-multipart", len(got), len(parts))
+    for (h, d), (n, f, c, b) in zip(got, parts):
+        _, params = pm.parse_options_header(h[b"content-disposition"])
+        check(what + ": name", params[b"name"], n)
+        check(what + ": filename", params.get(b"filename"), f)
+        check(what + ": type", h.get(b"content-type"), c if c is not None or f is None else b"application/octet-stream")
+        check(what + ": data", d, b)
+    # requests_toolbelt splits at each "--" and boundary, even within a body
+    if parts and not any(b"--" + boundary in p[3] for p in parts):
+        dec = decoder.MultipartDecoder(body, "multipart/form-data; boundary=" + boundary.decode("latin-1"),
+                                       encoding="latin-1")
+        check(what + ": parts by requests_toolbelt", [p.content for p in dec.parts], [p[3] for p in parts])
+
+
+def case_multipart(env):
+    try:
+        import python_multipart  # noqa: F401
+        import requests
+        import requests_toolbelt  # noqa: F401
+        import urllib3
+    except ImportError as e:
+        raise Failed("a package of Python is missing: %s" % e)
+    from requests_toolbelt.multipart import encoder
+    rng = random.Random(SEED)
+    lines, want = [], []
+
+    def add(line, w):
+        lines.append(line)
+        want.append(w)
+
+    # Boundary and ValidBoundary
+    for ct, b in BOUNDARIES:
+        add("b " + cx(ct), cx(b))
+    for c in range(256):
+        add("v " + cx(bytes([c])), "1" if c in BCHARS and c != 0x20 else "0")
+    for b, ok in [(b"x" * 70, 1), (b"x" * 71, 0), (b"", 0), (b"a b", 1), (b" a", 1), (b"a ", 0), (None, 0),
+                  ("a\u20ac", 0)]:
+        add("v " + cx(b), str(ok))
+
+    # the table, read at once, byte by byte and in pieces of 1 to 17
+    for body, boundary, parts, end in MP_TABLE:
+        for source in ("a", "c1", "c0"):
+            add(read_line(body, boundary, source), (shown(parts, end) if parts is not None else None, end))
+
+    # limits, exact and one below
+    body, parts, exact = limits_body()
+    names = {"parts": ("too many parts in a multipart body", "TooLarge"),
+             "header": ("head of a part too large", "TooLarge"),
+             "headers": ("too many fields in the head of a part", "TooLarge"),
+             "preamble": ("preamble of a multipart body too long", "TooLarge"),
+             "part": ("part of a multipart body too large", "TooLarge"),
+             "total": ("multipart body too large", "TooLarge")}
+    for key, value in exact.items():
+        for source in ("a", "c1", "c0"):
+            for mode in ("a", "k"):
+                add(read_line(body, b"B", source, limits_text(**{key: value}), mode), (shown(parts, mode=mode), None))
+                add(read_line(body, b"B", source, limits_text(**{key: value - 1}), mode),
+                    (None, mp_err(*names[key])))
+    add(read_line(body, b"B", "a", limits_text(parts=0)), (shown([], mp_err(*names["parts"])), None))
+
+    # every split around the boundaries and every truncation
+    body, b, parts = split_body()
+    full = shown(parts)
+    end = body.index(b"--XyZ--") + 7
+    for size in range(0, 81):
+        add(read_line(body, b, "c%d" % size), (full, None))
+    for s in range(1, len(body)):
+        add(read_line(body, b, "s%d" % s), (full, None))
+    for mode in ("k", "h"):
+        add(read_line(body, b, "c3", mode=mode), (shown(parts, mode=mode), None))
+    stale = " stale:Multipart.Stale"
+    add(read_line(body, b, "c5", mode="z"),
+        ("".join(" P %s %s %s %d ?" % (cx(n), cx(f), cx(c), k) + stale for n, f, c, k, _ in parts) + " | end", None))
+    add(read_line(body, b, "c5", mode="e"),
+        ("".join(" P %s %s %s %d %s stale:eof" % (cx(n), cx(f), cx(c), k, cx(d)) for n, f, c, k, d in parts)
+         + " | end", None))
+    for n in range(len(body) + 1):
+        add(read_line(body[:n], b, "c0"), (full, None) if n >= end else (None, TRUNCATED))
+        add(read_line(body[:n], b, "f"),
+            (full, None) if n >= end else (None, "err Test.Broken again:same"))
+
+    # forms of other writers
+    for i in range(60):
+        boundary = rng.choice([b"BB", b"----WebKitFormBoundary" + rng.randbytes(8).hex().encode(), rng.randbytes(16).hex().encode()])
+        fields = []
+        for k in range(rng.randint(1, 5)):
+            name = "field%d-\u00e4\u20ac" % k
+            if rng.random() < 0.5:
+                fields.append((name, rng.choice(["", "value", "a\r\nb", "\u00e4\u00f6\u00fc"])))
+            else:
+                fields.append((name, ("file %d.txt" % k, random_content(rng, boundary), rng.choice(["text/plain", "application/octet-stream"]))))
+        if i % 2:
+            data, ct = urllib3.encode_multipart_formdata(fields, boundary=boundary.decode())
+        else:
+            e = encoder.MultipartEncoder(fields=fields, boundary=boundary.decode())
+            data, ct = e.to_string(), e.content_type
+        expected = []
+        for name, v in fields:
+            if isinstance(v, tuple):
+                expected.append((name.encode(), v[0].encode(), v[2].encode(), 2, v[1]))
+            else:
+                expected.append((name.encode(), None, None, 1, v.encode()))
+        add("b " + cx(ct), cx(boundary))
+        for source in ("a", "c0", "c%d" % rng.randint(1, 100)):
+            add(read_line(data, boundary, source), (shown(expected), None))
+
+    # the writer: a fixed example, random forms and invalid parts
+    golden = (b'--B\r\nContent-Disposition: form-data; name="title"\r\n\r\nHoliday\r\n--B\r\nContent-Disposition: '
+              b'form-data; name="upload"; filename="a\\\\b.jpg"\r\nContent-Type: image/jpeg\r\n\r\nJPEG\r\n'
+              b'--B\r\nContent-Disposition: form-data; name="f"; filename=""\r\nContent-Type: '
+              b'application/octet-stream\r\n\r\n\r\n--B--\r\n')
+    gparts = [(b"title", None, None, b"Holiday"), (b"upload", b"a\\b.jpg", b"image/jpeg", b"JPEG"), (b"f", b"", None, b"")]
+    compare("writer golden", py_write(b"B", gparts), golden)
+    written = [(len(lines), b"B", gparts)]
+    add(write_line(b"B", gparts), "ok %s %s" % (cx("multipart/form-data; boundary=B"), cx(golden)))
+    add(write_line(b"B", []), "ok %s %s" % (cx("multipart/form-data; boundary=B"), cx(b"--B--\r\n")))
+    add(write_line(b"a b", gparts[:1]), "ok %s %s" % (cx('multipart/form-data; boundary="a b"'),
+                                                     cx(py_write(b"a b", gparts[:1]))))
+    for _ in range(40):
+        boundary = rng.choice([b"BB", b"a'()+_,-./:=? b", rng.randbytes(12).hex().encode()])
+        parts = random_form(rng, boundary)
+        written.append((len(lines), boundary, parts))
+        ct =b"multipart/form-data; boundary=" + (boundary if re.fullmatch(rb"[!#$%&'*+.^_`|~0-9A-Za-z-]+", boundary)
+                                                   else b'"' + boundary + b'"')
+        add(write_line(boundary, parts), "ok %s %s" % (cx(ct), cx(py_write(boundary, parts))))
+        add(read_line(py_write(boundary, parts), boundary, "c0"),
+            (shown([(n, f, c if c is not None or f is None else b"application/octet-stream",
+                     1 + (c is not None or f is not None), b) for n, f, c, b in parts]), None))
+    good = (b"g", None, None, b"1")
+    for bad, what in [((b'a"b', None, None, b""), "invalid name of a part"),
+                      ((None, None, None, b""), "invalid name of a part"),
+                      (("a\u20ac", None, None, b""), "invalid name of a part"),
+                      ((b"a", b'"', None, b""), "invalid file name of a part"),
+                      ((b"a", "\u20ac", None, b""), "invalid file name of a part"),
+                      ((b"a", None, b"", b""), "invalid content type of a part"),
+                      ((b"a", None, b"a\r\nb", b""), "invalid content type of a part")] + \
+                     [((b"a" + bytes([c]), None, None, b""), "invalid name of a part") for c in [*range(32), 127]] + \
+                     [((b"a", b"f" + bytes([c]), None, b""), "invalid file name of a part") for c in [*range(32), 127]]:
+        prefix = py_write(b"B", [good])[:-len(b"\r\n--B--\r\n")]
+        add(write_line(b"B", [good, bad]), "err %s HTTP.BadMessage (%s)" % (cx(prefix), what))
+    randoms = len(lines)
+    add(write_line(None, [good]), None)
+    add(write_line(None, [good]), None)
+
+    got = batch(env, "multipart", lines)
+    for i, (l, g, w) in enumerate(zip(lines, got, want)):
+        if isinstance(w, tuple):
+            whole, tail = w
+            ok = g == whole if whole is not None else g.endswith(" | " + tail)
+            if not ok:
+                raise Failed("multipart: line %d\n  line %s\n  got  %s\n  want %s" % (i, l[:300], g[:500], (whole or tail)[:500]))
+        elif w is not None and g != w:
+            raise Failed("multipart: line %d\n  line %s\n  got  %s\n  want %s" % (i, l[:300], g[:500], w[:500]))
+
+    # the forms of the writer, by the parsers of Python
+    for i, boundary, parts in written:
+        f = got[i].split(" ")
+        check_written("writer %d" % i, boundary, parts, bytes.fromhex(f[2][1:]))
+    r1, r2 = got[randoms].split(" "), got[randoms + 1].split(" ")
+    for r in (r1, r2):
+        ct = bytes.fromhex(r[1][1:])
+        if not re.fullmatch(rb"multipart/form-data; boundary=----[0-9a-f]{32}", ct):
+            raise Failed("random boundary: %r" % ct)
+        boundary = ct.split(b"=", 1)[1]
+        check_written("random boundary", boundary, [good], bytes.fromhex(r[2][1:]))
+    if r1[1] == r2[1]:
+        raise Failed("the same random boundary twice")
+
+    # clients against the server
+    srv = Server(env)
+    try:
+        url = "http://127.0.0.1:%d/form" % srv.port
+        upload = rng.randbytes(200000)
+
+        def form_lines(fields):
+            return "".join("%s %s %s %s\n" % tuple(cx(v) for v in f) for f in fields)
+
+        expected = form_lines([(b"title", None, None, b"Holiday"), (b"upload", b"beach.jpg", b"image/jpeg", upload)])
+        r = requests.post(url, data={"title": "Holiday"}, files={"upload": ("beach.jpg", upload, "image/jpeg")}, timeout=20)
+        check("requests form", (r.status_code, r.text), (200, expected))
+        curl = shutil.which("curl") or r"C:\Windows\System32\curl.exe"
+        if Path(curl).exists():
+            (env.work / "upload.bin").write_bytes(upload)
+            r = subprocess.run([curl, "-s", "-S", "--max-time", "20", "-F", "title=Holiday",
+                                "-F", "upload=@upload.bin;type=image/jpeg;filename=beach.jpg", url],
+                               capture_output=True, timeout=30, cwd=env.work)
+            check("curl form", (r.returncode, r.stdout.decode("latin-1").replace("\r\n", "\n")), (0, expected))
+        else:
+            print("          no curl")
+        for path, ct, body, status in [
+                ("/form", "multipart/form-data; boundary=B", b"--B\r\n\r\nx", 400),
+                ("/form", "text/plain", b"--B\r\n\r\nx\r\n--B--", 400),
+                ("/form", "multipart/form-data", b"--B\r\n\r\nx\r\n--B--", 400),
+                ("/form?maxpart=10", "multipart/form-data; boundary=B", b"--B\r\n\r\n01234567890\r\n--B--", 413),
+                ("/form?maxpart=10", "multipart/form-data; boundary=B", b"--B\r\n\r\n0123456789\r\n--B--", 200)]:
+            c = http.client.HTTPConnection("127.0.0.1", srv.port, timeout=10)
+            c.request("POST", path, body=body, headers={"Content-Type": ct})
+            r = c.getresponse()
+            r.read()
+            check("status of %r %r" % (ct, body), r.status, status)
+            c.close()
+    finally:
+        srv.stop()
+
+
 def speed(env):
     """The rates on this machine, for information."""
     srv = Server(env)
@@ -1409,7 +2407,8 @@ def speed(env):
 
 CASES = {"codec": case_codec, "headers": case_headers, "table": case_table, "behavior": case_behavior,
          "clients": case_clients, "tls": case_tls, "client": case_client,
-         "together": case_together, "gzip": case_gzip, "gzclient": case_gzclient}
+         "together": case_together, "gzip": case_gzip, "gzclient": case_gzclient, "cookie": case_cookie,
+         "multipart": case_multipart}
 
 
 def main():

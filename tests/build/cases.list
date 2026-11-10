@@ -16,6 +16,8 @@ tls      tls      m3build use; run use/JVM/use
 
 http     http     m3build use; run use/JVM/use
 
+httpform httpform m3build use; run use/JVM/use
+
 xml      xml      m3build use; run use/JVM/use
 
 json     json     m3build use; run use/JVM/use
