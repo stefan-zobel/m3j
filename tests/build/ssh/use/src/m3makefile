@@ -1,0 +1,5 @@
+% A program that imports the library ssh.
+import ("libm3")
+import ("ssh")
+implementation ("Main")
+program ("use")

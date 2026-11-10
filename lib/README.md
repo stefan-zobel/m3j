@@ -155,6 +155,27 @@ with an empty password, and keys of other algorithms in PEM texts, which are
 read in Modula-3 with the strict `Base64` of encoding. `CryptoRep` is shared by
 the modules of the package only.
 
+## ssh
+
+Not a package of cm3: `SSH` (safe), commands on a server (`run` collects the
+output, `start` gives a process with a writer for its input and readers for
+its outputs), and `SFTP` (safe), files of the server as readers and writers,
+their attributes, directories and links. Both are on a copy of JSch in the
+runtime (`m3j.jsch`, imported by `tools/jsch_import.py`, see
+`src/vendor/jsch/ORIGIN`), through `M3jSsh` and `m3j.rt.Ssh`. The bridge
+answers JSch itself: the key of the server is checked against known_hosts
+(also hashed entries and `@revoked`), taken on first use (`AcceptNew`, which
+appends a line and never takes a changed key) or compared with a fingerprint;
+there is no way to take any key. The algorithms are those of JSch, fixed for
+each session, so the properties `jsch.*` have no effect. The outputs of a
+process go into buffers of the bridge, so an output that is not read never
+stops the session. JSch takes data as fast as the server sends it and never
+slows the server down, so a reader slower than its command ends the process
+with `TooLarge` once `maxBuffer` bytes wait for it. Each `SFTP.T` has its own
+thread; an alert or a timeout ends the wait of the caller, not the request,
+and the `SFTP.T` is `Busy` while one of its files is open. `SSHRep` is shared
+by the modules of the package only.
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the
@@ -274,4 +295,5 @@ tls (`m3j.rt.Tls`), and `M3jHttp`, the client of HTTP of the Java platform
 for the module `HTTPClient` of http (`m3j.rt.Http`), and `M3jZip`, the
 compression and the archives of the Java platform for the modules `Deflate`
 and `Zip` of zip (`m3j.rt.Zip`), and `M3jCrypto`, the cryptography of the
-Java platform for the package crypto (`m3j.rt.Crypto`).
+Java platform for the package crypto (`m3j.rt.Crypto`), and `M3jSsh`, the
+copy of JSch for the package ssh (`m3j.rt.Ssh`).

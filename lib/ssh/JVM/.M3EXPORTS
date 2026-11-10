@@ -1,0 +1,9 @@
+% exports of ssh: commands and SFTP over SSH, on JSch in the runtime of m3j
+_define_lib("ssh")
+import_version("m3core", "JVM")
+import_version("libm3", "JVM")
+_map_add_interface("SFTP.i3", "ssh", "src", "")
+_map_add_module("SFTP.m3", "ssh", "src", "hidden")
+_map_add_interface("SSH.i3", "ssh", "src", "")
+_map_add_module("SSH.m3", "ssh", "src", "hidden")
+_map_add_interface("SSHRep.i3", "ssh", "src", "")

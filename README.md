@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package ssh: `SSH`, `SFTP`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -348,6 +348,37 @@ refusal. RSA keys have at least 2048 bits, and points of curves are checked,
 also those from PEM texts. PEM texts are SubjectPublicKeyInfo and unencrypted
 PKCS #8; other forms are `Crypto.Unsupported`.
 
+### SSH and SFTP
+
+The library ssh runs commands on a server (`SSH`) and works with its files
+(`SFTP`), on a copy of JSch in the runtime. A connection checks the key of the
+server against `~/.ssh/known_hosts` unless the options say otherwise
+(`AcceptNew` takes and records a key on first use, `Fingerprint` compares with
+a given `SHA256:...`); there is no option to take any key. The user logs in
+with a key (a file or its text, also encrypted) or a password:
+
+```modula-3
+VAR o := SSH.Defaults;
+...
+o.user := "deploy";
+o.keyFile := "/home/deploy/.ssh/id_ed25519";
+s := SSH.Connect ("build.example.org", o);
+status := s.run ("make -C /srv/app", out, err);
+
+f := SFTP.Open (s);
+wr := f.create ("/srv/app/config.json");
+Wr.PutText (wr, config);
+Wr.Close (wr);
+f.close ();
+s.close ();
+```
+
+`start` gives a running command with a writer for its input and readers for
+its outputs. Errors raise `SSH.Error` with an atom such as
+`SSH.HostKeyChanged` or `SFTP.NoSuchFile`; a timeout and an alert end the
+wait at once. Paths are characters and are sent as UTF-8; the contents of
+files and the outputs of commands are bytes, as in encoding.
+
 ### Java APIs
 
 An interface can stand for a Java class. The program then calls its
@@ -552,7 +583,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip, encoding, crypto), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip, encoding, crypto, ssh), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.

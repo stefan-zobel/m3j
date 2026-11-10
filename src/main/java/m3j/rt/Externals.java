@@ -254,6 +254,108 @@ public final class Externals {
         Http.abort(x);
     }
 
+    // M3jSsh (m3j's library ssh): see Ssh
+
+    public static Object M3jSsh__Connect(String host, long port, String user, String password, String keyFile,
+                                         String key, String passphrase, long hostCheck, String knownHosts,
+                                         String fingerprint, double timeout, double keepAlive, LongRef code,
+                                         ObjRef err) {
+        return Ssh.connect(host, port, user, password, keyFile, key, passphrase, hostCheck, knownHosts, fingerprint,
+                           timeout, keepAlive, code, err);
+    }
+
+    public static String M3jSsh__HostKey(Object s) {
+        return Ssh.hostKey(s);
+    }
+
+    public static void M3jSsh__Disconnect(Object s) {
+        Ssh.disconnect(s);
+    }
+
+    public static long M3jSsh__Run(Object s, String command, String input, long maxOutput, double timeout,
+                                   double openTimeout, LongRef status, ObjRef signal, ObjRef out, ObjRef errOut,
+                                   ObjRef err) {
+        return Ssh.run(s, command, input, maxOutput, timeout, openTimeout, status, signal, out, errOut, err);
+    }
+
+    public static Object M3jSsh__Start(Object s, String command, long maxBuffer, double openTimeout, LongRef code,
+                                       ObjRef err) {
+        return Ssh.start(s, command, maxBuffer, openTimeout, code, err);
+    }
+
+    public static long M3jSsh__ProcRead(Object p, long which, byte[] b, int off, int n, double timeout, ObjRef err) {
+        return Ssh.procRead(p, which, b, off, n, timeout, err);
+    }
+
+    public static void M3jSsh__ProcDiscard(Object p, long which) {
+        Ssh.procDiscard(p, which);
+    }
+
+    public static long M3jSsh__ProcWrite(Object p, byte[] b, int off, int n, ObjRef err) {
+        return Ssh.procWrite(p, b, off, n, err);
+    }
+
+    public static void M3jSsh__ProcCloseInput(Object p) {
+        Ssh.procCloseInput(p);
+    }
+
+    public static long M3jSsh__ProcWait(Object s, Object p, LongRef status, ObjRef signal, ObjRef err) {
+        return Ssh.procWait(s, p, status, signal, err);
+    }
+
+    public static void M3jSsh__ProcClose(Object p) {
+        Ssh.procClose(p);
+    }
+
+    public static Object M3jSsh__SftpOpen(Object s, double timeout, LongRef code, ObjRef err) {
+        return Ssh.sftpOpen(s, timeout, code, err);
+    }
+
+    public static void M3jSsh__SftpClose(Object f) {
+        Ssh.sftpClose(f);
+    }
+
+    public static long M3jSsh__SftpStat(Object f, String path, boolean follow, LongRef kind, LongRef size,
+                                        LongRef mode, LongRef uid, LongRef gid, LongRef atime, LongRef mtime,
+                                        ObjRef err) {
+        return Ssh.sftpStat(f, path, follow, kind, size, mode, uid, gid, atime, mtime, err);
+    }
+
+    public static long M3jSsh__SftpList(Object f, String dir, ObjRef list, ObjRef err) {
+        return Ssh.sftpList(f, dir, list, err);
+    }
+
+    public static String M3jSsh__SftpEntry(Object list, long i, LongRef kind, LongRef size, LongRef mode,
+                                           LongRef uid, LongRef gid, LongRef atime, LongRef mtime) {
+        return Ssh.sftpEntry(list, i, kind, size, mode, uid, gid, atime, mtime);
+    }
+
+    public static long M3jSsh__SftpOp(Object f, long op, String a, String b, long n, long m, ObjRef result,
+                                      ObjRef err) {
+        return Ssh.sftpOp(f, op, a, b, n, m, result, err);
+    }
+
+    public static Object M3jSsh__SftpGet(Object f, String path, long offset, LongRef code, ObjRef err) {
+        return Ssh.sftpGet(f, path, offset, code, err);
+    }
+
+    public static Object M3jSsh__SftpPut(Object f, String path, long mode, boolean append, LongRef code,
+                                         ObjRef err) {
+        return Ssh.sftpPut(f, path, mode, append, code, err);
+    }
+
+    public static long M3jSsh__StreamRead(Object s, byte[] b, int off, int n, ObjRef err) {
+        return Ssh.streamRead(s, b, off, n, err);
+    }
+
+    public static long M3jSsh__StreamWrite(Object s, byte[] b, int off, int n, ObjRef err) {
+        return Ssh.streamWrite(s, b, off, n, err);
+    }
+
+    public static long M3jSsh__StreamClose(Object s, ObjRef err) {
+        return Ssh.streamClose(s, err);
+    }
+
     // M3jZip (m3j's modules Deflate and Zip): see Zip
     public static Object M3jZip__NewInflate(boolean raw) {
         return Zip.newInflate(raw);

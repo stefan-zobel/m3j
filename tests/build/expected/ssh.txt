@@ -1,0 +1,8 @@
+$ m3build use
+--- building in JVM ---
+
+new sources -> compiling use.jar
+exit 0
+$ run use/JVM/use
+SSH.Refused
+exit 0
