@@ -1,5 +1,6 @@
 % exports of m3j: the interfaces that the runtime of m3j implements
 _define_lib("m3j")
+_map_add_interface("M3jCrypto.i3", "m3j", "src", "")
 _map_add_interface("M3jDate.i3", "m3j", "src", "")
 _map_add_interface("M3jFile.i3", "m3j", "src", "")
 _map_add_module("M3jFile.m3", "m3j", "src", "hidden")

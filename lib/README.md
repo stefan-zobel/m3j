@@ -142,6 +142,17 @@ all safe and in plain Modula-3. The private Base64 and escapes of `HTTP` are
 older and stay, because `HTTP.ParseBasicAuth` takes values that `Base64.Decode`
 refuses.
 
+## crypto
+
+Not a package of cm3: `Crypto` (errors, random bytes, a comparison in constant
+time), `Digest`, `Aead`, `Kdf`, `Signature`, `X25519` and `UUID`, safe, on the
+digests, ciphers, signatures and key agreement of the Java platform (`M3jCrypto`,
+`m3j.rt.Crypto`). The Java side makes the checks that the platform leaves out:
+the length of a nonce of GCM, the size of an RSA key, points of curves, PBKDF2
+with an empty password, and keys of other algorithms in PEM texts, which are
+read in Modula-3 with the strict `Base64` of encoding. `CryptoRep` is shared by
+the modules of the package only.
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the
@@ -260,4 +271,5 @@ references of the Java platform for `WeakRef` (`m3j.rt.Weak`), and
 tls (`m3j.rt.Tls`), and `M3jHttp`, the client of HTTP of the Java platform
 for the module `HTTPClient` of http (`m3j.rt.Http`), and `M3jZip`, the
 compression and the archives of the Java platform for the modules `Deflate`
-and `Zip` of zip (`m3j.rt.Zip`).
+and `Zip` of zip (`m3j.rt.Zip`), and `M3jCrypto`, the cryptography of the
+Java platform for the package crypto (`m3j.rt.Crypto`).

@@ -407,6 +407,110 @@ public final class Externals {
         return Zip.writerTake(w, b, off, n);
     }
 
+    // M3jCrypto (m3j's package crypto): see Crypto
+    public static String M3jCrypto__Random(long n) {
+        return Crypto.random(n);
+    }
+
+    public static void M3jCrypto__RandomBytes(byte[] b, int off, int n) {
+        Crypto.randomBytes(b, off, n);
+    }
+
+    public static boolean M3jCrypto__Equal(String a, String b) {
+        return Crypto.equal(a, b);
+    }
+
+    public static Object M3jCrypto__DigestNew(long alg) {
+        return Crypto.digestNew(alg);
+    }
+
+    public static Object M3jCrypto__HmacNew(long alg, String key) {
+        return Crypto.hmacNew(alg, key);
+    }
+
+    public static void M3jCrypto__DigestUpdate(Object d, byte[] b, int off, int n) {
+        Crypto.digestUpdate(d, b, off, n);
+    }
+
+    public static String M3jCrypto__DigestFinish(Object d) {
+        return Crypto.digestFinish(d);
+    }
+
+    public static String M3jCrypto__DigestOf(long alg, String data) {
+        return Crypto.digestOf(alg, data);
+    }
+
+    public static String M3jCrypto__Hmac(long alg, String key, String data) {
+        return Crypto.hmac(alg, key, data);
+    }
+
+    public static String M3jCrypto__AeadSeal(long alg, String key, String nonce, String plain, String aad,
+                                             LongRef code) {
+        return Crypto.aeadSeal(alg, key, nonce, plain, aad, code);
+    }
+
+    public static String M3jCrypto__AeadOpen(long alg, String key, String nonce, String sealed, String aad,
+                                             LongRef code) {
+        return Crypto.aeadOpen(alg, key, nonce, sealed, aad, code);
+    }
+
+    public static String M3jCrypto__Pbkdf2(long alg, String password, String salt, long iterations, long length,
+                                           LongRef code) {
+        return Crypto.pbkdf2(alg, password, salt, iterations, length, code);
+    }
+
+    public static String M3jCrypto__Hkdf(long alg, String ikm, String salt, String info, long length, LongRef code) {
+        return Crypto.hkdf(alg, ikm, salt, info, length, code);
+    }
+
+    public static Object M3jCrypto__Ed25519Public(String raw, LongRef code) {
+        return Crypto.ed25519Public(raw, code);
+    }
+
+    public static Object M3jCrypto__RsaPublic(String n, String e, LongRef code) {
+        return Crypto.rsaPublic(n, e, code);
+    }
+
+    public static Object M3jCrypto__EcPublic(long curve, String x, String y, LongRef code) {
+        return Crypto.ecPublic(curve, x, y, code);
+    }
+
+    public static Object M3jCrypto__PublicFromDer(String der, LongRef code) {
+        return Crypto.fromDer(der, false, code);
+    }
+
+    public static Object M3jCrypto__PrivateFromDer(String der, LongRef code) {
+        return Crypto.fromDer(der, true, code);
+    }
+
+    public static long M3jCrypto__KeyKind(Object k) {
+        return Crypto.keyKind(k);
+    }
+
+    public static String M3jCrypto__KeyDer(Object k) {
+        return Crypto.keyDer(k);
+    }
+
+    public static String M3jCrypto__PublicPart(Object k, long i) {
+        return Crypto.publicPart(k, i);
+    }
+
+    public static Object M3jCrypto__Generate(long kind, long bits, ObjRef priv, LongRef code) {
+        return Crypto.generate(kind, bits, priv, code);
+    }
+
+    public static String M3jCrypto__Sign(long alg, Object k, String data, LongRef code) {
+        return Crypto.sign(alg, k, data, code);
+    }
+
+    public static boolean M3jCrypto__Verify(long alg, Object k, String data, String sig) {
+        return Crypto.verify(alg, k, data, sig);
+    }
+
+    public static String M3jCrypto__X25519(String scalar, String u, LongRef code) {
+        return Crypto.x25519(scalar, u, code);
+    }
+
     // M3jNet (m3j's modules TCP and IP): see Net
     public static long M3jNet__Listen(long addr, long port) {
         return Net.listen(addr, port);

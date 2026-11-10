@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -302,6 +302,35 @@ grammar of RFC 3986 and refuses what it does not allow, such as a backslash. The
 parts of a `URI.T` keep their escapes, and a part that is missing is `NIL`,
 which is different from one that is empty.
 
+### Cryptography
+
+The library crypto has digests and HMAC (`Digest`: MD5, SHA-1, SHA-2, SHA-3),
+authenticated encryption (`Aead`: AES-GCM, ChaCha20-Poly1305), key derivation
+(`Kdf`: PBKDF2, HKDF), signatures (`Signature`: Ed25519, RSA with PKCS #1 v1.5
+and PSS, ECDSA on P-256, P-384 and P-521), key agreement (`X25519`), random
+bytes and identifiers (`Crypto`, `UUID` of versions 4 and 7). The primitives
+are those of the Java platform; the library chooses the parameters and adds the
+checks that the platform leaves out. As in encoding, a `TEXT` stands for bytes:
+
+```modula-3
+key := Crypto.Random (32);
+sealed := Aead.Seal (Aead.Algorithm.ChaCha20Poly1305, key, Utf8.Encode (message));
+
+mac := Digest.Hmac (Digest.Algorithm.SHA256, secret, data);
+IF NOT Crypto.Equal (mac, received) THEN ... END;
+
+pub := Signature.PublicFromPem (pem);
+ok := Signature.Verify (Signature.Algorithm.EcdsaP256Sha256, pub, data, sig);
+```
+
+Errors raise `Crypto.Error` with an atom such as `Crypto.BadTag`. A message
+that is not authentic gives nothing of its plain text; a signature that is
+malformed in any way is not valid; a key that does not fit the algorithm is an
+error, which a program that takes the algorithm from a message must treat as a
+refusal. RSA keys have at least 2048 bits, and points of curves are checked,
+also those from PEM texts. PEM texts are SubjectPublicKeyInfo and unencrypted
+PKCS #8; other forms are `Crypto.Unsupported`.
+
 ### Java APIs
 
 An interface can stand for a Java class. The program then calls its
@@ -506,7 +535,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip, encoding), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip, encoding, crypto), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.
