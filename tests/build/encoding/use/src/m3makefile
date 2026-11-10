@@ -1,0 +1,5 @@
+% A program that imports the package encoding.
+import ("libm3")
+import ("encoding")
+implementation ("Main")
+program ("use")

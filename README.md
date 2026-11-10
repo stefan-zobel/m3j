@@ -41,7 +41,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
@@ -277,6 +277,31 @@ The checksum of each entry is compared at its end. The name of an entry can be
 something like `../x`: a program that makes files from names must check them,
 and `SafeName` does. Encrypted archives and two entries of one name are refused.
 
+### Encodings
+
+The library encoding has the small formats that protocols are made of, in plain
+Modula-3: `Hex`, `Utf8`, `Base64`, `URI` and `RFC3339`. Except for `Utf8`, a
+`TEXT` here stands for bytes, one character for each byte, so text in Unicode
+goes through `Utf8.Encode` first. Input from elsewhere that is malformed makes
+a procedure return `FALSE`:
+
+```modula-3
+IF Base64.Decode (token, data, Base64.Alphabet.Url, Base64.Padding.Forbidden) THEN ... END;
+
+IF URI.Parse ("https://example.com/a/b?x=1&y=a+b", u)
+     AND URI.ParseQuery (u.query, pairs) THEN
+  target := URI.Format (URI.Resolve (u, relative));
+END;
+
+IF RFC3339.Parse ("1996-12-19T16:39:57-08:00", time, offset) THEN ... END;
+text := RFC3339.Format (Time.Now (), digits := 3);   (* in UTC, ending in Z *)
+```
+
+`Base64.Decode` accepts each value in one form only. `URI.Parse` follows the
+grammar of RFC 3986 and refuses what it does not allow, such as a backslash. The
+parts of a `URI.T` keep their escapes, and a part that is missing is `NIL`,
+which is different from one that is empty.
+
 ### Java APIs
 
 An interface can stand for a Java class. The program then calls its
@@ -481,7 +506,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip, encoding), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.

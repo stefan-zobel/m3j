@@ -1,0 +1,8 @@
+$ m3build use
+--- building in JVM ---
+
+new sources -> compiling use.jar
+exit 0
+$ run use/JVM/use
+example.com c3a9 bGlua2Vk 1970-01-01T00:00:00Z
+exit 0

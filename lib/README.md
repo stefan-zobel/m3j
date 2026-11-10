@@ -134,6 +134,14 @@ in `Deflate`, because `GZIPInputStream` takes garbage after the data for its
 end. `m3j.rt.Zip` compares the CRC and the length of the entries of an archive,
 which `ZipFile` does not do.
 
+## encoding
+
+Not a package of cm3: `Hex`, `Utf8`, `Base64` (RFC 4648, strict), `URI`
+(RFC 3986: parts, resolution, normalization, queries and escapes) and `RFC3339`,
+all safe and in plain Modula-3. The private Base64 and escapes of `HTTP` are
+older and stay, because `HTTP.ParseBasicAuth` takes values that `Base64.Decode`
+refuses.
+
 ## netobj
 
 The package netobj of CM3 5.12.0 (the sources of the same commit): the
