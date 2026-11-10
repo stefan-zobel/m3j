@@ -19,7 +19,11 @@ else
 fi
 
 rm -rf out && mkdir -p out
-"$JAVAC" --release 25 -Xlint:all -Werror -encoding UTF-8 -d out \
+# JSch for the library ssh (src/vendor/jsch, taken by tools/jsch_import.py),
+# without lint: it stays as it comes
+"$JAVAC" --release 25 -Xlint:none -XDsuppressNotes -encoding UTF-8 -d out \
+  $(find src/vendor/jsch -name '*.java')
+"$JAVAC" --release 25 -Xlint:all -Werror -encoding UTF-8 -cp out -d out \
   $(find src/main/java -name '*.java')
 # the Modula-3 library that m3j brings (lib: m3core, libm3, tcp, netobj, sysutils, json and libbuf of cm3,
 # tls, http, xml, zip, encoding, crypto, and the units of m3j), a resource of the jar
@@ -34,9 +38,11 @@ echo "built m3j.jar"
 # The runtime jar: what a compiled program needs at run time (m3j.rt and
 # the Java implementations of library interfaces, m3.i, with the
 # fingerprints of m3j.fingerprint and m3j.util that m3.i.Fingerprint
-# uses), without the compiler. A program compiled with -d runs with
+# uses, and JSch in m3j.jsch for the library ssh), without the compiler. A
+# program compiled with -d runs with
 # java -cp m3j-runtime.jar:<outdir> m3.Main
-"$JAR" --create --file m3j-runtime.jar --manifest out.mf -C out m3j/rt -C out m3j/fingerprint -C out m3j/util -C out m3
+"$JAR" --create --file m3j-runtime.jar --manifest out.mf -C out m3j/rt -C out m3j/fingerprint -C out m3j/util \
+  -C out m3j/jsch -C out m3
 rm -f out.mf
 echo "built m3j-runtime.jar"
 

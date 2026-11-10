@@ -663,3 +663,9 @@ netobj, sysutils, libbuf, and json with the notice of its author,
 `tests/diff/src`, `tests/pkg`, `tests/net`, `tests/m3front` (CM3's front end, see
 [`tests/m3front/README.md`](tests/m3front/README.md)) and `tests/stubgen` (CM3's stub generator for
 network objects, see [`tests/stubgen/README.md`](tests/stubgen/README.md)), and `tools/m3bundle` (CM3's m3bundle).
+
+`src/vendor/jsch` is a part of JSch (https://github.com/mwiede/jsch), taken by
+`tools/jsch_import.py` with the package renamed to `m3j.jsch`; it is distributed
+under its license in [`BSD-JSCH`](licenses/BSD-JSCH), its bcrypt under [`ISC-JBCRYPT`](licenses/ISC-JBCRYPT).
+Every file keeps its notice; the changes, the package name, are distributed
+under the MIT license in [`LICENSE`](LICENSE). `src/vendor/jsch/ORIGIN` names the release.
