@@ -23,7 +23,7 @@ import m3j.jsch.Session;
  * A helper of tools/ssh_test.py: the JSch of m3j directly, without the
  * library ssh, so that a part left out by tools/jsch_import.py shows.
  *
- * <pre>java -cp m3j-runtime.jar Probe.java HOST PORT USER PASSWORD KNOWN_HOSTS</pre>
+ * <pre>java -cp m3j-ssh.jar Probe.java HOST PORT USER PASSWORD KNOWN_HOSTS</pre>
  *
  * Each line of the input names a key exchange, a host key algorithm, a
  * cipher and a MAC ("-" for the defaults). For each the probe connects,

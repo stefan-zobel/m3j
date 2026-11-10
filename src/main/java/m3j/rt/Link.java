@@ -60,6 +60,15 @@ public final class Link {
     /** Bootstrap of a call of an &lt;*EXTERNAL*&gt; procedure: a method of Externals. */
     public static CallSite external(MethodHandles.Lookup lookup, String name, MethodType type)
             throws ReflectiveOperationException {
+        if (name.startsWith("M3jSsh__")) {
+            // the library ssh is in a jar of its own, next to the runtime
+            try {
+                Class.forName("m3j.rt.Ssh", false, Externals.class.getClassLoader());
+            } catch (ClassNotFoundException e) {
+                throw new LinkageError("m3j: the library ssh needs m3j-ssh.jar on the class path,"
+                                       + " next to m3j-runtime.jar");
+            }
+        }
         try {
             return new ConstantCallSite(MethodHandles.lookup().findStatic(Externals.class, name, type));
         } catch (NoSuchMethodException e) {

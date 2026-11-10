@@ -1,5 +1,7 @@
-% exports of ssh: commands and SFTP over SSH, on JSch in the runtime of m3j
+% exports of ssh: commands and SFTP over SSH, on JSch in m3j-ssh.jar, which
+% is next to the runtime of m3j (in the directory of m3j, above lib)
 _define_lib("ssh")
+java_classpath("../../../m3j-ssh.jar")
 import_version("m3core", "JVM")
 import_version("libm3", "JVM")
 _map_add_interface("SFTP.i3", "ssh", "src", "")

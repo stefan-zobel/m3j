@@ -38,13 +38,23 @@ echo "built m3j.jar"
 # The runtime jar: what a compiled program needs at run time (m3j.rt and
 # the Java implementations of library interfaces, m3.i, with the
 # fingerprints of m3j.fingerprint and m3j.util that m3.i.Fingerprint
-# uses, and JSch in m3j.jsch for the library ssh), without the compiler. A
-# program compiled with -d runs with
+# uses), without the compiler. A program compiled with -d runs with
 # java -cp m3j-runtime.jar:<outdir> m3.Main
-"$JAR" --create --file m3j-runtime.jar --manifest out.mf -C out m3j/rt -C out m3j/fingerprint -C out m3j/util \
-  -C out m3j/jsch -C out m3
-rm -f out.mf
+# The library ssh is in a jar of its own, m3j-ssh.jar: JSch in m3j.jsch and
+# its bridge m3j.rt.Ssh, which a program that does not use ssh never loads.
+# m3build puts it on the class path of a program that imports ssh (the
+# .M3EXPORTS of ssh names it); without m3build such a program runs with
+# java -cp m3j-runtime.jar:m3j-ssh.jar:<outdir> m3.Main
+mkdir -p out/runtime/m3j out/ssh/m3j/rt
+cp -r out/m3j/rt out/m3j/fingerprint out/m3j/util out/runtime/m3j
+cp -r out/m3 out/runtime
+mv out/runtime/m3j/rt/Ssh.class out/runtime/m3j/rt/Ssh\$*.class out/ssh/m3j/rt
+cp -r out/m3j/jsch out/ssh/m3j
+"$JAR" --create --file m3j-runtime.jar --manifest out.mf -C out/runtime .
 echo "built m3j-runtime.jar"
+"$JAR" --create --file m3j-ssh.jar --manifest out.mf -C out/ssh .
+rm -f out.mf
+echo "built m3j-ssh.jar"
 
 if [ -n "$JDK25" ]; then JAVA="$JDK25/bin/java"; else JAVA=java; fi
 

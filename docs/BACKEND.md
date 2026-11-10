@@ -20,7 +20,8 @@ Packages:
   linker);
 - `m3j.rt`: the runtime library, shipped as its own jar
   (`m3j-runtime.jar`), so that a compiled program needs only the runtime
-  and not the compiler.
+  and not the compiler; the bridge of the library ssh (`m3j.rt.Ssh`) is
+  with JSch in `m3j-ssh.jar`, which only programs that use ssh need.
 
 The safe language only. UNSAFE interfaces and modules are rejected, as
 before; the front end's own import of `RTHooks` does not count.

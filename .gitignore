@@ -4,6 +4,7 @@
 /out.log
 /m3j.jar
 /m3j-runtime.jar
+/m3j-ssh.jar
 /m3j.aot
 /m3j.cfg
 /m3bundle.jar

@@ -160,9 +160,15 @@ the modules of the package only.
 Not a package of cm3: `SSH` (safe), commands on a server (`run` collects the
 output, `start` gives a process with a writer for its input and readers for
 its outputs), and `SFTP` (safe), files of the server as readers and writers,
-their attributes, directories and links. Both are on a copy of JSch in the
-runtime (`m3j.jsch`, imported by `tools/jsch_import.py`, see
-`src/vendor/jsch/ORIGIN`), through `M3jSsh` and `m3j.rt.Ssh`. The bridge
+their attributes, directories and links. Both are on a copy of JSch
+(`m3j.jsch`, imported by `tools/jsch_import.py`, see
+`src/vendor/jsch/ORIGIN`), through `M3jSsh` and `m3j.rt.Ssh`, which are in a
+jar of their own, `m3j-ssh.jar`, next to `m3j-runtime.jar`: a program that
+does not use ssh never loads them and does not need the jar. The .M3EXPORTS
+of ssh names the jar with `java_classpath`, so m3build puts it on the class
+path of a program that imports ssh; without m3build it is named with `-cp`.
+A program that calls the library without the jar stops at the first call,
+with a message that names it. The bridge
 answers JSch itself: the key of the server is checked against known_hosts
 (also hashed entries and `@revoked`), taken on first use (`AcceptNew`, which
 appends a line and never takes a changed key) or compared with a fingerprint;

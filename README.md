@@ -28,7 +28,8 @@ JDK25=/path/to/jdk-25 sh build.sh
 ```
 
 writes `m3j.jar` (compiler, runtime and the Modula-3 library), `m3j-runtime.jar`
-(only what a compiled program needs), `m3bundle.jar` (cm3's m3bundle,
+(only what a compiled program needs), `m3j-ssh.jar` (JSch for the library
+ssh, which only programs that use it need), `m3bundle.jar` (cm3's m3bundle,
 compiled by m3j), `m3build.jar` (the build system, see below) with its
 configuration `m3j.cfg`, `stubgen.jar` (cm3's stub generator of network
 objects, compiled by m3j; `M3J_STUBGEN=no` skips it), `m3_lang_server.jar`
@@ -52,6 +53,10 @@ java -XX:AOTCache=m3j.aot -cp m3j.jar m3j.jvm.Compile Main.m3 -d out
 java -cp m3j-runtime.jar:out m3.Main
 java -cp m3j.jar m3j.jvm.Compile Main.m3 -run ARG...   # in memory
 ```
+
+A program that uses the library ssh also needs `m3j-ssh.jar`:
+`java -cp m3j-runtime.jar:m3j-ssh.jar:out m3.Main`. m3build adds it by
+itself, and `-run` has it in `m3j.jar`.
 
 `-I DIR` adds a source directory, `-pkg DIR` another package: a package
 directory of a cm3 installation (`CM3DIR/pkg/NAME/AMD64_NT`) or a source
@@ -351,7 +356,8 @@ PKCS #8; other forms are `Crypto.Unsupported`.
 ### SSH and SFTP
 
 The library ssh runs commands on a server (`SSH`) and works with its files
-(`SFTP`), on a copy of JSch in the runtime. A connection checks the key of the
+(`SFTP`), on a copy of JSch in `m3j-ssh.jar`, next to the runtime, which
+programs without SSH do not carry. A connection checks the key of the
 server against `~/.ssh/known_hosts` unless the options say otherwise
 (`AcceptNew` takes and records a key on first use, `Fingerprint` compares with
 a given `SHA256:...`); there is no option to take any key. The user logs in
@@ -728,6 +734,7 @@ network objects, see [`tests/stubgen/README.md`](tests/stubgen/README.md)), and 
 
 `src/vendor/jsch` is a part of JSch (https://github.com/mwiede/jsch), taken by
 `tools/jsch_import.py` with the package renamed to `m3j.jsch`; it is distributed
-under its license in [`BSD-JSCH`](licenses/BSD-JSCH), its bcrypt under [`ISC-JBCRYPT`](licenses/ISC-JBCRYPT).
+under its license in [`BSD-JSCH`](licenses/BSD-JSCH), its bcrypt under [`ISC-JBCRYPT`](licenses/ISC-JBCRYPT),
+in `m3j-ssh.jar` and `m3j.jar`.
 Every file keeps its notice; the changes, the package name, are distributed
 under the MIT license in [`LICENSE`](LICENSE). `src/vendor/jsch/ORIGIN` names the release.

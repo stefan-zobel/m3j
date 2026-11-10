@@ -7,8 +7,8 @@ and against the sftp-server of OpenSSH. They need no connection to the
 internet.
 
   python3 tools/ssh_test.py [CASE]... [--java JAVA] [--jar JAR]
-                            [--runtime JAR] [--work DIR] [--keep]
-                            [--timeout SECONDS]
+                            [--runtime JAR] [--ssh-jar JAR] [--work DIR]
+                            [--keep] [--timeout SECONDS]
 
 The cases:
 
@@ -34,10 +34,12 @@ The cases:
            OpenSSH: sizes around the blocks of 32 KB, offsets, appending,
            all operations, errors, names with umlauts, Busy, alerts,
            timeouts and a connection that breaks in a read
+  nojar    the program without m3j-ssh.jar: the first call of the library
+           stops it with a message that names the jar
 
 Without arguments all cases run. JAVA defaults to $JDK25/bin/java, else java
-from the PATH; JAR to m3j.jar and the runtime to m3j-runtime.jar in the root
-of m3j. The Python module asyncssh must be installed; ssh-keygen and
+from the PATH; JAR to m3j.jar, the runtime to m3j-runtime.jar and the jar of
+the library ssh (JSch and its bridge) to m3j-ssh.jar in the root of m3j. The Python module asyncssh must be installed; ssh-keygen and
 sftp-server of OpenSSH are taken from Git for Windows on Windows and from
 the PATH or /usr/lib/openssh elsewhere.
 """
@@ -432,13 +434,14 @@ class Env:
         self.work = work
         self.server = Server(work)
         self.classes = work / "classes"
-        self.cp = str(self.classes) + os.pathsep + args.runtime
+        self.cp = os.pathsep.join([str(self.classes), args.runtime, args.ssh_jar])
         self.compiled = False
 
     def probe(self, port, lines):
         known = self.work / ("known_hosts_%d" % port)
         self.server.known_hosts(port, known)
-        r = subprocess.run([self.args.java, "-cp", self.args.runtime, str(TESTS / "Probe.java"), "127.0.0.1",
+        r = subprocess.run([self.args.java, "-cp", self.args.runtime + os.pathsep + self.args.ssh_jar,
+                            str(TESTS / "Probe.java"), "127.0.0.1",
                             str(port), USER, PASSWORD, str(known)],
                            input="".join(line + "\n" for line in lines), capture_output=True, text=True,
                            timeout=self.args.timeout)
@@ -449,7 +452,7 @@ class Env:
             raise Failed("Probe: %d answers to %d requests" % (len(answers), len(lines)))
         return answers
 
-    def program(self):
+    def compile(self):
         if not self.compiled:
             cmd = [self.args.java, "-Xss64m", "-cp", self.args.jar, "m3j.jvm.Compile", str(TESTS / "src" / "Main.m3"),
                    "-d", str(self.classes)]
@@ -457,6 +460,9 @@ class Env:
             if r.returncode or r.stdout.strip() or r.stderr.strip():
                 raise Failed("compile:\n" + r.stdout + r.stderr)
             self.compiled = True
+
+    def program(self):
+        self.compile()
         return Program(self)
 
     def known(self, port, name, keys=None):
@@ -886,8 +892,22 @@ def case_sftp(env):
     m.close()
 
 
+def case_nojar(env):
+    # JSch and the bridge are in m3j-ssh.jar: without it the program runs
+    # until its first call of the library, which names the missing jar
+    env.compile()
+    port = env.server.start()
+    line = Program.connect(None, port, known=env.known(port, "known"))
+    r = subprocess.run([env.args.java, "-cp", str(env.classes) + os.pathsep + env.args.runtime, "m3.Main"],
+                       cwd=env.work, input="pause 0.0\n" + line + "\n", capture_output=True, text=True,
+                       timeout=env.args.timeout)
+    want = "m3j: the library ssh needs m3j-ssh.jar on the class path, next to m3j-runtime.jar"
+    if r.returncode == 0 or want not in r.stderr or r.stdout != "ok\n":
+        raise Failed("without m3j-ssh.jar: exit %d, %r, %s" % (r.returncode, r.stdout[:200], r.stderr[-2000:]))
+
+
 CASES = {"jsch": case_jsch, "algos": case_algos, "hostkey": case_hostkey, "auth": case_auth, "exec": case_exec,
-         "sftp": case_sftp}
+         "sftp": case_sftp, "nojar": case_nojar}
 
 
 def main():
@@ -897,6 +917,7 @@ def main():
     ap.add_argument("--java", default=str(Path(jdk) / "bin" / "java") if jdk else "java")
     ap.add_argument("--jar", default=str(ROOT / "m3j.jar"))
     ap.add_argument("--runtime", default=str(ROOT / "m3j-runtime.jar"))
+    ap.add_argument("--ssh-jar", default=str(ROOT / "m3j-ssh.jar"))
     ap.add_argument("--work")
     ap.add_argument("--keep", action="store_true")
     ap.add_argument("--timeout", type=int, default=300)
