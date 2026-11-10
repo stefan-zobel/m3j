@@ -52,7 +52,10 @@ TYPE
    does the decoding of "chunked", and it raises "Rd.Failure" with
    "HTTP.TooLarge" beyond "maxBodyBytes", with "HTTP.Timeout" after
    "readTimeout" and with "HTTP.BadMessage" on a malformed or incomplete
-   body. It is valid only until the handler returns.
+   body. It is valid only until the handler returns. A "Content-Encoding"
+   is not undone: a handler that takes gzip reads "Deflate.NewRd (body)",
+   and sets "maxBytes" there, because "maxBodyBytes" limits only the
+   compressed bytes.
 
    "peer" is the address of the client and "secure" tells whether the
    connection uses TLS. *)
@@ -63,6 +66,7 @@ TYPE
     headers: HTTP.Headers;
   METHODS
     body (): Wr.T;
+    compress ();
   END;
 
 (* A handler sets "status" and "headers" and then writes to the writer that
@@ -81,7 +85,27 @@ TYPE
 
    The server sets "Date" unless the handler did. A status outside 200 to
    599, a "Transfer-Encoding" field or an invalid name or value of a field
-   turns the response into a 500. *)
+   turns the response into a 500.
+
+   "compress" asks that the body go out in gzip if the request allows that.
+   Call it before "body", with "status" and "headers" already set, for "body"
+   decides from them; a call after "body" does nothing. The body is not
+   compressed if the status is 204, 206 or 304, if "headers" has a
+   "Content-Encoding" or a "Content-Range", or if the "Accept-Encoding" of
+   the request does not accept gzip or is absent.
+
+   A response for which "compress" was called has "Vary: Accept-Encoding",
+   compressed or not. One that is compressed has "Content-Encoding: gzip";
+   it loses a "Content-Length", which would describe the data before the
+   compression, and a strong "ETag" becomes a weak one. "Wr.Flush" passes on
+   what has been written so far. The answer to a "HEAD" has the fields of
+   the answer to a "GET" if the handler writes the same body.
+
+   The handler decides what is worth compressing: data that is compressed
+   already only gets larger. Each response that is being compressed holds
+   about 300 KB of memory outside the heap. Do not use "compress" for a
+   body that contains a secret and also text that an attacker can choose,
+   because the length of the output reveals how far the two are alike. *)
 
   Priority = {High, Normal, Low};
 

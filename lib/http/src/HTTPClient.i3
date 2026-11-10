@@ -20,6 +20,7 @@ TYPE
     followRedirects := TRUE;
     proxy: TEXT := NIL;
     ctx: TLS.Context := NIL;
+    decompress := TRUE;
   END;
 
 (* "connectTimeout" limits the seconds to connect, if it is positive.
@@ -30,7 +31,14 @@ TYPE
    finds; "NIL" leaves that to the platform.
 
    "ctx", if not "NIL", decides which certificates are trusted and which
-   certificate the client presents; the default is that of the platform. *)
+   certificate the client presents; the default is that of the platform.
+
+   "decompress" sends "Accept-Encoding: gzip" and undoes that coding of the
+   response. A request of the method "HEAD", with a "Range" or with an
+   "Accept-Encoding" of its own is sent as it is, and its response is not
+   decoded. The size of the decoded data has no limit: a small response can
+   expand enormously. For a server that is not trusted, set this to "FALSE"
+   and read "Deflate.NewRd" with "maxBytes" on the body. *)
 
 CONST Defaults = Options {};
 
@@ -63,6 +71,7 @@ TYPE
     version: TEXT;
     headers: HTTP.Headers;
     body: Rd.T;
+    decoded := FALSE;
   METHODS
     close ();
   END;
@@ -73,7 +82,12 @@ TYPE
    "body" reads the body: "Rd.Failure" with "HTTP.Timeout" after "timeout"
    and with "HTTP.BadMessage" if the response is incomplete. A body that is
    read to its end returns the connection to the pool. "close" gives up the
-   rest of the response, and its connection if that is needed. *)
+   rest of the response, and its connection if that is needed.
+
+   "decoded" tells that the body was in gzip and "body" undoes that; then
+   "headers" has neither "content-encoding" nor "content-length", which
+   described the compressed data, and damaged data is an "Rd.Failure" with
+   "Deflate.Corrupt" or "Deflate.Truncated". *)
 
   T <: ROOT;
 
@@ -94,7 +108,10 @@ PROCEDURE New (READONLY o := Defaults): T RAISES {HTTP.Error};
    "HTTP.Timeout" after "connectTimeout" or "timeout".
 
    "TLS.BadCertificate" if the certificate of the server is not accepted,
-   and "TLS.HandshakeFailed" for other errors of TLS. *)
+   and "TLS.HandshakeFailed" for other errors of TLS.
+
+   "GetText" also raises it with "Deflate.Corrupt" or "Deflate.Truncated" if
+   the body in gzip is damaged. *)
 
 PROCEDURE Send (c: T; r: Request): Response RAISES {HTTP.Error, Thread.Alerted};
 (* Sends "r" and returns the response when its head has arrived. A status

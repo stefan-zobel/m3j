@@ -21,6 +21,11 @@ The cases:
            output, checked by hand, is tests/http/expected/client.txt
   together server and client in one program, with
            tests/http/expected/together.txt
+  gzip     compression in the server, on raw sockets, against zlib of Python
+           and curl
+  gzclient compression in the client, against http.server of Python and the
+           server of m3j; the output, checked by hand, is
+           tests/http/expected/gzclient.txt
 
 Without arguments all cases run. --speed also measures the rates of a server
 on this machine, for information. JAVA defaults to $JDK25/bin/java, else java
@@ -31,6 +36,7 @@ import argparse
 import base64
 import calendar
 import email.utils
+import gzip
 import hashlib
 import http
 import http.client
@@ -46,6 +52,7 @@ import tempfile
 import threading
 import time
 import urllib.parse
+import zlib
 from pathlib import Path
 
 import tls_test
@@ -311,6 +318,7 @@ class Peer:
             name, value = line.split(b":", 1)
             fields.append((name.decode().lower(), value.strip().decode("latin-1")))
         d = dict(fields)
+        self.fields = fields
         if head or status < 200 or status in (204, 304):
             return status, d, b""
         if d.get("transfer-encoding") == "chunked":
@@ -889,9 +897,86 @@ class Backend(http.server.BaseHTTPRequestHandler):
                 self.rfile.readline()
         return self.rfile.read(int(self.headers.get("Content-Length", "0")))
 
+    watched = "nothing"
+
+    def watch(self):
+        """Half a response, and then what the client does with the connection."""
+        data = gzip.compress(noise(20000), mtime=0)
+        self.send_response(200)
+        self.send_header("Content-Encoding", "gzip")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data[:len(data) // 2])
+        self.wfile.flush()
+        self.connection.settimeout(4)
+        try:
+            Backend.watched = "data" if self.connection.recv(1) else "closed"
+        except socket.timeout:
+            Backend.watched = "open"
+        except OSError:
+            Backend.watched = "closed"
+        self.close_connection = True
+
+    def gz(self, what):
+        """A response in gzip, of the sort that the name says."""
+        if what == "watch":
+            self.watch()
+            return
+        if what == "watched":
+            self.reply(200, Backend.watched.encode())
+            return
+        if self.command == "POST":
+            self.read_body()
+        plain = b"hello compressed " * 100
+        data = gzip.compress(plain, mtime=0)
+        fields = [("X-Seen", self.headers.get("Accept-Encoding", "-")), ("X-Port", str(self.client_address[1]))]
+        if what in ("204", "304"):
+            self.send_response(int(what))
+            self.send_header("Content-Encoding", "gzip")
+            for k, v in fields:
+                self.send_header(k, v)
+            self.end_headers()
+            return
+        if what == "redirect":
+            self.reply(302, b"", [("Location", "/gz/plain")])
+            return
+        if what == "cut" or what == "slow":
+            if what == "slow":
+                data = gzip.compress(noise(20000), mtime=0)
+            self.send_response(200)
+            self.send_header("Content-Encoding", "gzip")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data[:len(data) // 2])
+            self.wfile.flush()
+            if what == "slow":
+                time.sleep(3)
+            self.close_connection = True
+            return
+        # a block of the reserved type, the same in every version of zlib
+        invalid = bytes.fromhex("1f8b08000000000000ff") + b"\x07" + bytes(20)
+        body, codings = {"plain": (data, ["gzip"]), "upper": (data, ["GZIP"]), "x-gzip": (data, ["x-gzip"]),
+                         "list": (data, ["gzip, br"]), "twofields": (data, ["gzip", "gzip"]), "br": (data, ["br"]),
+                         "none": (plain, []), "empty": (b"", ["gzip"]), "emptygz": (gzip.compress(b"", mtime=0), ["gzip"]),
+                         "members": (data + data, ["gzip"]), "zeros": (data + bytes(10), ["gzip"]),
+                         "corrupt": (invalid, ["gzip"]), "badcrc": (data[:-8] + bytes([data[-8] ^ 1]) + data[-7:], ["gzip"]),
+                         "trunc": (data[:-4], ["gzip"]), "notgzip": (plain, ["gzip"]), "trailing": (data + b"xx", ["gzip"]),
+                         "error": (data, ["gzip"]), "big": (gzip.compress(pattern(3000000), mtime=0), ["gzip"])}[what]
+        self.send_response(500 if what == "error" else 200)
+        for c in codings:
+            self.send_header("Content-Encoding", c)
+        for k, v in fields:
+            self.send_header(k, v)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(body)
+
     def handle_any(self):
         path = self.path.replace("http://proxied.invalid", "")
-        if path.startswith("/text"):
+        if path.startswith("/gz/"):
+            self.gz(path[4:])
+        elif path.startswith("/text"):
             self.reply(200, b"hello")
         elif path.startswith("/status/"):
             self.reply(int(path[8:]), b"status body")
@@ -944,7 +1029,7 @@ class Backend(http.server.BaseHTTPRequestHandler):
         else:
             self.reply(404, b"unknown")
 
-    do_GET = do_POST = do_PUT = do_PATCH = do_DELETE = handle_any
+    do_GET = do_POST = do_PUT = do_PATCH = do_DELETE = do_HEAD = handle_any
 
 
 class Backends:
@@ -998,6 +1083,302 @@ def case_together(env):
     compare("together", out, (TESTS / "expected" / "together.txt").read_text())
 
 
+def noise(n):
+    """The bytes of PutNoise in Main.m3: they do not compress."""
+    out = bytearray(n)
+    x = 1
+    for i in range(n):
+        x = (x * 1103515245 + 12345) % 2147483648
+        out[i] = (x >> 16) & 255
+    return bytes(out)
+
+
+def gunzip(b):
+    """The data of exactly one gzip member; anything else is a failure."""
+    d = zlib.decompressobj(31)
+    try:
+        out = d.decompress(b) + d.flush()
+    except zlib.error as e:
+        raise Failed("gzip: %s in %r" % (e, b[:40]))
+    if not d.eof or d.unused_data:
+        raise Failed("gzip: eof %s, %d bytes after it" % (d.eof, len(d.unused_data)))
+    return out
+
+
+def gz_request(query, ae=b"gzip", method=b"GET", version=b"HTTP/1.1"):
+    fields = H if version == b"HTTP/1.1" else b""
+    if ae is not None:
+        for v in [ae] if isinstance(ae, bytes) else ae:
+            fields += b"Accept-Encoding: " + v + b"\r\n"
+    return method + b" /gz" + query + b" " + version + b"\r\n" + fields + b"\r\n"
+
+
+# the field or fields of a request, and whether the answer is in gzip
+ACCEPT = [
+    (b"gzip", True),
+    (b"GZIP", True),
+    (b"Gzip", True),
+    (b"x-gzip", True),
+    (b"X-GZIP", True),
+    (b"deflate, gzip", True),
+    (b"deflate,gzip,br", True),
+    (b"  gzip  ", True),
+    (b"gzip;q=1", True),
+    (b"gzip;q=1.", True),
+    (b"gzip;q=1.0", True),
+    (b"gzip;q=1.000", True),
+    (b"gzip;q=0.5", True),
+    (b"gzip;q=0.001", True),
+    (b"gzip ; q=0.5", True),
+    (b"gzip;Q=1", True),
+    (b"gzip,", True),
+    (b",gzip", True),
+    (b"*", True),
+    (b"*;q=0.1", True),
+    (b"br, *", True),
+    (b"gzip;q=0.5, *;q=0", True),
+    ([b"br", b"gzip"], True),
+    ([b"gzip", b"br"], True),
+    (None, False),
+    (b"", False),
+    (b"identity", False),
+    (b"br", False),
+    (b"deflate, br", False),
+    (b"gzipx", False),
+    (b"notgzip", False),
+    (b"gzip;q=0", False),
+    (b"gzip;q=0.", False),
+    (b"gzip;q=0.0", False),
+    (b"gzip;q=0.000", False),
+    (b"gzip ; q=0", False),
+    (b"GZIP;Q=0", False),
+    (b"x-gzip;q=0", False),
+    (b"*;q=0", False),
+    (b"gzip;q=0, *", False),
+    (b"*, gzip;q=0", False),
+    (b"*;q=0, br", False),
+    (b"*, *;q=0", False),
+    (b"gzip, gzip;q=0", False),
+    (b"gzip;q=0, x-gzip", False),
+    ([b"gzip", b"gzip;q=0"], False),
+    (b"gzip;q=abc", False),
+    (b"gzip;q=0.a", False),
+    (b"gzip;q=0.00x", False),
+    (b"gzip;q=", False),
+    (b"gzip;", False),
+    (b"gzip;q=2", False),
+    (b"gzip;q=1.5", False),
+    (b"gzip;q=1.0000", False),
+    (b"gzip;q=0.0001", False),
+    (b"gzip;level=1", False),
+    (b"gzip;q=0.5;x=1", False),
+]
+
+
+def case_gzip(env):
+    srv = Server(env)
+    try:
+        port = srv.port
+        p = Peer(port)
+        want = pattern(1000)
+        for ae, yes in ACCEPT:
+            st, d, body = p.send(gz_request(b"", ae)).response()
+            what = "accept %r" % (ae,)
+            check(what, st, 200)
+            check(what + ": vary", d.get("vary"), "Accept-Encoding")
+            if yes:
+                check(what + ": coding", d.get("content-encoding"), "gzip")
+                check(what + ": data", gunzip(body), want)
+                check(what + ": smaller", len(body) < 1000, True)
+            else:
+                check(what + ": coding", d.get("content-encoding"), None)
+                check(what + ": data", body, want)
+            check(what + ": framing", d.get("content-length"), str(len(body)))
+        p.close()
+
+        def one(query, ae=b"gzip", method=b"GET", version=b"HTTP/1.1"):
+            q = Peer(port).send(gz_request(query, ae, method, version))
+            r = q.response(head=method == b"HEAD")
+            fields = q.fields
+            q.close()
+            return r[0], r[1], r[2], fields
+
+        # short responses have a length, others are chunked
+        st, d, body, _ = one(b"?n=300000&noise=1")
+        check("long: chunked", d.get("transfer-encoding"), "chunked")
+        check("long: no length", d.get("content-length"), None)
+        check("long: data", gunzip(body), noise(300000))
+        st, d, body, _ = one(b"?n=20000&noise=1")
+        check("over the buffer: chunked", d.get("transfer-encoding"), "chunked")
+        check("over the buffer: data", gunzip(body), noise(20000))
+        st, d, body, _ = one(b"?n=1000000")
+        check("much more than the buffer, compressed to less: length", d.get("content-length"), str(len(body)))
+        check("much more than the buffer, compressed to less: data", gunzip(body), pattern(1000000))
+
+        # bodies that are empty
+        st, d, body, _ = one(b"?n=0")
+        check("empty: coding", d.get("content-encoding"), "gzip")
+        check("empty: data", gunzip(body), b"")
+        st, d, body, _ = one(b"?nobody=1")
+        check("no body: coding", d.get("content-encoding"), None)
+        check("no body: vary", d.get("vary"), "Accept-Encoding")
+        check("no body: length", (d.get("content-length"), body), ("0", b""))
+
+        # Vary
+        for query, want_vary in [(b"?vary=1", ["Origin", "Accept-Encoding"]), (b"?vary=2", ["*"]), (b"?vary=3", ["accept-encoding"])]:
+            for ae in (b"gzip", None):
+                vary = [v for k, v in one(query, ae)[3] if k == "vary"]
+                check("vary %r %r" % (query, ae), vary, want_vary)
+
+        # what forbids compression
+        for query, what in [(b"?c=206", "206"), (b"?c=206&cr=1", "206 with a range"), (b"?ce=1", "own coding"), (b"?cr=1", "range")]:
+            st, d, body, _ = one(query)
+            check(what + ": data", body, want)
+            check(what + ": vary", d.get("vary"), "Accept-Encoding")
+            check(what + ": coding", d.get("content-encoding"), "br" if what == "own coding" else None)
+        for c in (204, 304):
+            st, d, body, _ = one(b"?c=%d" % c)
+            check("%d: status" % c, st, c)
+            check("%d: coding" % c, d.get("content-encoding"), None)
+            check("%d: vary" % c, d.get("vary"), "Accept-Encoding")
+            check("%d: no body" % c, body, b"")
+        st, d, body, _ = one(b"?after=204")
+        check("status set after body", (st, d.get("content-encoding"), body), (204, None, b""))
+        st, d, body, _ = one(b"?after=304")
+        check("status set after body", (st, d.get("content-encoding"), body), (304, None, b""))
+        st, d, body, _ = one(b"?c=404")
+        check("404 is compressed", (st, gunzip(body)), (404, want))
+        st, d, body, _ = one(b"?late=1")
+        check("late: coding", d.get("content-encoding"), None)
+        check("late: vary", d.get("vary"), None)
+        check("late: data", body, want)
+
+        # fields that compression changes
+        st, d, body, _ = one(b"?etag=1")
+        check("strong tag", d.get("etag"), 'W/"abc"')
+        st, d, body, _ = one(b"?etag=2")
+        check("weak tag", d.get("etag"), 'W/"abc"')
+        st, d, body, _ = one(b"?etag=1", None)
+        check("tag, not compressed", d.get("etag"), '"abc"')
+        st, d, body, _ = one(b"?claim=1000")
+        check("declared length dropped", d.get("content-length"), str(len(body)))
+        check("declared length, data", gunzip(body), want)
+        st, d, body, _ = one(b"?claim=1000", None)
+        check("declared length kept", d.get("content-length"), "1000")
+        check("declared length kept, data", body, want)
+
+        # HEAD has the fields of GET
+        got = one(b"?etag=1")[1]
+        head = one(b"?etag=1", method=b"HEAD")[1]
+        for name in ("content-encoding", "vary", "etag", "content-length"):
+            check("head " + name, head.get(name), got.get(name))
+        head = one(b"?n=300000&noise=1", method=b"HEAD")[1]
+        check("long head: coding", head.get("content-encoding"), "gzip")
+        check("long head: no framing", (head.get("content-length"), head.get("transfer-encoding")), (None, None))
+
+        # a flush reaches the client while the handler goes on
+        q = Peer(port).send(gz_request(b"?n=100&flush=1"))
+        while q.line():
+            pass
+        d = zlib.decompressobj(31)
+        out = b""
+        while len(out) < 100:
+            out += d.decompress(q.take(int(q.line(), 16)))
+            q.take(2)
+        check("flush: before the pause", out, pattern(100))
+        while True:
+            size = int(q.line(), 16)
+            if size == 0:
+                break
+            out += d.decompress(q.take(size))
+            q.take(2)
+        check("flush: all", (out, d.eof), (pattern(100) + b"after", True))
+        q.close()
+
+        # a handler that closes the writer
+        st, d, body, _ = one(b"?close=1")
+        check("close: data", gunzip(body), want)
+
+        # the connection stays in step
+        q = Peer(port)
+        q.send(gz_request(b"") + gz_request(b"?n=300000&noise=1") + get(b"/hello") + gz_request(b"", None) + gz_request(b"?n=0"))
+        check("keep-alive 1", gunzip(q.response()[2]), want)
+        check("keep-alive 2", gunzip(q.response()[2]), noise(300000))
+        check("keep-alive 3", q.response()[2], b"Hello\n")
+        check("keep-alive 4", q.response()[2], want)
+        check("keep-alive 5", gunzip(q.response()[2]), b"")
+        check("keep-alive open", q.closed(), False)
+        q.close()
+
+        # failures of a handler
+        q = Peer(port).send(gz_request(b"?n=10&fail=1"))
+        st, d, body = q.response()
+        check("failure before the head", st, 500)
+        check("failure before the head: fields", (d.get("content-encoding"), d.get("vary")), (None, None))
+        check("failure before the head: text", body, b"Internal Server Error\n")
+        q.close()
+        q = Peer(port).send(gz_request(b"?n=10&fail=2"))
+        try:
+            q.response()
+            raise Failed("failure after the head: the response looks complete")
+        except (EOFError, OSError):
+            pass
+        q.close()
+
+        # HTTP/1.0
+        q = Peer(port).send(gz_request(b"", version=b"HTTP/1.0"))
+        st, d, body = q.response()
+        check("1.0: length", d.get("content-length"), str(len(body)))
+        check("1.0: data", gunzip(body), want)
+        check("1.0: closes", q.closed(), True)
+        q.close()
+        q = Peer(port).send(gz_request(b"?n=300000&noise=1", version=b"HTTP/1.0"))
+        st, d, body = q.response()
+        check("1.0 long: framing", (d.get("content-length"), d.get("transfer-encoding")), (None, None))
+        check("1.0 long: data", gunzip(body), noise(300000))
+        q.close()
+
+        # a body of a request stays raw, and a handler can take it
+        z = gzip.compress(b"upload " * 1000, mtime=0)
+        post = b"POST %s HTTP/1.1\r\n" + H + b"Content-Length: %d\r\n\r\n"
+        q = Peer(port).send(post % (b"/gunzip", len(z)) + z)
+        check("upload", q.response()[2], b"upload " * 1000)
+        q.close()
+        q = Peer(port).send(post % (b"/echo", len(z)) + z)
+        check("raw upload", q.response()[2], z)
+        q.close()
+        q = Peer(port).send(post % (b"/gunzip", 4) + b"abcd")
+        check("damaged upload", q.response()[0], 500)
+        q.close()
+        q = Peer(port).send(post % (b"/gunzip?max=100", len(z)) + z)
+        check("upload over its limit", q.response()[0], 500)
+        q.close()
+
+        check("server log", srv.log, [])
+
+        # an independent client
+        curl = shutil.which("curl") or r"C:\Windows\System32\curl.exe"
+        if not Path(curl).exists():
+            print("          no curl")
+            return
+        for query, data in [(b"?n=1000", want), (b"?n=300000&noise=1", noise(300000))]:
+            r = subprocess.run([curl, "-s", "-S", "--max-time", "20", "--compressed", "http://127.0.0.1:%d/gz%s" % (port, query.decode())],
+                               capture_output=True, timeout=30)
+            check("curl", (r.returncode, r.stdout), (0, data))
+    finally:
+        srv.stop()
+
+
+def case_gzclient(env):
+    t = certificates(env)
+    b = Backends(t.certs)
+    try:
+        out = env.run("gzclient", "http://127.0.0.1:%d" % b.plain, str(t.certs / "server.p12"), str(t.certs / "ca.pem")).replace("\r\n", "\n")
+    finally:
+        b.stop()
+    compare("gzclient", out, (TESTS / "expected" / "gzclient.txt").read_text())
+
+
 def speed(env):
     """The rates on this machine, for information."""
     srv = Server(env)
@@ -1028,7 +1409,7 @@ def speed(env):
 
 CASES = {"codec": case_codec, "headers": case_headers, "table": case_table, "behavior": case_behavior,
          "clients": case_clients, "tls": case_tls, "client": case_client,
-         "together": case_together}
+         "together": case_together, "gzip": case_gzip, "gzclient": case_gzclient}
 
 
 def main():

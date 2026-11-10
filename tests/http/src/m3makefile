@@ -2,6 +2,7 @@
 import ("libm3")
 import ("tcp")
 import ("tls")
+import ("zip")
 import ("http")
 implementation ("Main")
 program ("httptest")

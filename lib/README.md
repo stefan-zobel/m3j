@@ -111,7 +111,8 @@ the outline of a few procedures from it (with the notice of Digital Equipment
 Corporation, `http/src/COPYRIGHT`): `HTTP` (fields of messages, escapes,
 dates, basic authentication), `HTTPServer` (safe; HTTP/1.1 on any
 `ConnFD.T`) and `HTTPClient` (the client of the Java platform, through
-`M3jHttp` and `m3j.rt.Http`).
+`M3jHttp` and `m3j.rt.Http`). Both use `Deflate` of zip for
+`Content-Encoding: gzip`.
 
 ## xml
 

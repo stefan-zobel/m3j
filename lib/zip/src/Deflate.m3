@@ -317,6 +317,18 @@ PROCEDURE RdClose (r: Reader) RAISES {Rd.Failure, Thread.Alerted} =
     IF r.o.closeSource THEN Rd.Close (r.src) END;
   END RdClose;
 
+PROCEDURE DiscardRd (rd: Rd.T) =
+  VAR r := NARROW (rd, Reader);
+  BEGIN
+    RdClass.Lock (r);
+    TRY
+      IF r.state # State.End AND r.failure = NIL THEN r.failure := Unusable END;
+      FreeInflater (r);
+    FINALLY
+      RdClass.Unlock (r);
+    END;
+  END DiscardRd;
+
 (* writing *)
 
 VAR

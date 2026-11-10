@@ -93,4 +93,11 @@ PROCEDURE Discard (wr: Wr.T);
    the memory of the compressor. Nothing more goes to "dst", and writing to
    "wr" raises "Wr.Failure"; it can still be closed. *)
 
+PROCEDURE DiscardRd (rd: Rd.T);
+(* Gives up the reader "rd", which must come from "NewRd", and gives back the
+   memory of the decompressor, without closing "rd" or touching "src". Unlike
+   "Rd.Close" this leaves "rd" safe for a thread that still reads it: further
+   reads raise "Rd.Failure". It waits for a read that is under way, so what
+   blocks that read must end first. *)
+
 END Deflate.

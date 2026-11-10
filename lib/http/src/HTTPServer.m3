@@ -3,7 +3,7 @@
 
 MODULE HTTPServer;
 
-IMPORT Atom, AtomList, ConnFD, Fmt, HTTP, IP, Rd, RdClass, TCP, TCPMisc,
+IMPORT Atom, AtomList, ConnFD, Deflate, Fmt, HTTP, IP, Rd, RdClass, TCP, TCPMisc,
        Text, TextExtras, Thread, Time, TLS, Wr, WrClass;
 
 CONST
@@ -47,6 +47,8 @@ REVEAL
     c: Conn;
     req: Request;
     wr: BodyWr := NIL;
+    compression := FALSE;   (* the handler has called "compress" *)
+    gz: Wr.T := NIL;        (* compresses to "wr", if the body is compressed *)
     headSent := FALSE;
     chunked := FALSE;
     noBody := FALSE;
@@ -54,6 +56,7 @@ REVEAL
     done := FALSE;
   OVERRIDES
     body := ResponseBody;
+    compress := ResponseCompress;
   END;
 
 TYPE
@@ -661,15 +664,111 @@ PROCEDURE Drain (rd: BodyRd): BOOLEAN RAISES {Thread.Alerted} =
 
 (* the response *)
 
+(* Is "t" a weight of RFC 9110 that is above zero? "t" follows the semicolon. *)
+PROCEDURE PositiveWeight (t: TEXT): BOOLEAN =
+  VAR s := Trim (t);  n := Text.Length (s);  first, ch: CHAR;  positive: BOOLEAN;
+  BEGIN
+    IF n < 3 OR n > 7 OR NOT Text.GetChar (s, 0) IN SET OF CHAR {'q', 'Q'}
+         OR Text.GetChar (s, 1) # '=' THEN
+      RETURN FALSE;
+    END;
+    first := Text.GetChar (s, 2);
+    IF NOT first IN SET OF CHAR {'0', '1'} OR n > 3 AND Text.GetChar (s, 3) # '.' THEN
+      RETURN FALSE;
+    END;
+    positive := first = '1';
+    FOR i := 4 TO n - 1 DO
+      ch := Text.GetChar (s, i);
+      IF NOT ch IN SET OF CHAR {'0' .. '9'} THEN RETURN FALSE END;
+      IF ch # '0' THEN
+        IF first = '1' THEN RETURN FALSE END;
+        positive := TRUE;
+      END;
+    END;
+    RETURN positive;
+  END PositiveWeight;
+
+(* Does "Accept-Encoding" allow gzip? A name of gzip counts over "*", and where
+   the fields are malformed or contradict each other the answer is no, which
+   is always correct: the body then goes out as it is. *)
+PROCEDURE AcceptsGzip (h: HTTP.Headers): BOOLEAN =
+  VAR it := h.iterate ();  n, v, member, coding: TEXT;  start, comma, semi: INTEGER;
+      allowed: BOOLEAN;  named, namedOff, star, starOff := FALSE;
+  BEGIN
+    WHILE it.next (n, v) DO
+      IF TextExtras.CIEqual (n, "Accept-Encoding") THEN
+        start := 0;
+        REPEAT
+          comma := Text.FindChar (v, ',', start);
+          IF comma < 0 THEN comma := Text.Length (v) END;
+          member := Text.Sub (v, start, comma - start);
+          semi := Text.FindChar (member, ';');
+          IF semi < 0 THEN
+            coding := Trim (member);
+            allowed := TRUE;
+          ELSE
+            coding := Trim (Text.Sub (member, 0, semi));
+            allowed := PositiveWeight (Text.Sub (member, semi + 1));
+          END;
+          IF TextExtras.CIEqual (coding, "gzip") OR TextExtras.CIEqual (coding, "x-gzip") THEN
+            named := TRUE;
+            IF NOT allowed THEN namedOff := TRUE END;
+          ELSIF Text.Equal (coding, "*") THEN
+            star := TRUE;
+            IF NOT allowed THEN starOff := TRUE END;
+          END;
+          start := comma + 1;
+        UNTIL start > Text.Length (v);
+      END;
+    END;
+    IF named THEN RETURN NOT namedOff END;
+    RETURN star AND NOT starOff;
+  END AcceptsGzip;
+
+PROCEDURE MayCompress (r: Response): BOOLEAN =
+  VAR st := r.status;
+  BEGIN
+    RETURN r.compression AND st # 204 AND st # 206 AND st # 304
+             AND r.headers.get ("Content-Encoding") = NIL
+             AND r.headers.get ("Content-Range") = NIL
+             AND AcceptsGzip (r.req.headers);
+  END MayCompress;
+
+PROCEDURE ResponseCompress (r: Response) =
+  BEGIN
+    IF r.wr = NIL THEN r.compression := TRUE END;
+  END ResponseCompress;
+
 PROCEDURE ResponseBody (r: Response): Wr.T =
   BEGIN
     IF r.wr = NIL THEN
       r.wr := NEW (BodyWr, resp := r, buff := NEW (REF ARRAY OF CHAR, BodyBufferSize),
                    st := 0, lo := 0, cur := 0, hi := BodyBufferSize,
                    buffered := TRUE, seekable := FALSE, closed := FALSE);
+      IF MayCompress (r) THEN r.gz := Deflate.NewWr (r.wr) END;
     END;
+    IF r.gz # NIL THEN RETURN r.gz END;
     RETURN r.wr;
   END ResponseBody;
+
+(* The fields that compression changes. This happens with the head, because a
+   handler may set fields until then. *)
+PROCEDURE CompressionFields (r: Response) =
+  VAR h := r.headers;  tag: TEXT;
+  BEGIN
+    IF r.compression AND NOT HasToken (h, "Vary", "Accept-Encoding")
+         AND NOT HasToken (h, "Vary", "*") THEN
+      h.add ("Vary", "Accept-Encoding");
+    END;
+    IF r.gz # NIL AND r.status # 204 AND r.status # 304 THEN
+      h.set ("Content-Encoding", "gzip");
+      h.remove ("Content-Length");
+      tag := h.get ("ETag");
+      IF tag # NIL AND NOT Text.Equal (Text.Sub (tag, 0, 2), "W/") THEN
+        h.set ("ETag", "W/" & tag);
+      END;
+    END;
+  END CompressionFields;
 
 PROCEDURE Refuse (what: TEXT) RAISES {Wr.Failure} =
   BEGIN
@@ -686,11 +785,13 @@ PROCEDURE Stopping (t: T): BOOLEAN =
 (* Sends the head. "length" is the length of the whole body if the handler
    has finished, otherwise -1. *)
 PROCEDURE SendHead (r: Response; length: INTEGER) RAISES {Wr.Failure, Thread.Alerted} =
-  VAR c := r.c;  h := r.headers;  st := r.status;  it := h.iterate ();  name, value: TEXT;
+  VAR c := r.c;  h := r.headers;  st := r.status;  it: HTTP.Iterator;  name, value: TEXT;
       declared := -1;  head := Text.Equal (r.req.method, "HEAD");
       old := Text.Equal (r.req.version, "HTTP/1.0");  framing: TEXT := NIL;
   BEGIN
     IF st < 200 OR st > 599 THEN Refuse ("status of a response") END;
+    CompressionFields (r);
+    it := h.iterate ();
     WHILE it.next (name, value) DO
       IF NOT HTTP.ValidName (name) OR NOT HTTP.ValidValue (value) THEN
         Refuse ("field of a response");
@@ -799,6 +900,7 @@ PROCEDURE BodyWrFlush (wr: BodyWr) RAISES {Wr.Failure, Thread.Alerted} =
 PROCEDURE Finish (r: Response) RAISES {Wr.Failure, Thread.Alerted} =
   VAR c := r.c;  wr := r.wr;  n := 0;
   BEGIN
+    IF r.gz # NIL THEN Deflate.Finish (r.gz) END;   (* into the buffer of "wr" *)
     IF wr # NIL THEN
       WrClass.Lock (wr);
     END;
@@ -902,6 +1004,7 @@ PROCEDURE Respond (c: Conn; req: Request): Outcome =
       END;
     FINALLY
       resp.done := TRUE;
+      IF resp.gz # NIL THEN Deflate.Discard (resp.gz) END;
       Detach (body);
       c.resp := NIL;
     END;

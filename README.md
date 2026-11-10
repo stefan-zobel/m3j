@@ -123,8 +123,13 @@ or TLS. It serves one connection per thread with keep-alive and `chunked`,
 checks requests strictly against RFC 9110 and 9112, and has limits and
 timeouts for each stage of a request; `HTTPServer.Options` lists them. The
 client is the one of the Java platform, with its pool of connections,
-redirects, proxies and TLS. Neither end does compression, WebSockets or
-HTTP/2 upgrades over plain TCP, and the server does not speak HTTP/2.
+redirects, proxies and TLS. Neither end does WebSockets or HTTP/2 upgrades
+over plain TCP, and the server does not speak HTTP/2.
+
+Both ends do `Content-Encoding: gzip`. A handler calls `resp.compress ()`
+before `resp.body ()` for what is worth compressing, and the server does so if
+the client accepts it. The client offers gzip and undoes it by itself, which
+`Options.decompress := FALSE` turns off; `resp.decoded` tells what happened.
 
 ### XML
 

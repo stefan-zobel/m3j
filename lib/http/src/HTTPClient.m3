@@ -3,7 +3,8 @@
 
 MODULE HTTPClient;
 
-IMPORT Atom, AtomList, HTTP, M3jHttp, Rd, RdClass, Text, TextExtras, TextWr, Thread, TLS, Wr;
+IMPORT Atom, AtomList, Deflate, HTTP, M3jHttp, Rd, RdClass, Text, TextExtras, TextWr, Thread, TLS,
+       Wr;
 
 CONST
   BodyBufferSize = 16384;
@@ -11,10 +12,12 @@ CONST
 REVEAL
   T = ROOT BRANDED "HTTPClient.T" OBJECT
     h: REFANY;
+    decompress: BOOLEAN;
   END;
 
   Response = ResponsePublic BRANDED "HTTPClient.Response" OBJECT
     x: REFANY;
+    decoder: Rd.T := NIL;
   OVERRIDES
     close := ResponseClose;
   END;
@@ -60,7 +63,7 @@ PROCEDURE New (READONLY o := Defaults): T RAISES {HTTP.Error} =
     IF o.ctx # NIL THEN context := TLS.Platform (o.ctx) END;
     h := M3jHttp.NewClient (o.connectTimeout, o.followRedirects, o.proxy, context, err);
     IF h = NIL THEN RAISE HTTP.Error (Fail (HTTP.BadUrl, err)) END;
-    RETURN NEW (T, h := h);
+    RETURN NEW (T, h := h, decompress := o.decompress);
   END New;
 
 PROCEDURE Close (c: T) =
@@ -141,17 +144,41 @@ PROCEDURE Upload (u: Uploader): REFANY =
     RETURN NIL;
   END Upload;
 
+(* Does the client offer gzip for this request? *)
+PROCEDURE OffersGzip (c: T; r: Request): BOOLEAN =
+  BEGIN
+    IF NOT c.decompress OR Text.Equal (r.method, "HEAD") THEN RETURN FALSE END;
+    RETURN r.headers = NIL
+             OR r.headers.get ("Accept-Encoding") = NIL AND r.headers.get ("Range") = NIL;
+  END OffersGzip;
+
+(* Is gzip the one coding of this response? *)
+PROCEDURE CodedInGzip (h: HTTP.Headers): BOOLEAN =
+  VAR it := h.iterate ();  name, value, coding: TEXT := NIL;  count := 0;
+  BEGIN
+    WHILE it.next (name, value) DO
+      IF TextExtras.CIEqual (name, "Content-Encoding") THEN
+        coding := value;
+        INC (count);
+      END;
+    END;
+    RETURN count = 1
+             AND (TextExtras.CIEqual (coding, "gzip") OR TextExtras.CIEqual (coding, "x-gzip"));
+  END CodedInGzip;
+
 PROCEDURE Exchange (c: T; r: Request; text: TEXT): Response RAISES {HTTP.Error, Thread.Alerted} =
   VAR
     code: INTEGER;  err, version, fields: TEXT := NIL;  status := 0;  x: REFANY;
     upload := r.body # NIL AND text = NIL;  u: Uploader := NIL;  th: Thread.T := NIL;
-    lines: TEXT;
+    lines: TEXT;  offered: BOOLEAN;  resp: Response;
   BEGIN
     IF r.url = NIL THEN RAISE HTTP.Error (Fail (HTTP.BadUrl, "no URL")) END;
     IF NOT HTTP.ValidName (r.method) THEN
       RAISE HTTP.Error (Fail (HTTP.BadMessage, "a method that cannot be sent"));
     END;
     lines := FieldLines (r.headers);
+    offered := OffersGzip (c, r);
+    IF offered THEN lines := lines & "Accept-Encoding: gzip\n" END;
     x := M3jHttp.Start (c.h, r.method, r.url, lines, text, upload, r.length, r.timeout, code, err);
     IF x = NIL THEN RAISE HTTP.Error (Fail (AtomOf (code), err)) END;
     IF upload THEN
@@ -172,11 +199,19 @@ PROCEDURE Exchange (c: T; r: Request; text: TEXT): Response RAISES {HTTP.Error, 
       END;
       RAISE HTTP.Error (Fail (AtomOf (-code), err));
     END;
-    RETURN NEW (Response, status := status, version := version, headers := ParseFields (fields),
-                x := x, body := NEW (BodyRd, x := x, timeout := NormalTimeout (r.timeout),
-                                     buff := NEW (REF ARRAY OF CHAR, BodyBufferSize), st := 0,
-                                     lo := 0, hi := 0, cur := 0, intermittent := TRUE,
-                                     seekable := FALSE, closed := FALSE));
+    resp := NEW (Response, status := status, version := version, headers := ParseFields (fields),
+                 x := x, body := NEW (BodyRd, x := x, timeout := NormalTimeout (r.timeout),
+                                      buff := NEW (REF ARRAY OF CHAR, BodyBufferSize), st := 0,
+                                      lo := 0, hi := 0, cur := 0, intermittent := TRUE,
+                                      seekable := FALSE, closed := FALSE));
+    IF offered AND status # 204 AND status # 304 AND CodedInGzip (resp.headers) THEN
+      resp.decoder := Deflate.NewRd (resp.body, o := Deflate.ReadOptions {closeSource := TRUE});
+      resp.body := resp.decoder;
+      resp.decoded := TRUE;
+      resp.headers.remove ("Content-Encoding");
+      resp.headers.remove ("Content-Length");
+    END;
+    RETURN resp;
   END Exchange;
 
 (* A timeout that is not positive means no limit, for "Read" a negative one. *)
@@ -226,9 +261,12 @@ PROCEDURE Post (c: T; url, contentType, body: TEXT): Response
     RETURN Exchange (c, NEW (Request, method := "POST", url := url, headers := h), body);
   END Post;
 
+(* This may run while another thread is blocked in a read of the body: "Abort"
+   ends that read, and only then is the lock of the decoder free. *)
 PROCEDURE ResponseClose (r: Response) =
   BEGIN
     M3jHttp.Abort (r.x);
+    IF r.decoder # NIL THEN Deflate.DiscardRd (r.decoder) END;
   END ResponseClose;
 
 PROCEDURE BodySeek (rd: BodyRd; <*UNUSED*> pos: CARDINAL; dontBlock: BOOLEAN): RdClass.SeekResult

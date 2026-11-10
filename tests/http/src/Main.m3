@@ -13,12 +13,15 @@
      client BASE TLSBASE CA OTHERCA WRONGBASE FREEPORT PROXY
               the client against a server of Python
      together KEYSTORE CA
-              server and client in this program, over TCP and TLS *)
+              server and client in this program, over TCP and TLS
+     gzclient BASE KEYSTORE CA
+              compression in the client, against a server of Python and
+              against the server of this program *)
 
 MODULE Main;
 
-IMPORT Fmt, HTTP, HTTPClient, HTTPServer, IO, IP, Params, Process, Rd, RdClass, Scan, Stdio, TCP,
-       Text, TextRd, Thread, Time, TLS, Wr;
+IMPORT Deflate, Fmt, HTTP, HTTPClient, HTTPServer, IO, IP, Params, Process, Rd, RdClass, Scan, Stdio,
+       TCP, Text, TextRd, TextWr, Thread, Time, TLS, Wr;
 IMPORT Atom, AtomList, FloatMode, Lex;
 
 <*FATAL Rd.Failure, Wr.Failure, Thread.Alerted*>
@@ -300,6 +303,57 @@ PROCEDURE PutPattern (wr: Wr.T; n: INTEGER) RAISES {Wr.Failure, Thread.Alerted} 
     END;
   END PutPattern;
 
+PROCEDURE PutNoise (wr: Wr.T; n: INTEGER) RAISES {Wr.Failure, Thread.Alerted} =
+  VAR x := 1;
+  BEGIN
+    FOR i := 1 TO n DO
+      x := (x * 1103515245 + 12345) MOD 2147483648;
+      Wr.PutChar (wr, VAL (x DIV 65536 MOD 256, CHAR));
+    END;
+  END PutNoise;
+
+(* A compressed response; the query says what the handler does. *)
+PROCEDURE Compressed (req: HTTPServer.Request; resp: HTTPServer.Response)
+  RAISES {Wr.Failure, Thread.Alerted} =
+  VAR h := resp.headers;  n := QueryInt (req, "n", 1000);  late := QueryInt (req, "late", 0) # 0;
+      wr: Wr.T;
+  BEGIN
+    resp.status := QueryInt (req, "c", 200);
+    IF QueryInt (req, "claim", -1) >= 0 THEN
+      h.set ("Content-Length", Fmt.Int (QueryInt (req, "claim", 0)));
+    END;
+    CASE QueryInt (req, "etag", 0) OF
+    | 1 => h.set ("ETag", "\"abc\"");
+    | 2 => h.set ("ETag", "W/\"abc\"");
+    ELSE
+    END;
+    IF QueryInt (req, "ce", 0) # 0 THEN h.set ("Content-Encoding", "br") END;
+    IF QueryInt (req, "cr", 0) # 0 THEN h.set ("Content-Range", "bytes 0-9/100") END;
+    CASE QueryInt (req, "vary", 0) OF
+    | 1 => h.set ("Vary", "Origin");
+    | 2 => h.set ("Vary", "*");
+    | 3 => h.set ("Vary", "accept-encoding");
+    ELSE
+    END;
+    IF NOT late THEN resp.compress () END;
+    IF QueryInt (req, "nobody", 0) # 0 THEN RETURN END;
+    wr := resp.body ();
+    IF late THEN resp.compress () END;
+    IF QueryInt (req, "noise", 0) # 0 THEN PutNoise (wr, n) ELSE PutPattern (wr, n) END;
+    IF QueryInt (req, "flush", 0) # 0 THEN
+      Wr.Flush (wr);
+      Thread.Pause (0.4D0);
+      Wr.PutText (wr, "after");
+    END;
+    CASE QueryInt (req, "fail", 0) OF
+    | 1 => Fail (Atom.FromText ("Test.Other"));
+    | 2 => Wr.Flush (wr); Fail (Atom.FromText ("Test.Other"));
+    ELSE
+    END;
+    IF QueryInt (req, "close", 0) # 0 THEN Wr.Close (wr) END;
+    IF QueryInt (req, "after", 0) # 0 THEN resp.status := QueryInt (req, "after", 0) END;
+  END Compressed;
+
 PROCEDURE TestAccept (<*UNUSED*> h: Test; req: HTTPServer.Request): BOOLEAN =
   BEGIN
     RETURN NOT Text.Equal (req.path, "/missing") AND NOT Text.Equal (req.path, "*");
@@ -394,6 +448,13 @@ PROCEDURE TestRequest (<*UNUSED*> h: Test; req: HTTPServer.Request; resp: HTTPSe
     ELSIF Text.Equal (path, "/sleep") THEN
       Thread.AlertPause (FLOAT (QueryInt (req, "ms", 100), LONGREAL) / 1000.0D0);
       Wr.PutText (resp.body (), "slept\n");
+    ELSIF Text.Equal (path, "/gz") THEN
+      Compressed (req, resp);
+    ELSIF Text.Equal (path, "/gunzip") THEN
+      VAR o := Deflate.ReadOptions {maxBytes := QueryInt (req, "max", 0)};
+      BEGIN
+        Wr.PutText (resp.body (), ReadAll (Deflate.NewRd (req.body, o := o)));
+      END;
     ELSIF Text.Equal (path, "/shutdown") THEN
       EVAL Thread.Fork (NEW (Stopper));
       Wr.PutText (resp.body (), "stopping\n");
@@ -768,6 +829,247 @@ PROCEDURE Loop (scheme: TEXT; ctx, clientCtx: TLS.Context) =
     Out ("  end");
   END Loop;
 
+(* compression in the client *)
+
+TYPE
+  Reading = Thread.Closure OBJECT
+    rd: Rd.T;
+    first, second := "nothing";
+  OVERRIDES
+    apply := RunReading;
+  END;
+
+PROCEDURE Attempt (rd: Rd.T): TEXT =
+  <*FATAL Thread.Alerted*>
+  BEGIN
+    TRY
+      EVAL ReadAll (rd);
+      RETURN "returned";
+    EXCEPT
+    | Rd.Failure (e) => RETURN "Rd.Failure " & ErrorText (e);
+    END;
+  END Attempt;
+
+PROCEDURE RunReading (b: Reading): REFANY =
+  BEGIN
+    b.first := Attempt (b.rd);
+    Thread.Pause (0.5D0);
+    b.second := Attempt (b.rd);
+    RETURN NIL;
+  END RunReading;
+
+PROCEDURE Repeated (t: TEXT; n: INTEGER): TEXT =
+  VAR wr := TextWr.New ();
+  BEGIN
+    FOR i := 1 TO n DO Wr.PutText (wr, t) END;
+    RETURN TextWr.ToText (wr);
+  END Repeated;
+
+PROCEDURE PatternText (n: INTEGER): TEXT =
+  VAR wr := TextWr.New ();
+  BEGIN
+    PutPattern (wr, n);
+    RETURN TextWr.ToText (wr);
+  END PatternText;
+
+PROCEDURE NoiseText (n: INTEGER): TEXT =
+  VAR wr := TextWr.New ();
+  BEGIN
+    PutNoise (wr, n);
+    RETURN TextWr.ToText (wr);
+  END NoiseText;
+
+PROCEDURE Field (h: HTTP.Headers; name: TEXT): TEXT =
+  VAR v := h.get (name);
+  BEGIN
+    IF v = NIL THEN RETURN "-" ELSE RETURN v END;
+  END Field;
+
+(* What a body turned out to be; compressed data is not the same everywhere. *)
+PROCEDURE Kind (resp: HTTPClient.Response; plain: TEXT): TEXT =
+  <*FATAL Thread.Alerted*>
+  VAR body: TEXT;
+  BEGIN
+    TRY
+      body := ReadAll (resp.body);
+    EXCEPT
+    | Rd.Failure (e) => RETURN "Rd.Failure " & ErrorText (e);
+    END;
+    IF Text.Length (body) = 0 THEN
+      RETURN "empty";
+    ELSIF Text.Equal (body, plain) THEN
+      RETURN "plain";
+    ELSIF Text.Equal (body, plain & plain) THEN
+      RETURN "twice";
+    ELSE
+      RETURN "other " & ToHex (Text.Sub (body, 0, 2));
+    END;
+  END Kind;
+
+PROCEDURE GzLine (what: TEXT; c: HTTPClient.T; r: HTTPClient.Request; plain: TEXT) =
+  <*FATAL HTTP.Error, Thread.Alerted*>
+  VAR resp := HTTPClient.Send (c, r);
+  BEGIN
+    Out (what & ": " & Fmt.Int (resp.status) & " decoded " & Flag (resp.decoded)
+           & " coding " & Field (resp.headers, "content-encoding")
+           & " length " & Flag (resp.headers.get ("content-length") # NIL)
+           & " offered " & Field (resp.headers, "x-seen")
+           & " body " & Kind (resp, plain));
+    resp.close ();
+  END GzLine;
+
+PROCEDURE GzAgainstPython (base: TEXT) =
+  <*FATAL ANY*>
+  VAR
+    c := HTTPClient.New ();
+    o := HTTPClient.Defaults;
+    plain := Repeated ("hello compressed ", 100);
+    r: HTTPClient.Response;
+    h: HTTP.Headers;
+    whats := ARRAY [0 .. 19] OF TEXT {
+               "plain", "upper", "x-gzip", "list", "twofields", "br", "none", "empty", "emptygz",
+               "members", "zeros", "corrupt", "badcrc", "trunc", "cut", "notgzip", "trailing", "204",
+               "304", "error"};
+  BEGIN
+    FOR i := FIRST (whats) TO LAST (whats) DO
+      GzLine (whats[i], c, NEW (HTTPClient.Request, url := base & "/gz/" & whats[i]), plain);
+    END;
+    GzLine ("redirect", c, NEW (HTTPClient.Request, url := base & "/gz/redirect"), plain);
+    GzLine ("post", c, NEW (HTTPClient.Request, method := "POST", url := base & "/gz/plain"), plain);
+    GzLine ("head", c, NEW (HTTPClient.Request, method := "HEAD", url := base & "/gz/plain"), plain);
+
+    h := HTTP.NewHeaders ();
+    h.add ("Accept-Encoding", "gzip");
+    GzLine ("own field", c, NEW (HTTPClient.Request, url := base & "/gz/plain", headers := h), plain);
+    h := HTTP.NewHeaders ();
+    h.add ("accept-encoding", "identity");
+    GzLine ("own field, other value", c, NEW (HTTPClient.Request, url := base & "/gz/plain", headers := h), plain);
+    h := HTTP.NewHeaders ();
+    h.add ("Range", "bytes=0-10");
+    GzLine ("range", c, NEW (HTTPClient.Request, url := base & "/gz/plain", headers := h), plain);
+
+    o.decompress := FALSE;
+    VAR off := HTTPClient.New (o);
+    BEGIN
+      GzLine ("decompress off", off, NEW (HTTPClient.Request, url := base & "/gz/plain"), plain);
+      HTTPClient.Close (off);
+    END;
+
+    Out ("GetText: " & Flag (Text.Equal (TryGetText (c, base & "/gz/plain"), "ok " & plain)));
+    Out ("GetText of damaged data: " & TryGetText (c, base & "/gz/badcrc"));
+
+    VAR pool := HTTPClient.New ();  first, second: TEXT;
+    BEGIN
+      r := HTTPClient.Get (pool, base & "/gz/plain");
+      first := r.headers.get ("x-port");
+      EVAL ReadAllText (r);
+      r := HTTPClient.Get (pool, base & "/gz/plain");
+      second := r.headers.get ("x-port");
+      EVAL ReadAllText (r);
+      Out ("connection used again: " & Flag (Text.Equal (first, second)));
+      HTTPClient.Close (pool);
+    END;
+
+    r := HTTPClient.Get (c, base & "/gz/big");
+    Out ("big: decoded " & Flag (r.decoded) & " right "
+           & Flag (Text.Equal (ReadAllText (r), PatternText (3000000))));
+
+    Out ("timeout: " & TrySend (c, NEW (HTTPClient.Request, url := base & "/gz/slow", timeout := 0.3D0)));
+    AlertTest ("alert in the body", NEW (Blocked, c := c, url := base & "/gz/slow", read := TRUE));
+
+    r := HTTPClient.Get (c, base & "/gz/big");
+    VAR buf: ARRAY [0 .. 99] OF CHAR;  n := Rd.GetSub (r.body, buf);
+    BEGIN
+      Out ("close early: read " & Fmt.Int (n));
+      r.close ();
+      r.close ();
+      Out ("  after close: " & ReadAllText (r));
+    END;
+
+    r := HTTPClient.Send (c, NEW (HTTPClient.Request, url := base & "/gz/slow"));
+    VAR b := NEW (Reading, rd := r.body);  th := Thread.Fork (b);  t0: Time.T;
+    BEGIN
+      Thread.Pause (0.5D0);
+      t0 := Time.Now ();
+      r.close ();
+      Out ("close while blocked: close returned, quick: " & Flag (Time.Now () - t0 < 2.0D0));
+      EVAL Thread.Join (th);
+      Out ("  the reader: " & b.first);
+      Out ("  the reader again: " & b.second);
+    END;
+
+    r := HTTPClient.Get (c, base & "/gz/plain");
+    Out ("reader closed: " & Text.Sub (Rd.GetLine (r.body), 0, 16));
+    Rd.Close (r.body);
+    r.close ();
+
+    r := HTTPClient.Get (c, base & "/gz/watch");
+    Rd.Close (r.body);
+    Thread.Pause (0.5D0);
+    Out ("Rd.Close ends the exchange: " & TryGetText (c, base & "/gz/watched"));
+
+    r := HTTPClient.Get (c, base & "/gz/plain");
+    EVAL ReadAllText (r);
+    r.close ();
+    Out ("read to the end and closed, read again: " & Kind (r, plain));
+
+    Out ("still works: " & Flag (Text.Equal (TryGetText (c, base & "/gz/plain"), "ok " & plain)));
+    HTTPClient.Close (c);
+  END GzAgainstPython;
+
+PROCEDURE GzLoop (scheme: TEXT; ctx, clientCtx: TLS.Context) =
+  <*FATAL ANY*>
+  VAR
+    a: IP.Address;  conn: TCP.Connector;  th: Thread.T;  s := HTTPServer.New ();
+    o := HTTPClient.Defaults;  c, off: HTTPClient.T;  base: TEXT;  r: HTTPClient.Response;
+    h := HTTP.NewHeaders ();  noise := NoiseText (300000);
+  BEGIN
+    EVAL IP.GetHostByName ("localhost", a);
+    conn := TCP.NewConnector (IP.Endpoint {a, IP.NullPort});
+    server := s;
+    s.register (NEW (Test));
+    th := Thread.Fork (NEW (ServeThread, s := s, c := conn, ctx := ctx));
+    base := scheme & "://localhost:" & Fmt.Int (TCP.GetEndPoint (conn).port);
+    o.ctx := clientCtx;
+    c := HTTPClient.New (o);
+    o.decompress := FALSE;
+    off := HTTPClient.New (o);
+
+    Out (scheme);
+    GzLine ("  short", c, NEW (HTTPClient.Request, url := base & "/gz?n=1000"), PatternText (1000));
+    GzLine ("  long", c, NEW (HTTPClient.Request, url := base & "/gz?n=2000000"), PatternText (2000000));
+    GzLine ("  noise", c, NEW (HTTPClient.Request, url := base & "/gz?n=300000&noise=1"), noise);
+    GzLine ("  empty", c, NEW (HTTPClient.Request, url := base & "/gz?n=0"), "x");
+    GzLine ("  no body", c, NEW (HTTPClient.Request, url := base & "/gz?nobody=1"), "x");
+    GzLine ("  flush", c, NEW (HTTPClient.Request, url := base & "/gz?n=10&flush=1"), PatternText (10) & "after");
+    GzLine ("  off", off, NEW (HTTPClient.Request, url := base & "/gz?n=1000"), PatternText (1000));
+    GzLine ("  head", c, NEW (HTTPClient.Request, method := "HEAD", url := base & "/gz?n=1000"), "x");
+    r := HTTPClient.Get (c, base & "/gz?n=1000");
+    Out ("  vary: " & Field (r.headers, "vary"));
+    EVAL ReadAllText (r);
+
+    h.add ("Accept-Encoding", "gzip");
+    r := HTTPClient.Send (c, NEW (HTTPClient.Request, url := base & "/gz?n=70000", headers := h));
+    Out ("  by hand: decoded " & Flag (r.decoded) & " coding " & Field (r.headers, "content-encoding") & " right "
+           & Flag (Text.Equal (ReadAll (Deflate.NewRd (r.body)), PatternText (70000))));
+
+    HTTPClient.Close (c);
+    HTTPClient.Close (off);
+    s.shutdown (2.0D0);
+    EVAL Thread.Join (th);
+    Out ("  end");
+  END GzLoop;
+
+PROCEDURE GzClient (base, keyStore, ca: TEXT) =
+  <*FATAL ANY*>
+  VAR clientCtx := TLS.NewContext (trustStore := ca);
+  BEGIN
+    GzAgainstPython (base);
+    GzLoop ("http", NIL, NIL);
+    GzLoop ("https", TLS.NewContext (keyStore := keyStore, keyPassword := "changeit"), clientCtx);
+    Out ("end");
+  END GzClient;
+
 PROCEDURE Together (keyStore, ca: TEXT) =
   <*FATAL ANY*>
   VAR clientCtx := TLS.NewContext (trustStore := ca);
@@ -792,6 +1094,8 @@ BEGIN
       Client (Params.Get (2), Params.Get (3), Params.Get (4), Params.Get (5), Params.Get (6));
     ELSIF Text.Equal (test, "together") THEN
       Together (Params.Get (2), Params.Get (3));
+    ELSIF Text.Equal (test, "gzclient") THEN
+      GzClient (Params.Get (2), Params.Get (3), Params.Get (4));
     ELSE
       IO.Put ("unknown test\n");
       Process.Exit (2);

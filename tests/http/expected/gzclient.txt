@@ -1,0 +1,68 @@
+plain: 200 decoded 1 coding - length 0 offered gzip body plain
+upper: 200 decoded 1 coding - length 0 offered gzip body plain
+x-gzip: 200 decoded 1 coding - length 0 offered gzip body plain
+list: 200 decoded 0 coding gzip, br length 1 offered gzip body other 1f8b
+twofields: 200 decoded 0 coding gzip length 1 offered gzip body other 1f8b
+br: 200 decoded 0 coding br length 1 offered gzip body other 1f8b
+none: 200 decoded 0 coding - length 1 offered gzip body plain
+empty: 200 decoded 1 coding - length 0 offered gzip body empty
+emptygz: 200 decoded 1 coding - length 0 offered gzip body empty
+members: 200 decoded 1 coding - length 0 offered gzip body twice
+zeros: 200 decoded 1 coding - length 0 offered gzip body plain
+corrupt: 200 decoded 1 coding - length 0 offered gzip body Rd.Failure Deflate.Corrupt (invalid compressed data)
+badcrc: 200 decoded 1 coding - length 0 offered gzip body Rd.Failure Deflate.Corrupt (wrong checksum of the data)
+trunc: 200 decoded 1 coding - length 0 offered gzip body Rd.Failure Deflate.Truncated (the data is cut off)
+cut: 200 decoded 1 coding - length 0 offered - body Rd.Failure HTTP.BadMessage (the response is incomplete)
+notgzip: 200 decoded 1 coding - length 0 offered gzip body Rd.Failure Deflate.Corrupt (not in the gzip format)
+trailing: 200 decoded 1 coding - length 0 offered gzip body Rd.Failure Deflate.Corrupt (something other than gzip after the data)
+204: 204 decoded 0 coding gzip length 0 offered gzip body empty
+304: 304 decoded 0 coding gzip length 0 offered gzip body empty
+error: 500 decoded 1 coding - length 0 offered gzip body plain
+redirect: 200 decoded 1 coding - length 0 offered gzip body plain
+post: 200 decoded 1 coding - length 0 offered gzip body plain
+head: 200 decoded 0 coding gzip length 1 offered - body empty
+own field: 200 decoded 0 coding gzip length 1 offered gzip body other 1f8b
+own field, other value: 200 decoded 0 coding gzip length 1 offered identity body other 1f8b
+range: 200 decoded 0 coding gzip length 1 offered - body other 1f8b
+decompress off: 200 decoded 0 coding gzip length 1 offered - body other 1f8b
+GetText: 1
+GetText of damaged data: Deflate.Corrupt (wrong checksum of the data)
+connection used again: 1
+big: decoded 1 right 1
+timeout: 200 Rd.Failure HTTP.Timeout (timeout in the body of a response)
+  head arrived, reading
+alert in the body: alerted, quick: 1
+close early: read 100
+  after close: Rd.Failure Deflate.Unusable (the stream was given up)
+close while blocked: close returned, quick: 1
+  the reader: Rd.Failure HTTP.BadMessage (the response is incomplete)
+  the reader again: Rd.Failure Deflate.Unusable (the stream was given up)
+reader closed: hello compressed
+Rd.Close ends the exchange: ok closed
+read to the end and closed, read again: empty
+still works: 1
+http
+  short: 200 decoded 1 coding - length 0 offered - body plain
+  long: 200 decoded 1 coding - length 0 offered - body plain
+  noise: 200 decoded 1 coding - length 0 offered - body plain
+  empty: 200 decoded 1 coding - length 0 offered - body empty
+  no body: 200 decoded 0 coding - length 1 offered - body empty
+  flush: 200 decoded 1 coding - length 0 offered - body plain
+  off: 200 decoded 0 coding - length 1 offered - body plain
+  head: 200 decoded 0 coding - length 1 offered - body empty
+  vary: Accept-Encoding
+  by hand: decoded 0 coding gzip right 1
+  end
+https
+  short: 200 decoded 1 coding - length 0 offered - body plain
+  long: 200 decoded 1 coding - length 0 offered - body plain
+  noise: 200 decoded 1 coding - length 0 offered - body plain
+  empty: 200 decoded 1 coding - length 0 offered - body empty
+  no body: 200 decoded 0 coding - length 1 offered - body empty
+  flush: 200 decoded 1 coding - length 0 offered - body plain
+  off: 200 decoded 0 coding - length 1 offered - body plain
+  head: 200 decoded 0 coding - length 1 offered - body empty
+  vary: Accept-Encoding
+  by hand: decoded 0 coding gzip right 1
+  end
+end
