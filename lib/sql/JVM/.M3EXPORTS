@@ -1,0 +1,6 @@
+% exports of sql: relational databases through JDBC, with the driver of the program
+_define_lib("sql")
+import_version("m3core", "JVM")
+import_version("libm3", "JVM")
+_map_add_interface("SQL.i3", "sql", "src", "")
+_map_add_module("SQL.m3", "sql", "src", "hidden")

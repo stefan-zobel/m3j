@@ -981,6 +981,11 @@ public final class Compile {
                 return defineClass(name, b, 0, b.length);
             }
         };
+        // services of the classes of -cp, such as drivers of JDBC, are found
+        // through the class loader of the thread, which threads inherit
+        Thread me = Thread.currentThread();
+        ClassLoader before = me.getContextClassLoader();
+        me.setContextClassLoader(loader);
         try {
             Class<?> c = loader.loadClass("m3.Main");
             c.getMethod("main", String[].class).invoke(null, (Object) args);
@@ -988,6 +993,8 @@ public final class Compile {
             Throwable t = e.getCause() != null ? e.getCause() : e;
             t.printStackTrace(err);
             return 1;
+        } finally {
+            me.setContextClassLoader(before);
         }
         return 0;
     }

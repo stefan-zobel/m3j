@@ -356,6 +356,104 @@ public final class Externals {
         return Ssh.streamClose(s, err);
     }
 
+    // M3jSql (m3j's library sql): see Sql
+
+    public static Object M3jSql__NewProperties() {
+        return Sql.newProperties();
+    }
+
+    public static void M3jSql__SetProperty(Object p, String name, String value) {
+        Sql.setProperty(p, name, value);
+    }
+
+    public static Object M3jSql__Connect(String url, Object props, String driver, double timeout, long fetch,
+                                         ObjRef fail) {
+        return Sql.connect(url, props, driver, timeout, fetch, fail);
+    }
+
+    public static void M3jSql__Close(Object c) {
+        Sql.close(c);
+    }
+
+    public static long M3jSql__Exec(Object c, String sql, LongRef count, ObjRef fail) {
+        return Sql.exec(c, sql, count, fail);
+    }
+
+    public static long M3jSql__Query(Object c, String sql, ObjRef rows, ObjRef fail) {
+        return Sql.query(c, sql, rows, fail);
+    }
+
+    public static long M3jSql__Transaction(Object c, long op, ObjRef fail) {
+        return Sql.transaction(c, op, fail);
+    }
+
+    public static long M3jSql__Prepare(Object c, String sql, boolean keys, ObjRef stmt, ObjRef fail) {
+        return Sql.prepare(c, sql, keys, stmt, fail);
+    }
+
+    public static long M3jSql__Bind(Object s, long i, long type, long n, double x, String t, ObjRef fail) {
+        return Sql.bind(s, i, type, n, x, t, fail);
+    }
+
+    public static long M3jSql__BindTime(Object s, long i, long type, long year, long month, long day, long hour,
+                                        long minute, long second, long nanos, ObjRef fail) {
+        return Sql.bindTime(s, i, type, year, month, day, hour, minute, second, nanos, fail);
+    }
+
+    public static long M3jSql__Add(Object s, ObjRef fail) {
+        return Sql.add(s, fail);
+    }
+
+    public static long M3jSql__Execute(Object s, long op, LongRef count, ObjRef rows, ObjRef fail) {
+        return Sql.execute(s, op, count, rows, fail);
+    }
+
+    public static long M3jSql__BatchCount(Object s, long i) {
+        return Sql.batchCount(s, i);
+    }
+
+    public static void M3jSql__CloseStmt(Object s) {
+        Sql.closeStmt(s);
+    }
+
+    public static long M3jSql__Columns(Object r) {
+        return Sql.columns(r);
+    }
+
+    public static long M3jSql__Column(Object r, long i, ObjRef name, ObjRef typeName, LongRef type,
+                                      LongRef precision, LongRef scale, LongRef nullable, ObjRef fail) {
+        return Sql.column(r, i, name, typeName, type, precision, scale, nullable, fail);
+    }
+
+    public static long M3jSql__Find(Object r, String name) {
+        return Sql.find(r, name);
+    }
+
+    public static long M3jSql__Next(Object r, ObjRef fail) {
+        return Sql.next(r, fail);
+    }
+
+    public static long M3jSql__Get(Object r, long i, long type, LongRef n, DoubleRef x, ObjRef t, ObjRef fail) {
+        return Sql.get(r, i, type, n, x, t, fail);
+    }
+
+    public static long M3jSql__GetTime(Object r, long i, long type, LongRef year, LongRef month, LongRef day,
+                                       LongRef hour, LongRef minute, LongRef second, LongRef nanos, ObjRef fail) {
+        return Sql.getTime(r, i, type, year, month, day, hour, minute, second, nanos, fail);
+    }
+
+    public static void M3jSql__CloseRows(Object r) {
+        Sql.closeRows(r);
+    }
+
+    public static long M3jSql__Kind(Object f) {
+        return Sql.failKind(f);
+    }
+
+    public static String M3jSql__Describe(Object f, ObjRef state, LongRef code) {
+        return Sql.failText(f, state, code);
+    }
+
     // M3jZip (m3j's modules Deflate and Zip): see Zip
     public static Object M3jZip__NewInflate(boolean raw) {
         return Zip.newInflate(raw);
