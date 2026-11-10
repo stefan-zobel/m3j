@@ -440,6 +440,10 @@ final class Builtins {
         Loc n0 = c.dim(x, 0);
         c.exprAs(a[1], JType.LONG, false);
         c.exprAs(a[2], JType.LONG, false);
+        // the count is evaluated once: it is needed for the check and for the length
+        cb.dup2();
+        Loc count = c.newLocal(JType.LONG);
+        count.store(cb);
         n0.load(cb);
         cb.invokestatic(Code.RT, "subarray", MethodTypeDesc.of(ConstantDescs.CD_int, ConstantDescs.CD_long,
             ConstantDescs.CD_long, ConstantDescs.CD_int));
@@ -460,7 +464,7 @@ final class Builtins {
         }
         Loc off = c.newLocal(JType.INT);
         off.store(cb);
-        c.exprAs(a[2], JType.LONG, false);
+        count.load(cb);
         cb.l2i();
         Loc len = c.newLocal(JType.INT);
         len.store(cb);

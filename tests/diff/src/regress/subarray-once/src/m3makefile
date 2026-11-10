@@ -1,0 +1,4 @@
+% SUBARRAY whose start and count have side effects.
+import ("libm3")
+implementation ("Main")
+program ("subarray-once")

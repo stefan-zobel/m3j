@@ -16,3 +16,4 @@ regress/frontend-fixes tests/diff/src/regress/frontend-fixes expected=hand-check
 regress/hash-streams tests/diff/src/regress/hash-streams
 regress/rd-unget tests/diff/src/regress/rd-unget
 regress/tcp-reset tests/diff/src/regress/tcp-reset
+regress/subarray-once tests/diff/src/regress/subarray-once

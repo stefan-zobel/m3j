@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/regress/subarray-once/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "readonly [3] 2 3 4 (from 1, count 1)\nto the end [8] 2 3 4 5 6 7 8 9 (from 1, count 1)\nnumber 4 (from 1, count 1)\nassigned [10] 0 1 2 100 200 5 6 7 8 9 (from 1, count 1)\nread [2] 6 7 (from 1, count 1)\nvar [10] 0 1 2 3 4 7 7 7 7 7 (from 1, count 1)\nopen [10] 6 7 8 9 40 50 60 70 80 90 (from 1, count 1)\ngrid [4] (10 11 12) (20 21 22) (30 31 32) (40 41 42) (from 1, count 1)\ngrid assigned [5] (30 31 32) (40 41 42) (20 21 22) (30 31 32) (40 41 42) (from 1, count 1)\nrecords [4] 2/-2 3/-3 4/-4 5/-5 (from 1, count 1)\nchars bcdefgh (from 1, count 1)\nloop 12 (from 3, count 3)\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}
