@@ -1,5 +1,0 @@
-make_dir(PKG_INSTALL & "/forms/" & TARGET)
-install_file(".M3IMPTAB", PKG_INSTALL & "/forms/" & TARGET, "0644")
-install_file("forms.jar", PKG_INSTALL & "/forms/" & TARGET, "0644")
-install_file("forms", PKG_INSTALL & "/forms/" & TARGET, "0644")
-install_file("forms.cmd", PKG_INSTALL & "/forms/" & TARGET, "0644")

@@ -17,6 +17,10 @@
 # tools/middump)
 /tools/*/AMD64_NT/
 
+# packages that the tests build with m3build
+/tests/build/xml/use/JVM/
+/tests/lsp/pkgs/forms/JVM/
+
 # where m3build installs packages when no installation is given
 /no-installation/
 

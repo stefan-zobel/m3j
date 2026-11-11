@@ -1,5 +1,0 @@
-make_dir(PKG_INSTALL & "/use/" & TARGET)
-install_file(".M3IMPTAB", PKG_INSTALL & "/use/" & TARGET, "0644")
-install_file("use.jar", PKG_INSTALL & "/use/" & TARGET, "0644")
-install_file("use", PKG_INSTALL & "/use/" & TARGET, "0644")
-install_file("use.cmd", PKG_INSTALL & "/use/" & TARGET, "0644")
