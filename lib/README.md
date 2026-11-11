@@ -278,6 +278,31 @@ cm3 is `check/patternmatching` of `tools/diff_test.py`.
 null, so the empty pattern matches every text, while in cm3 the result
 depends on what was on the stack.
 
+## regexp
+
+Not a package of cm3: `Regexp` (safe), the regular expressions of the Java
+platform (`java.util.regex`), through `M3jRegexp` and `M3jRegexpScan`, which
+bind the classes `m3j.rt.Regexp` and `m3j.rt.RegexpScan`. The layer is there
+for the limit: the engine reads a text only through `CharSequence.charAt`
+(but for canonical equivalence, which is not offered), so the text is wrapped
+in a sequence that counts the reads and stops the search when its budget,
+`limit` times the characters searched plus 100 000, is spent; the pattern
+stays usable. Measured on JDK 25: the wrapper costs 15 to 35 percent (75 for
+a pattern of one character), and ordinary patterns read each character fewer
+than seven times. Since Java 9 the engine remembers where a loop failed, so
+the classic patterns of exponential time (`(a+)+$`, `(a|aa)*c`) are linear
+there; bounded repetitions of a group (`(a{1,2}){1,40}b`), nested `.*`
+(`(.*,){11}P`) and back references still explode, at 4 to 10 nanoseconds a
+read. A group with alternatives repeated some 480 000 times overflows a stack
+of 64 MB (a thread of `Thread.Fork`), some 7.7 million times the 1 GB of the
+main thread; the layer catches the `StackOverflowError`. With a limit of 0
+the text is passed bare. A `Match` holds the matcher of its search, so that
+`Next` goes on as `Matcher.find` does (after an empty match, and for `\G`);
+a match asked again for its successor repeats the searches from the start.
+`Replace` checks the replacement before it searches, so a reference to a
+group that the pattern does not have is an error even if nothing matches,
+unlike in Java. The test is `tools/regexp_test.py`.
+
 ## json
 
 The package json of CM3 5.12.0 (`m3-libs/json`, by Peter McKinna, with

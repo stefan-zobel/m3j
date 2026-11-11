@@ -639,6 +639,14 @@ The library is hybrid:
   and expat refuse some 19 000 characters more than the fifth edition does:
   a writer by the fifth edition would produce documents that `XmlReader`
   cannot read.
+  The package regexp of m3j (`lib/regexp`) binds `m3j.rt.Regexp`, a layer
+  on `java.util.regex` that bounds the time of a search: the engine reads
+  the text only through `charAt`, so the layer passes a `CharSequence` that
+  counts the reads and throws an exception made once, without a stack
+  trace, when the budget is spent, and it catches `StackOverflowError`. The
+  matcher of a search lives on in `m3j.rt.RegexpScan`, which a `Match`
+  holds, so that `\G` and the step after an empty match are those of
+  `Matcher.find`.
   The package sysutils of cm3 (`lib/sysutils`) has the modules of cm3 for
   Windows and for POSIX merged into modules for both (`PathRepr`,
   `OSSpecials`), and its UNSAFE procedures are safe ones in `System`

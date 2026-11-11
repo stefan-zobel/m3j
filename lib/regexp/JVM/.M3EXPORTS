@@ -1,0 +1,9 @@
+% exports of regexp: regular expressions, on those of the Java platform, with a limit on the time of a search
+_define_lib("regexp")
+import_version("m3core", "JVM")
+import_version("libm3", "JVM")
+import_version("java", "JVM")
+_map_add_interface("M3jRegexp.i3", "regexp", "src", "")
+_map_add_interface("M3jRegexpScan.i3", "regexp", "src", "")
+_map_add_interface("Regexp.i3", "regexp", "src", "")
+_map_add_module("Regexp.m3", "regexp", "src", "hidden")

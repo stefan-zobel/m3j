@@ -42,7 +42,7 @@ programs run with `m3j.jar` (`M3J_AOT=no` skips it).
 The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 `Wr`, `Fmt`, `Scan`, `Text`, `Thread`, `Random`, the common generics and
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
-tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package ssh: `SSH`, `SFTP`, the package sql: `SQL`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
+tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package regexp: `Regexp`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package ssh: `SSH`, `SFTP`, the package sql: `SQL`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, the package patternmatching: `RegEx`, `Glob`,
 `GlobTree`, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
@@ -202,6 +202,32 @@ a well-formed document that reads back as it was written; the first error ends
 the writer. Children take the namespace of their parent, and prefixes are
 declared where they are needed. The output is UTF-8. It is plain Modula-3,
 without the writer of the Java platform.
+
+### Regular expressions
+
+The package regexp has the regular expressions of the Java platform, with
+the syntax of `java.util.regex.Pattern`: groups and named groups,
+alternation, greedy, lazy and possessive quantifiers, lookahead and
+lookbehind, back references:
+
+```modula-3
+re := Regexp.Compile ("(?<key>\\w+)\\s*=\\s*(?<value>[^;]*)");
+m := Regexp.Find (re, text);
+WHILE m # NIL DO
+  IO.Put (m.group (1) & " is " & m.group (re.groupNumber ("value")) & "\n");
+  m := Regexp.Next (m);
+END;
+t := Regexp.Replace (re, text, "${value}=${key}");
+parts := Regexp.Split (Regexp.Compile ("\\s*,\\s*"), line);
+```
+
+The engine backtracks, and for some patterns its time grows exponentially
+with the text. So a search may read the characters of the text only so
+many times (`limit` of `Compile`, `Regexp.DefaultLimit` unless given, 0 for
+no limit); a search over its budget, or one that overflows the stack,
+raises `Regexp.TooComplex`, after some 100 milliseconds on a short text.
+Indices count the `WIDECHAR`s of a text, as `Text` does. For programs of
+cm3, the package patternmatching has `RegEx` and `Glob` too.
 
 ### JSON
 
@@ -621,7 +647,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, patternmatching, java, zip, encoding, crypto, ssh, sql), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, patternmatching, regexp, java, zip, encoding, crypto, ssh, sql), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.
@@ -674,6 +700,7 @@ JDK25=/path/to/jdk-25 python3 tools/bundle_test.py              # m3bundle, comp
 JDK25=/path/to/jdk-25 python3 tools/build_test.py quake cases   # m3build: cm3's quake tests, packages of tests/build
 JDK25=/path/to/jdk-25 python3 tools/bind_test.py                # m3jbind: bindings of Java classes
 JDK25=/path/to/jdk-25 python3 tools/zip_test.py                 # the library zip, against Python's zlib, gzip, zipfile
+JDK25=/path/to/jdk-25 python3 tools/regexp_test.py              # the library regexp, against java.util.regex
 JDK25=/path/to/jdk-25 python3 tools/lsp_test.py                 # the language server (and the client of the
                                                                 # extension for Visual Studio Code, with node)
 JDK25=/path/to/jdk-25 python3 tools/perf.py                     # benchmarks (tests/bench)

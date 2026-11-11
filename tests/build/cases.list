@@ -20,6 +20,8 @@ httpform httpform m3build use; run use/JVM/use
 
 xml      xml      m3build use; run use/JVM/use
 
+regexp   regexp   m3build use; run use/JVM/use
+
 json     json     m3build use; run use/JVM/use
 
 zip      zip      m3build use; run use/JVM/use

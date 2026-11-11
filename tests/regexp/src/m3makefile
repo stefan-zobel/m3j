@@ -1,0 +1,5 @@
+% Tests of the library regexp; tools/regexp_test.py runs it.
+import ("libm3")
+import ("regexp")
+implementation ("Main")
+program ("regexptest")

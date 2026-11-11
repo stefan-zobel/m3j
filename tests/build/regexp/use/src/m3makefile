@@ -1,0 +1,6 @@
+% A program that imports the packages regexp and patternmatching.
+import ("libm3")
+import ("regexp")
+import ("patternmatching")
+implementation ("Main")
+program ("use")

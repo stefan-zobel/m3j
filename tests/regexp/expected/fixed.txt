@@ -1,0 +1,150 @@
+groups
+  "(\\d+)-(\\d+)" in "tel 030-1234, 040-99" from 0:
+    0=4..12 "030-1234" 1=4..7 "030" 2=8..12 "1234"
+    0=14..20 "040-99" 1=14..17 "040" 2=18..20 "99"
+  "(a)|(b)" in "abc" from 0:
+    0=0..1 "a" 1=0..1 "a" 2=-1..-1 NIL
+    0=1..2 "b" 1=-1..-1 NIL 2=1..2 "b"
+  "(?<year>\\d{4})-(?<month>\\d\\d)" in "on 2026-11 and 1999-01" from 0:
+    0=3..10 "2026-11" 1=3..7 "2026" 2=8..10 "11"
+    0=15..22 "1999-01" 1=15..19 "1999" 2=20..22 "01"
+  groups 2, year 1, month 2, day -1
+  pattern "(?<year>\\d{4})-(?<month>\\d\\d)", limit 100
+  "(a*)+b" in "aab" from 0:
+    0=0..3 "aab" 1=2..2 ""
+  "((a)|b)+" in "ab" from 0:
+    0=0..2 "ab" 1=1..2 "b" 2=0..1 "a"
+  text of a match "x"
+empty matches
+  "a*" in "baab" from 0:
+    0=0..0 ""
+    0=1..3 "aa"
+    0=3..3 ""
+    0=4..4 ""
+  "" in "ab" from 0:
+    0=0..0 ""
+    0=1..1 ""
+    0=2..2 ""
+  "\\b" in "ab cd" from 0:
+    0=0..0 ""
+    0=2..2 ""
+    0=3..3 ""
+    0=5..5 ""
+  "x*" in "" from 0:
+    0=0..0 ""
+start
+  "\\w+" in "one two" from 2:
+    0=2..3 "e"
+    0=4..7 "two"
+  "(?<=o)\\w" in "one two" from 1:
+    0=1..2 "n"
+  "^\\w" in "one two" from 1:
+    none
+  "\\G\\w" in "one two" from 4:
+    0=4..5 "t"
+    0=5..6 "w"
+    0=6..7 "o"
+  "\\Ga" in "aab" from 0:
+    0=0..1 "a"
+    0=1..2 "a"
+  "\\Ga*" in "baab" from 0:
+    0=0..0 ""
+  "a" in "a" from 1:
+    none
+  "$" in "a" from 1:
+    0=1..1 ""
+  start beyond: TRUE
+options
+  "abc" in "ABC aBc" from 0:
+    0=0..3 "ABC"
+    0=4..7 "aBc"
+  "\u00e9" in "\u00c9" from 0:
+    none
+  "\u00e9" in "\u00c9" from 0:
+    0=0..1 "\u00c9"
+  "\\w+" in "na\u00efve" from 0:
+    0=0..2 "na"
+    0=3..5 "ve"
+  "\\w+" in "na\u00efve" from 0:
+    0=0..5 "na\u00efve"
+  "^\\w" in "a\nb" from 0:
+    0=0..1 "a"
+  "^\\w" in "a\nb" from 0:
+    0=0..1 "a"
+    0=2..3 "b"
+  "a.b" in "a\nb" from 0:
+    none
+  "a.b" in "a\nb" from 0:
+    0=0..3 "a\nb"
+  "a.b(" in "xa.b(" from 0:
+    0=1..5 "a.b("
+  "a b # the letters\n c" in "abc" from 0:
+    0=0..3 "abc"
+  "(?i)x" in "X" from 0:
+    0=0..1 "X"
+  options DotAll, Comments: TRUE
+whole text
+  Matches "12-34" TRUE, "12-34x" FALSE
+  FullMatch "12-34": 0=0..5 "12-34" 1=0..2 "12" 2=3..5 "34"
+  FullMatch "12-34x": NIL
+wide characters
+  "." in "a\u00e9\u4e2d\ud83d\ude00b" from 0:
+    0=0..1 "a"
+    0=1..2 "\u00e9"
+    0=2..3 "\u4e2d"
+    0=3..5 "\ud83d\ude00"
+    0=5..6 "b"
+  "[^a]" in "a\ud83d\ude00" from 0:
+    0=1..3 "\ud83d\ude00"
+  "\\x{1F600}+" in "\ud83d\ude00\ud83d\ude00" from 0:
+    0=0..4 "\ud83d\ude00\ud83d\ude00"
+  "\\x{DE00}" in "\ud83d\ude00\ude00" from 0:
+    0=2..3 "\ude00"
+  "\u4e2d(.)" in "\u4e2d\u6587" from 0:
+    0=0..2 "\u4e2d\u6587" 1=1..2 "\u6587"
+replace
+  Replace "(\\w+)@(\\w+)" in "ann@home, bob@work" by "$2:$1" all TRUE: "home:ann, work:bob"
+  Replace "(?<user>\\w+)@(?<host>\\w+)" in "ann@home" by "${host}/${user}" all TRUE: "home/ann"
+  Replace "a" in "banana" by "o" all FALSE: "bonana"
+  Replace "a" in "banana" by "\\$" all TRUE: "b$n$n$"
+  Replace "(a)|b" in "ab" by "[$1]" all TRUE: "[a][]"
+  Replace "x*" in "abc" by "-" all TRUE: "-a-b-c-"
+  Replace "(a)" in "a" by "$11" all TRUE: "a1"
+  Replace "(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)" in "abcdefghijk" by "$11-$12" all TRUE: "k-a2"
+  Replace "a" by "$1": Error "no group 1 at index 0"
+  Replace "(a)" by "$2": Error "no group 2 at index 0"
+  Replace "a" by "${x}": Error "no group x at index 0"
+  Replace "a" by "${1x}": Error "a group name starts with a digit at index 0"
+  Replace "a" by "${}": Error "a group name is missing at index 0"
+  Replace "a" by "${x": Error "a \"}\" is missing at index 0"
+  Replace "a" by "x$": Error "a \"$\" at the end at index 1"
+  Replace "a" by "x\\": Error "a \"\\\" at the end at index 1"
+  Replace "a" by "$x": Error "a group is missing at index 0"
+  Replace "a" in "a" by "\\$1\\\\" all TRUE: "$1\\"
+  ReplaceWith: "O!ne T!wo T!hree"
+  ReplaceWith first: "O!ne two"
+  ReplaceWith none: "one"
+  ReplaceWith raising: Stop passes through
+split
+  Split "," "a,b,,c,," limit 0: 4 "a" "b" "" "c"
+  Split "," "a,b,,c,," limit -1: 6 "a" "b" "" "c" "" ""
+  Split "," "a,b,,c,," limit 2: 2 "a" "b,,c,,"
+  Split "," "a,b,,c,," limit 1: 1 "a,b,,c,,"
+  Split "," "" limit 0: 1 ""
+  Split "," "," limit 0: 0
+  Split "" "abc" limit 0: 3 "a" "b" "c"
+  Split "(?=b)" "abab" limit 0: 3 "a" "ba" "b"
+  Split "\\s*;\\s*" "x ; y;z ;" limit 0: 3 "x" "y" "z"
+quote
+  Quote: "\\Qa.b*c\\E\\\\E\\Q(d\\E" matches itself TRUE, "aXbbc\\E(d" FALSE
+bad patterns
+  Compile "(a": Error "Unclosed group at index 2"
+  Compile "a)": Error "Unmatched closing ')' at index 0"
+  Compile "[a": Error "Unclosed character class at index 1"
+  Compile "a{2,1}": Error "Illegal repetition range at index 5"
+  Compile "*a": Error "Dangling meta character '*' at index 0"
+  Compile "\\k<x>": Error "named capturing group <x> does not exist at index 4"
+  Compile "(?<1x>a)": Error "capturing group name does not start with a Latin letter at index 3"
+  Compile "\\p{Nope}": Error "Unknown character property name {Nope} at index 7"
+  Compile "a\\": Error "Unescaped trailing backslash at index 2"
+  Compile "(?<n>a)(?<n>b)": Error "Named capturing group <n> is already defined at index 11"
