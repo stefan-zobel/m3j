@@ -9,10 +9,13 @@
    pathnames and children start in the new directory; a pipe within the
    program; and the errors of a missing program and directory.
 
-   The children are cmd.exe and sort.exe of Windows, named by their full
-   pathnames, and their parameters have no spaces (cm3 on Windows joins
-   them with spaces, without quotes). The program works in a directory
-   "procdir" in the current directory, which it creates and deletes. *)
+   The children are the shell and sort of the system: on Windows cmd.exe
+   and sort.exe, named by their full pathnames, whose parameters have no
+   spaces (cm3 on Windows joins them with spaces, without quotes); on a
+   POSIX system /bin/sh, which gets the command as one parameter, and
+   /usr/bin/sort. The lines that the program writes end as the lines of
+   the system do. The program works in a directory "procdir" in the
+   current directory, which it creates and deletes. *)
 
 MODULE Main;
 
@@ -24,8 +27,53 @@ IMPORT Env, File, FileRd, FileWr, Fmt, FS, IO, OSError, Pathname, Pipe,
 CONST Dir = "procdir";
 
 VAR
-  cmd := Env.Get ("ComSpec");
-  sort := Env.Get ("SystemRoot") & "\\System32\\sort.exe";
+  (* a POSIX system: '/' between the parts of a pathname *)
+  posix := Text.Equal (Pathname.Join ("a", "b", NIL), "a/b");
+  cmd, sort, nl, type, cd, var: TEXT;
+
+PROCEDURE Setup () =
+  BEGIN
+    IF posix THEN
+      cmd := "/bin/sh";
+      sort := "/usr/bin/sort";
+      nl := "\n";
+      type := "cat";
+      cd := "pwd";
+      var := "$M3TEST";
+    ELSE
+      cmd := Env.Get ("ComSpec");
+      sort := Env.Get ("SystemRoot") & "\\System32\\sort.exe";
+      nl := "\r\n";
+      type := "type";
+      cd := "cd";
+      var := "%M3TEST%";
+    END;
+  END Setup;
+
+PROCEDURE Sh (READONLY words: ARRAY OF TEXT): REF ARRAY OF TEXT =
+  (* The parameters of the shell for the command of the words: "/c" and
+     the words for cmd.exe, "-c" and the words joined with spaces for
+     /bin/sh. *)
+  VAR r: REF ARRAY OF TEXT;  t: TEXT;
+  BEGIN
+    IF posix THEN
+      t := words[0];
+      FOR i := 1 TO LAST (words) DO t := t & " " & words[i] END;
+      r := NEW (REF ARRAY OF TEXT, 2);
+      r[0] := "-c";
+      r[1] := t;
+    ELSE
+      r := NEW (REF ARRAY OF TEXT, NUMBER (words) + 1);
+      r[0] := "/c";
+      SUBARRAY (r^, 1, NUMBER (words)) := words;
+    END;
+    RETURN r;
+  END Sh;
+
+PROCEDURE In (name: TEXT): TEXT =
+  BEGIN
+    RETURN Pathname.Join (Dir, name, NIL);
+  END In;
 
 PROCEDURE Line (t: TEXT) =
   BEGIN
@@ -93,11 +141,11 @@ PROCEDURE ExitCodes () RAISES {OSError.E} =
   BEGIN
     FOR i := 0 TO 4 DO
       WITH n = ARRAY [0 .. 4] OF TEXT {"0", "1", "3", "255", "65536"}[i] DO
-        p := Process.Create (cmd, ARRAY OF TEXT {"/c", "exit", n});
+        p := Process.Create (cmd, Sh (ARRAY OF TEXT {"exit", n})^);
         Line ("exit " & n & ": " & Fmt.Int (Process.Wait (p)));
       END;
     END;
-    p := Process.Create (cmd, ARRAY OF TEXT {"/c", "exit", "0"});
+    p := Process.Create (cmd, Sh (ARRAY OF TEXT {"exit", "0"})^);
     Line ("ids: " & Fmt.Bool (Process.GetID (p) # Process.NullID) & " "
             & Fmt.Bool (Process.GetID (p) # Process.GetMyID ()) & " "
             & Fmt.Bool (Process.GetMyID () # Process.NullID));
@@ -109,20 +157,20 @@ PROCEDURE Inherited () RAISES {OSError.E} =
   BEGIN
     Process.GetStandardFileHandles (in, out, err);
     Line ("standard handles: " & Fmt.Bool (in # NIL AND out # NIL AND err # NIL));
-    (* The children print files with "type", whose output does not depend
-       on how the command line ends. *)
-    WITH wr = FileWr.Open (Dir & "\\msg.txt") DO
-      Wr.PutText (wr, "inherited\r\nto stderr\r\n");
+    (* The children print files with "type" (or "cat"), whose output does
+       not depend on how the command line ends. *)
+    WITH wr = FileWr.Open (In ("msg.txt")) DO
+      Wr.PutText (wr, "inherited" & nl & "to stderr" & nl);
       Wr.Close (wr);
     END;
     Wr.Flush (Stdio.stdout);
-    p := Process.Create (cmd, ARRAY OF TEXT {"/c", "type", Dir & "\\msg.txt"},
+    p := Process.Create (cmd, Sh (ARRAY OF TEXT {type, In ("msg.txt")})^,
                          stdout := out);
     Line ("code " & Fmt.Int (Process.Wait (p)));
-    p := Process.Create (cmd, ARRAY OF TEXT {"/c", "type", Dir & "\\msg.txt", "1>&2"},
+    p := Process.Create (cmd, Sh (ARRAY OF TEXT {type, In ("msg.txt"), "1>&2"})^,
                          stderr := out);
     Line ("code " & Fmt.Int (Process.Wait (p)));
-    p := Process.Create (cmd, ARRAY OF TEXT {"/c", "type", Dir & "\\msg.txt"});
+    p := Process.Create (cmd, Sh (ARRAY OF TEXT {type, In ("msg.txt")})^);
     Line ("no handles: code " & Fmt.Int (Process.Wait (p)));
   END Inherited;
 
@@ -136,7 +184,7 @@ PROCEDURE Filter () RAISES {OSError.E} =
     hwChild.close ();
     WITH wr = NEW (FileWr.T).init (hwSelf),
          rd = NEW (FileRd.T).init (hrSelf) DO
-      Wr.PutText (wr, "pear\r\napple\r\nfig\r\n");
+      Wr.PutText (wr, "pear" & nl & "apple" & nl & "fig" & nl);
       Wr.Close (wr);
       Line ("filter: " & Flat (Clean (Rd.GetText (rd, LAST (CARDINAL)))));
       Rd.Close (rd);
@@ -149,7 +197,7 @@ TYPE Writer = Thread.Closure OBJECT wr: Wr.T; n: INTEGER OVERRIDES apply := Writ
 PROCEDURE WriteLines (w: Writer): REFANY =
   BEGIN
     FOR i := w.n - 1 TO 0 BY -1 DO
-      Wr.PutText (w.wr, "line" & Fmt.Pad (Fmt.Int (i), 6, '0') & "\r\n");
+      Wr.PutText (w.wr, "line" & Fmt.Pad (Fmt.Int (i), 6, '0') & nl);
     END;
     Wr.Close (w.wr);
     RETURN NIL;
@@ -204,18 +252,18 @@ PROCEDURE Files () RAISES {OSError.E} =
   VAR f: File.T;  p: Process.T;  code: Process.ExitCode;  out: TEXT;
       b: ARRAY [0 .. 1] OF File.Byte;
   BEGIN
-    f := FS.OpenFile (Dir & "\\out.txt");
-    PutBytes (f, "first\r\n");
-    p := Process.Create (cmd, ARRAY OF TEXT {"/c", "echo", "middle"}, stdout := f);
+    f := FS.OpenFile (In ("out.txt"));
+    PutBytes (f, "first" & nl);
+    p := Process.Create (cmd, Sh (ARRAY OF TEXT {"echo", "middle"})^, stdout := f);
     Line ("code " & Fmt.Int (Process.Wait (p)));
-    PutBytes (f, "last\r\n");
+    PutBytes (f, "last" & nl);
     f.close ();
-    Line ("out.txt: " & Flat (ReadFile (Dir & "\\out.txt")));
+    Line ("out.txt: " & Flat (ReadFile (In ("out.txt"))));
 
-    f := FS.OpenFile (Dir & "\\in.txt");
-    PutBytes (f, "c\r\nb\r\na\r\n");
+    f := FS.OpenFile (In ("in.txt"));
+    PutBytes (f, "c" & nl & "b" & nl & "a" & nl);
     f.close ();
-    f := FS.OpenFileReadonly (Dir & "\\in.txt");
+    f := FS.OpenFileReadonly (In ("in.txt"));
     EVAL f.read (b);
     out := Run (sort, ARRAY OF TEXT {}, stdin := f, code := code);
     f.close ();
@@ -226,12 +274,16 @@ PROCEDURE EnvAndDir () RAISES {OSError.E} =
   VAR code: Process.ExitCode;  env := NEW (REF ARRAY OF TEXT, 2);  out: TEXT;
   BEGIN
     env[0] := "M3TEST=forty-two";
-    env[1] := "SystemRoot=" & Env.Get ("SystemRoot");
-    out := Run (cmd, ARRAY OF TEXT {"/c", "echo", "%M3TEST%"}, env := env, code := code);
+    IF posix THEN
+      env[1] := "PATH=/usr/bin:/bin";
+    ELSE
+      env[1] := "SystemRoot=" & Env.Get ("SystemRoot");
+    END;
+    out := Run (cmd, Sh (ARRAY OF TEXT {"echo", var})^, env := env, code := code);
     Line ("env: " & out & ", code " & Fmt.Int (code));
-    out := Run (cmd, ARRAY OF TEXT {"/c", "echo", "%M3TEST%"}, code := code);
+    out := Run (cmd, Sh (ARRAY OF TEXT {"echo", var})^, code := code);
     Line ("own env: " & out & ", code " & Fmt.Int (code));
-    out := Run (cmd, ARRAY OF TEXT {"/c", "cd"}, wd := Dir, code := code);
+    out := Run (cmd, Sh (ARRAY OF TEXT {cd})^, wd := Dir, code := code);
     Line ("wd: " & Pathname.Last (out) & ", code " & Fmt.Int (code));
   END EnvAndDir;
 
@@ -244,18 +296,18 @@ PROCEDURE WorkingDirectory () RAISES {OSError.E} =
     Line ("now in: " & Pathname.Last (now) & ", parent the old one: "
             & Fmt.Bool (Text.Equal (Pathname.Prefix (now), old)));
     WITH wr = FileWr.Open ("rel.txt") DO
-      Wr.PutText (wr, "relative\r\n");
+      Wr.PutText (wr, "relative" & nl);
       Wr.Close (wr);
     END;
     Line ("absolute: " & Fmt.Bool (Text.Equal (FS.GetAbsolutePathname ("rel.txt"),
                                                Pathname.Join (now, "rel.txt", NIL))));
-    out := Run (cmd, ARRAY OF TEXT {"/c", "cd"}, code := code);
+    out := Run (cmd, Sh (ARRAY OF TEXT {cd})^, code := code);
     Line ("child in: " & Pathname.Last (out));
-    out := Run (cmd, ARRAY OF TEXT {"/c", "type", "rel.txt"}, code := code);
+    out := Run (cmd, Sh (ARRAY OF TEXT {type, "rel.txt"})^, code := code);
     Line ("child reads: " & out & ", code " & Fmt.Int (code));
     Process.SetWorkingDirectory ("..");
     Line ("back: " & Fmt.Bool (Text.Equal (Process.GetWorkingDirectory (), old)));
-    Line ("rel.txt there: " & ReadFile (Dir & "\\rel.txt"));
+    Line ("rel.txt there: " & ReadFile (In ("rel.txt")));
   END WorkingDirectory;
 
 PROCEDURE InProgram () RAISES {OSError.E} =
@@ -285,7 +337,7 @@ PROCEDURE Errors () =
       OSError.E => Line ("missing program: OSError.E");
     END;
     TRY
-      p := Process.Create (cmd, ARRAY OF TEXT {"/c", "exit"}, wd := "no-such-dir-of-m3j");
+      p := Process.Create (cmd, Sh (ARRAY OF TEXT {"exit"})^, wd := "no-such-dir-of-m3j");
       Line ("missing wd: created");
     EXCEPT
       OSError.E => Line ("missing wd: OSError.E");
@@ -302,8 +354,8 @@ PROCEDURE Clear () =
   BEGIN
     FOR i := 0 TO 3 DO
       TRY
-        FS.DeleteFile (Dir & "\\" & ARRAY [0 .. 3] OF TEXT {"out.txt", "in.txt", "rel.txt",
-                                                           "msg.txt"}[i]);
+        FS.DeleteFile (In (ARRAY [0 .. 3] OF TEXT {"out.txt", "in.txt", "rel.txt",
+                                                   "msg.txt"}[i]));
       EXCEPT
         OSError.E =>
       END;
@@ -312,6 +364,7 @@ PROCEDURE Clear () =
   END Clear;
 
 BEGIN
+  Setup ();
   Clear ();
   TRY
     FS.CreateDirectory (Dir);

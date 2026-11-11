@@ -13,7 +13,7 @@ working directory, and their stdout, stderr and exit status compared.
 The tests are listed in the files tests/diff/*.list, one per line:
 
   NAME  DIR  [arg ...]  [stdin=FILE]  [exe=PROGRAM]  [approx=TOL]  [data=DATA]
-        [os=OS]  [result=NAME2]  [expected=FILE]
+        [os=OS]  [result=NAME2]  [expected=FILE]  [host=OS]
 
 DIR is a cm3 package (a directory with src/m3makefile, relative to the
 root of m3j; the programs of cm3 are copied to tests/diff/src); FILE is relative to DIR; the program runs in DIR/src (a
@@ -28,6 +28,12 @@ expected=FILE (relative to DIR) is for what cm3 gets wrong: the test is
 compared not with the run of cm3 but with FILE, its stdout, checked by
 hand (with exit status 0 and nothing on stderr); --record still builds it
 with cm3, for the units, and keeps cm3's run in the record.
+host=OS (POSIX or WIN32) runs the test only on that system (OTHER-HOST
+elsewhere): for a program whose output depends on the system, such as the
+programs it starts; its expected=FILE for POSIX is the output of m3j there,
+checked by hand. The records are those of cm3 on Windows: on a POSIX
+system, which keeps only the low 8 bits of an exit code, the exit status
+is compared with those bits of the recorded one.
 Lines starting with # are comments.
 
 --record builds each test with cm3 (cm3 -build -keep -commands; cm3 and
@@ -69,6 +75,8 @@ PKG = ROOT / "tests" / "pkg"
 BUNDLED = {p.name for p in (ROOT / "lib").iterdir() if (p / "src").is_dir()}
 SEP = ";" if os.name == "nt" else ":"
 TARGET = "AMD64_NT"
+# the system that the tests run on, as host=OS names it
+HOST = "WIN32" if os.name == "nt" else "POSIX"
 
 
 def read_known():
@@ -94,7 +102,7 @@ def read_list():
             continue
         w = line.split()
         t = {"name": w[0], "dir": w[1], "args": [], "stdin": None, "exe": None, "approx": None,
-             "data": None, "os": None, "result": None, "expected": None}
+             "data": None, "os": None, "result": None, "expected": None, "host": None}
         for x in w[2:]:
             if x.startswith("stdin="):
                 t["stdin"] = x[6:]
@@ -110,6 +118,8 @@ def read_list():
                 t["result"] = x[7:]
             elif x.startswith("expected="):
                 t["expected"] = x[9:]
+            elif x.startswith("host="):
+                t["host"] = x[5:]
             else:
                 t["args"].append(x)
         tests.append(t)
@@ -264,8 +274,11 @@ def check(t, args, work):
             args.timeout)
     if r.get("timeout"):
         return "TIMEOUT", ""
-    if r["status"] != e["status"]:
-        return "FAIL", f"exit status {r['status']}, expected {e['status']}"
+    # the record of cm3 is of Windows, where an exit code has 32 bits; a
+    # POSIX system keeps the low 8 of them
+    want = e["status"] if HOST == "WIN32" else e["status"] & 0xFF
+    if r["status"] != want:
+        return "FAIL", f"exit status {r['status']}, expected {want}"
     if r["stderr"] != e["stderr"]:
         return "FAIL", "stderr " + first_diff(e["stderr"], r["stderr"])
     if r["stdout"] != e["stdout"]:
@@ -305,7 +318,10 @@ def main():
         for t in read_list():
             if args.tests and not any(t["name"] == n or t["name"].startswith(n + "/") for n in args.tests):
                 continue
-            status, detail = (record if args.record else check)(t, args, work)
+            if t["host"] and t["host"] != HOST and not args.record:
+                status, detail = "OTHER-HOST", "runs on " + t["host"] + " only"
+            else:
+                status, detail = (record if args.record else check)(t, args, work)
             if status in ("FAIL", "COMPILE") and t["name"] in known:
                 status, detail = "KNOWN", known[t["name"]] + " [" + detail + "]"
             counts[status] = counts.get(status, 0) + 1

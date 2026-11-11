@@ -25,6 +25,15 @@ public final class TextExpr {
     public static final class P extends Expr.T {
         public M3String.T value8;
         public M3WString.T value32;
+        /**
+         * m3j: for a text that depends on the system, its values on POSIX and
+         * on WIN32 (value8 and value32 are the one of the system that the
+         * compiler runs on); null for every other text. The texts made of
+         * OSConfig.LineSep, such as Wr.EOL, are such: a program of m3j runs
+         * on either system, and the back end takes the value of the system
+         * that it runs on.
+         */
+        public P posix, win32;
 
         @Override
         public void compile(boolean StaticOnly) {
@@ -298,7 +307,27 @@ public final class TextExpr {
         } else { // wa # NIL  AND  sb # NIL
             c[0] = new32(M3WString.concat(wa, M3WString.add(M3String.toText(sb))));
         }
+        // m3j: the values on each system of a text that depends on it
+        P pa = (P) a, pb = (P) b;
+        if (pa.posix != null || pb.posix != null) {
+            Expr.T[] x = new Expr.T[1], y = new Expr.T[1];
+            cat(pa.posix != null ? pa.posix : pa, pb.posix != null ? pb.posix : pb, x);
+            cat(pa.win32 != null ? pa.win32 : pa, pb.win32 != null ? pb.win32 : pb, y);
+            ((P) c[0]).posix = (P) x[0];
+            ((P) c[0]).win32 = (P) y[0];
+        }
         return true;
+    }
+
+    /**
+     * m3j: the text t as a text that depends on the system, with the values
+     * posix and win32 there; t keeps its value.
+     */
+    public static Expr.T onSystem(P t, M3String.T posix, M3String.T win32) {
+        P r = (P) (t.value8 != null ? new8(t.value8) : new32(t.value32));
+        r.posix = (P) new8(posix);
+        r.win32 = (P) new8(win32);
+        return r;
     }
 
     private static boolean isZeroes(P p, boolean lhs) {

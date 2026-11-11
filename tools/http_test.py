@@ -2215,8 +2215,12 @@ def python_parts(body, boundary):
     def data(b, s, e):
         parts[-1][1] += b[s:e]
 
-    p = pm.MultipartParser(boundary, {"on_part_begin": begin, "on_header_field": field, "on_header_value": value,
-                                      "on_part_data": data}, max_header_count=100)
+    callbacks = {"on_part_begin": begin, "on_header_field": field, "on_header_value": value, "on_part_data": data}
+    try:
+        p = pm.MultipartParser(boundary, callbacks, max_header_count=100)
+    except TypeError:
+        # older versions (0.0.20 of Ubuntu) have no limit of headers, nor this parameter
+        p = pm.MultipartParser(boundary, callbacks)
     p.write(body)
     p.finalize()
     return [(dict((k.lower(), v) for k, v in h), d) for h, d in parts]

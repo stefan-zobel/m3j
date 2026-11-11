@@ -1,0 +1,35 @@
+exit 0: 0
+exit 1: 1
+exit 3: 3
+exit 255: 255
+exit 65536: 0
+ids: TRUE TRUE TRUE
+standard handles: TRUE
+inherited
+to stderr
+code 0
+inherited
+to stderr
+code 0
+no handles: code 141
+filter: apple|fig|pear
+code 0
+big: 20000 lines, 200000 chars, ordered TRUE, last line019999
+code 0
+code 0
+out.txt: first|middle|last
+input from position 2: a|b, code 0
+env: forty-two, code 0
+own env: , code 0
+wd: procdir, code 0
+now in: procdir, parent the old one: TRUE
+absolute: TRUE
+child in: procdir
+child reads: relative, code 0
+back: TRUE
+rel.txt there: relative
+pipe types: TRUE TRUE
+read: through the pipe, eof TRUE
+missing program: OSError.E
+missing wd: OSError.E
+SetWorkingDirectory: OSError.E

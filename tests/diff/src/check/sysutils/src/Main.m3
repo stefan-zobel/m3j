@@ -8,8 +8,11 @@
 
    The children are findstr.exe and sort.exe of Windows, named by their
    full pathnames (on Windows, System puts each parameter in quotes, which
-   these programs remove, but not the commands of cmd.exe). The program works in a directory "sysdir" in the current
-   directory, which it creates and deletes. *)
+   these programs remove, but not the commands of cmd.exe), and on a POSIX
+   system grep and sort of /usr/bin, with the same work. The lines that the
+   program writes end as the lines of the system do. The program works in
+   a directory "sysdir" in the current directory, which it creates and
+   deletes. *)
 
 MODULE Main;
 
@@ -25,9 +28,38 @@ IMPORT ASCII, ConnectRdWr, DirStack, Env, EnvUtils, FastLex, FileWr, Fingerprint
 CONST Dir = "sysdir";
 
 VAR
-  cmd := Env.Get ("ComSpec");
-  sort := Env.Get ("SystemRoot") & "\\System32\\sort.exe";
-  findstr := Env.Get ("SystemRoot") & "\\System32\\findstr.exe";
+  (* a POSIX system: '/' between the parts of a pathname *)
+  posix := Text.Equal (Pathname.Join ("a", "b", NIL), "a/b");
+  cmd, sort, findstr, nl, sep, shellVar: TEXT;
+  (* the options of findstr and sort, and those of grep and sort *)
+  cWorld, cHello, num, rev: TEXT;
+
+PROCEDURE Setup () =
+  BEGIN
+    IF posix THEN
+      cmd := "/bin/sh";
+      sort := "/usr/bin/sort";
+      findstr := "/usr/bin/grep";
+      nl := "\n";
+      sep := "/";
+      shellVar := "PATH";
+      cWorld := "world";
+      cHello := "hello";
+      num := "-n";
+      rev := "-r";
+    ELSE
+      cmd := Env.Get ("ComSpec");
+      sort := Env.Get ("SystemRoot") & "\\System32\\sort.exe";
+      findstr := Env.Get ("SystemRoot") & "\\System32\\findstr.exe";
+      nl := "\r\n";
+      sep := "\\";
+      shellVar := "ComSpec";
+      cWorld := "/c:world";
+      cHello := "/c:hello";
+      num := "/n";
+      rev := "/r";
+    END;
+  END Setup;
 
 PROCEDURE Line (t: TEXT) =
   BEGIN
@@ -245,12 +277,12 @@ PROCEDURE Environments () =
     WITH names = ProcessEnv.Names (cur)^ DO
       t := NIL;
       FOR i := 0 TO LAST (names) DO
-        IF Text.Equal (TextUtils.Lower (names[i]), "comspec") THEN
+        IF Text.Equal (TextUtils.Lower (names[i]), TextUtils.Lower (shellVar)) THEN
           t := ProcessEnv.Value (cur, names[i]);
         END;
       END;
-      Line ("Current ComSpec " & B (t # NIL AND Text.Equal (t, cmd)) & " Names "
-              & B (NUMBER (names) > 3));
+      Line ("Current " & shellVar & " " & B (t # NIL AND Text.Equal (t, Env.Get (shellVar)))
+              & " Names " & B (NUMBER (names) > 3));
     END;
     TRY
       ProcessEnv.Set (env, "B", "two");
@@ -296,17 +328,18 @@ PROCEDURE Paths () =
 (* ---------------------------------------------------- files, directories *)
 
 PROCEDURE P (name: TEXT): TEXT =
+  (* name in the directory of the program; name has '/' between its parts *)
   BEGIN
-    RETURN Dir & "\\" & name;
+    RETURN Dir & sep & TextUtils.SubstChar (name, '/', Text.GetChar (sep, 0));
   END P;
 
 PROCEDURE Files () =
   VAR c: TEXT;
   BEGIN
     TRY
-      FSUtils.Mkdir (P ("sub\\deep"));
+      FSUtils.Mkdir (P ("sub/deep"));
       FSUtils.PutFile (P ("a.txt"), "hello\nworld\n");
-      FSUtils.PutFile (P ("run.bat"), "@echo off\r\n");
+      FSUtils.PutFile (P ("run.bat"), "@echo off" & nl);
       Line ("FileContents " & Q (FSUtils.FileContents (P ("a.txt"))));
       Line ("Exists " & B (FSUtils.Exists (P ("a.txt"))) & " " & B (FSUtils.Exists (P ("no.txt")))
               & " IsFile " & B (FSUtils.IsFile (P ("a.txt"))) & " " & B (FSUtils.IsFile (P ("sub")))
@@ -318,20 +351,20 @@ PROCEDURE Files () =
               & B (FSUtils.IsExecutable (P ("a.txt"))) & " " & B (FSUtils.IsExecutable (P ("run.bat")))
               & " " & B (FSUtils.IsExecutable (P ("no.exe"))) & " " & B (FSUtils.IsExecutable (cmd)));
       Line ("no.txt still missing " & B (NOT FSUtils.Exists (P ("no.txt"))));
-      FSUtils.Cp (P ("a.txt"), P ("sub\\b.txt"));
+      FSUtils.Cp (P ("a.txt"), P ("sub/b.txt"));
       FSUtils.Touch (P ("t"));
-      FSUtils.TouchFile (P ("sub\\t2"));
-      FSUtils.MakeDir (P ("made\\here"));
+      FSUtils.TouchFile (P ("sub/t2"));
+      FSUtils.MakeDir (P ("made/here"));
       Line ("SubFiles " & SortedSeq (FSUtils.SubFiles (Dir, TRUE)) & " SubDirs "
               & SortedSeq (FSUtils.SubDirs (Dir, TRUE)));
       Line ("SubFiles " & SortedSeq (FSUtils.SubFiles (P ("sub"))));
-      Line ("copy " & Q (FSUtils.FileContents (P ("sub\\b.txt"))) & " touched "
+      Line ("copy " & Q (FSUtils.FileContents (P ("sub/b.txt"))) & " touched "
               & Q (FSUtils.FileContents (P ("t"))));
-      c := FSUtils.CanonicalPathname (P ("sub\\..\\a.txt"));
+      c := FSUtils.CanonicalPathname (P ("sub/../a.txt"));
       Line ("CanonicalPathname absolute " & B (Pathname.Absolute (c)) & " "
               & Q (Pathname.Last (c)) & " " & Q (Pathname.Last (Pathname.Prefix (c))));
-      FSUtils.Rm (P ("sub\\b.txt"));
-      Line ("Rm " & B (FSUtils.Exists (P ("sub\\b.txt"))));
+      FSUtils.Rm (P ("sub/b.txt"));
+      Line ("Rm " & B (FSUtils.Exists (P ("sub/b.txt"))));
     EXCEPT
       FSUtils.E (e) => Line ("FSUtils.E " & Q (e));
     END;
@@ -401,6 +434,15 @@ PROCEDURE Connections () =
 
 (* ----------------------------------------------------------- processes *)
 
+PROCEDURE Head (e, wd: TEXT): TEXT =
+  (* The message e of an error up to its first colon, which on Windows is
+     the one after the drive; on POSIX with the pathnames relative to the
+     working directory wd. *)
+  BEGIN
+    IF posix THEN e := TextUtils.Substitute (e, wd & "/", "") END;
+    RETURN TextUtils.Split (e, ":").get (0);
+  END Head;
+
 PROCEDURE Processes () =
   VAR
     h := System.Hostname ();
@@ -413,13 +455,13 @@ PROCEDURE Processes () =
     (* cm3 on Windows gives "amnesiac": its gethostname fails in a program
        that has not started Windows Sockets; m3j gives the name *)
     Line ("Hostname " & B (Text.Length (h) > 0));
-    FSUtils.PutFile (P ("args.txt"), "/c:world\n");
+    FSUtils.PutFile (P ("args.txt"), cWorld & "\n");
     TRY
       Flush ();
-      Line ("Execute: " & Fmt.Int (System.Execute (findstr & " /c:world " & a)));
+      Line ("Execute: " & Fmt.Int (System.Execute (findstr & " " & cWorld & " " & a)));
       Line ("Execute no match: " & Fmt.Int (System.Execute (findstr & " zzz " & a)));
       Line ("Exec > file: "
-              & Fmt.Int (System.Exec (sort, NewSeq (ARRAY OF TEXT {"/r", a, ">", P ("out.txt")}),
+              & Fmt.Int (System.Exec (sort, NewSeq (ARRAY OF TEXT {rev, a, ">", P ("out.txt")}),
                                       wd := wd)) & " " & Q (Clean (FSUtils.FileContents (P ("out.txt")))));
       Line ("Exec >> file: "
               & Fmt.Int (System.Exec (findstr, NewSeq (ARRAY OF TEXT {"hello", a, ">>", P ("out.txt")}),
@@ -436,8 +478,8 @@ PROCEDURE Processes () =
                                       wd := wd)) & " "
               & B (TextUtils.Contains (FSUtils.FileContents (P ("both.txt")), "world")));
       Line ("Exec in wd: "
-              & Fmt.Int (System.Exec (sort, NewSeq (ARRAY OF TEXT {"/r", "a.txt", ">", "typed.txt"}),
-                                      wd := wd & "\\" & Dir)) & " "
+              & Fmt.Int (System.Exec (sort, NewSeq (ARRAY OF TEXT {rev, "a.txt", ">", "typed.txt"}),
+                                      wd := Pathname.Join (wd, Dir, NIL))) & " "
               & Q (Clean (FSUtils.FileContents (P ("typed.txt")))));
       Line ("Exec $< file: "
               & Fmt.Int (System.Exec (findstr, NewSeq (ARRAY OF TEXT {"$<", P ("args.txt"), ">", a, ">", P ("found.txt")}),
@@ -445,36 +487,36 @@ PROCEDURE Processes () =
               & Q (Clean (FSUtils.FileContents (P ("found.txt")))));
       Flush ();
       Line ("ExecuteList ||: " & Fmt.Int (System.ExecuteList (findstr & " zzz " & a & " || "
-                                                                  & findstr & " /c:hello " & a)));
+                                                                  & findstr & " " & cHello & " " & a)));
       Line ("ExecuteList &&: " & Fmt.Int (System.ExecuteList (findstr & " zzz " & a & " && "
-                                                                  & findstr & " /c:hello " & a)));
+                                                                  & findstr & " " & cHello & " " & a)));
       Line ("ExecuteList ;: " & Fmt.Int (System.ExecuteList (findstr & " world " & a & " ; "
                                                                  & findstr & " zzz " & a)));
       Line ("ExecuteList |: " & Fmt.Int (System.ExecuteList (findstr & " o " & a & " | "
-                                                                 & sort & " /r")));
-      Line ("ExecuteList > file: " & Fmt.Int (System.ExecuteList (sort & " /r " & a & " > "
+                                                                 & sort & " " & rev)));
+      Line ("ExecuteList > file: " & Fmt.Int (System.ExecuteList (sort & " " & rev & " " & a & " > "
                                                                      & P ("list.txt")))
               & " " & Q (Clean (FSUtils.FileContents (P ("list.txt")))));
 
-      p := System.RdExecute (findstr & " /n o " & a, rd);
+      p := System.RdExecute (findstr & " " & num & " o " & a, rd);
       Line ("RdExecute " & Q (Clean (Rd.GetText (rd, LAST (CARDINAL)))) & " "
               & Fmt.Int (System.Wait (p)));
       Rd.Close (rd);
 
-      p := System.RdExecute (findstr & " /n o a.txt", rd, wd := Dir);
+      p := System.RdExecute (findstr & " " & num & " o a.txt", rd, wd := Dir);
       Line ("RdExecute in wd " & Q (Clean (Rd.GetText (rd, LAST (CARDINAL)))) & " "
               & Fmt.Int (System.Wait (p)));
       Rd.Close (rd);
 
       p := System.Filter (sort, rd, wr);
-      Wr.PutText (wr, "pear\r\napple\r\nfig\r\n");
+      Wr.PutText (wr, "pear" & nl & "apple" & nl & "fig" & nl);
       Wr.Close (wr);
       Line ("Filter " & Q (Clean (Rd.GetText (rd, LAST (CARDINAL)))) & " " & Fmt.Int (Process.Wait (p)));
       Rd.Close (rd);
 
       Flush ();
       p := System.PipeTo (sort, wr);
-      Wr.PutText (wr, "zebra\r\nant\r\n");
+      Wr.PutText (wr, "zebra" & nl & "ant" & nl);
       Wr.Close (wr);
       Line ("PipeTo " & Fmt.Int (Process.Wait (p)));
     EXCEPT
@@ -496,11 +538,12 @@ PROCEDURE Processes () =
       EVAL System.Exec (sort, NewSeq (ARRAY OF TEXT {"<", P ("no.txt")}), wd := wd);
       Line ("Exec < no.txt: no error");
     EXCEPT
-      System.ExecuteError (e) => Line ("Exec < no.txt: " & Q (TextUtils.Split (e, ":").get (0)));
+      System.ExecuteError (e) => Line ("Exec < no.txt: " & Q (Head (e, wd)));
     END;
   END Processes;
 
 BEGIN
+  Setup ();
   Texts ();
   Reading ();
   Environments ();

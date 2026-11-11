@@ -20,7 +20,11 @@ the run (the name of the host, the date, the directory of the package and
 the times of files) and the name of the build directory (JVM, AMD64_NT);
 the test d001 expects that the directory of the work (--work) does not
 contain "test", as in the record of cm3. The test e002 runs java --version
-(of JAVA, put on the PATH) instead of cm3 -version.
+(of JAVA, put on the PATH) instead of cm3 -version. The tests are written
+for POSIX, and cm3 on Windows fails some of them (pathnames with a
+backslash); on a POSIX system the output must be
+tests/quake/expected/m3j-POSIX.txt, that of m3build on Linux, checked by
+hand against the record of cm3.
 The tests run programs of a POSIX shell (Git's on Windows) from the PATH,
 as with cm3.
 
@@ -45,7 +49,8 @@ PATH, relative to the copy), or Java classes for a package (javac DIR
 FILE..., which compiles the files to DIR, and jar FILE DIR, which packs
 DIR; the paths are relative to the copy). The output of the commands, with the
 directory of the copy written as <work>, must be tests/build/expected/
-CASE.txt, written by hand.
+CASE.txt, written by hand on Windows: on a POSIX system a backslash
+between the parts of a pathname in it is read as '/'.
 
 packages: packages of cm3 built by m3build from a copy of their sources
 with their own m3makefiles (PACKAGES in this file): libraries, which
@@ -107,7 +112,8 @@ def quake(args, work, counts):
     env = dict(os.environ)
     env["PATH"] = str(Path(args.java).parent) + os.pathsep + env.get("PATH", "")
     code, out = m3build(args, pkg / "src", env=env)
-    exp = (TESTS / "quake" / "expected" / "cm3-AMD64_NT.txt").read_bytes().decode("latin-1")
+    record = "cm3-AMD64_NT.txt" if os.name == "nt" else "m3j-POSIX.txt"
+    exp = (TESTS / "quake" / "expected" / record).read_bytes().decode("latin-1")
     exp = exp.replace(JAVA_CM3[0].replace('\\"', '"'), JAVA_CM3[1].replace('\\"', '"'))
     got, want = normalize_quake(out, pkg), normalize_quake(exp, None)
     status = "PASS" if code == 0 and got == want else "FAIL"
@@ -122,8 +128,10 @@ def normalize_quake(text, pkg):
         l = l.replace("AMD64_NT", "JVM")
         if re.match(r"(hostname|date|datetime|datestamp) +=", l):
             l = l.split("=")[0] + "= <run>"
-        l = re.sub(r"^(-r[-w][-x]\S+ \d+ .+? \d+ +\d+) \w{3} +\d+ \d\d:\d\d (\S+)$",
-                   lambda m: "<file> " + m.group(2), l)
+        # a line of ls -l (owner, group, size and time depend on the run)
+        l = re.sub(r"^-r[-w][-x]\S+ +\d+ .+? \w{3} +\d+ \d\d:\d\d (\S+)$",
+                   lambda m: "<file> " + m.group(1), l)
+        l = re.sub(r"^out = total \d+$", "out = total <blocks>", l)
         l = re.sub(r"^base = .*$", "base = <package>", l)
         # the directory of the package, as the tests d002 and d004 show it
         l = re.sub(r'^result:   "(/|[A-Za-z]:\\\\).*$', 'result:   <package>', l)
@@ -329,6 +337,9 @@ def cases(args, work, names, counts):
             exp_file.write_bytes((got + "\n").encode("latin-1"))
         want = exp_file.read_bytes().decode("latin-1").replace("\r\n", "\n").rstrip("\n") \
             if exp_file.exists() else None
+        if want is not None and os.name != "nt":
+            # recorded on Windows: '\' between the parts of a pathname
+            want = re.sub(r"(?<=[\w.>])\\(?=[\w.])", "/", want)
         if want is None:
             status, detail = "NO-EXPECTED", ""
         elif want == got:

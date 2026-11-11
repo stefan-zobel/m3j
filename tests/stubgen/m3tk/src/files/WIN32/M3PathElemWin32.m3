@@ -1,10 +1,16 @@
 (* Copyright (C) 1993, Digital Equipment Corporation           *)
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
+(* Changes for m3j: Copyright (c) 2026 the m3j authors, distributed
+   under the MIT license in the file LICENSE. *)
+
+(* For m3j the module of both systems: the separators are those of the
+   system that the program runs on (M3jOS), as M3PathElemPosix of cm3
+   has them for POSIX. *)
 
 MODULE M3PathElemWin32 EXPORTS M3PathElemOS, M3PathElemOSPriv;
 
-IMPORT Atom, Env, Text, TextExtras;
+IMPORT Atom, Env, Text, TextExtras, M3jOS;
 
 REVEAL T = BRANDED REF Atom.T;
 
@@ -55,6 +61,11 @@ PROCEDURE EnvExpand(e: TEXT): TEXT=
 
 
 BEGIN
-  SCurrentS := "\\.\\"; SParentS := "\\..\\"; PathSeparator := ';';
-  PathnameSeparator := '\\';
+  IF M3jOS.Posix () THEN
+    SCurrentS := "/./"; SParentS := "/../"; PathSeparator := ':';
+    PathnameSeparator := '/';
+  ELSE
+    SCurrentS := "\\.\\"; SParentS := "\\..\\"; PathSeparator := ';';
+    PathnameSeparator := '\\';
+  END;
 END M3PathElemWin32.

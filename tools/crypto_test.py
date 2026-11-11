@@ -1069,7 +1069,8 @@ def speed(env):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cases", nargs="*")
-    ap.add_argument("--java", default=shutil.which("java") or "java")
+    ap.add_argument("--java", default=str(Path(os.environ["JDK25"]) / "bin" / "java") if os.environ.get("JDK25")
+                    else shutil.which("java") or "java")
     ap.add_argument("--jar", default=str(ROOT / "m3j.jar"))
     ap.add_argument("--work")
     ap.add_argument("--keep", action="store_true")

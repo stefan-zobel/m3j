@@ -33,7 +33,9 @@ The cases:
   sftp     against the server of asyncssh and against sftp-server of
            OpenSSH: sizes around the blocks of 32 KB, offsets, appending,
            all operations, errors, names with umlauts, Busy, alerts,
-           timeouts and a connection that breaks in a read
+           timeouts, a connection that breaks in a read, and symbolic
+           links against OpenSSH (where the system lets the test make
+           them)
   nojar    the program without m3j-ssh.jar: the first call of the library
            stops it with a message that names the jar
 
@@ -841,22 +843,6 @@ def case_sftp(env):
     check("chmod", os.access(root / "ro", os.W_OK), False)
     m.ok("schmod %s 644" % h16("ro"))
     check("chmod", os.access(root / "ro", os.W_OK), True)
-    try:
-        os.symlink("a.txt", root / "probe-link")
-        links = True
-        os.remove(root / "probe-link")
-    except OSError:
-        links = False
-    if links:
-        m.ok("ssymlink %s %s" % (h16("a.txt"), h16("link")))
-        check("symlink", os.readlink(root / "link"), "a.txt")
-        m.ok("sreadlink " + h16("link"), h16("a.txt"))
-        got = m.ok("slstat " + h16("link")).split()
-        check("lstat of a link", got[0], "2")
-        got = m.ok("sstat " + h16("link")).split()
-        check("stat of a link", got[0], "0")
-        m.error("ssymlink %s %s" % (h16("b.txt"), h16("link")), "SFTP.Exists")
-        m.ok("sremove " + h16("link"))
     # an alert and a timeout end only the wait
     (root / "slow.bin").write_bytes(pattern(1000000))
     m.ok("salert %s 0.5" % h16("slow.bin"), "alerted")
@@ -887,6 +873,25 @@ def case_sftp(env):
     m.ok(m.connect(port, known=known))
     m.ok("sopen")
     sftp_common(m, root, umlaut)
+    # symbolic links against OpenSSH only: JSch sends the target of
+    # SYMLINK first, as OpenSSH reads it, and asyncssh takes that order only
+    # from a client that calls itself OpenSSH or paramiko
+    try:
+        os.symlink("a.txt", root / "probe-link")
+        links = True
+        os.remove(root / "probe-link")
+    except OSError:
+        links = False
+    if links:
+        m.ok("ssymlink %s %s" % (h16("a.txt"), h16("link")))
+        check("symlink", os.readlink(root / "link"), "a.txt")
+        m.ok("sreadlink " + h16("link"), h16("a.txt"))
+        got = m.ok("slstat " + h16("link")).split()
+        check("lstat of a link", got[0], "2")
+        got = m.ok("sstat " + h16("link")).split()
+        check("stat of a link", got[0], "0")
+        m.error("ssymlink %s %s" % (h16("b.txt"), h16("link")), "SFTP.Exists")
+        m.ok("sremove " + h16("link"))
     m.ok("sclose")
     m.ok("close")
     m.close()

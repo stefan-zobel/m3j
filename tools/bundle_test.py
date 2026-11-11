@@ -16,8 +16,9 @@ of m3bundle. It runs in a new directory with a copy of tests/bundle/data
 module NAME.m3 of the bundle), its output and its exit code must be those
 of m3bundle built by cm3, recorded in tests/bundle/expected/CASE: the
 files, and run.txt with the exit code and the output (the name of the
-program, parameter 0, written as <m3bundle>). Without arguments all cases
-run.
+program, parameter 0, written as <m3bundle>). The record is of Windows: on
+another system its lines are compared as ending in LF. Without arguments
+all cases run.
 
 --record runs m3bundle of a cm3 installation (EXE, by default m3bundle
 from the PATH) and records its results, instead of running m3j's.
@@ -92,6 +93,15 @@ def read(d):
     return {f.name: f.read_bytes() for f in sorted(d.iterdir()) if f.is_file()}
 
 
+def expected(d):
+    """The recorded files of a case. m3bundle of cm3 was recorded on Windows,
+    whose lines end in CR LF; on another system they end in LF."""
+    files = read(d)
+    if os.name != "nt":
+        files = {name: data.replace(b"\r\n", b"\n") for name, data in files.items()}
+    return files
+
+
 def compare(got, exp):
     """The differences between the files of a run and the expected ones, or []."""
     diffs = []
@@ -139,7 +149,7 @@ def main():
                 else:
                     files = run(args, [args.java, "-jar", args.jar] + case.params, "pgm",
                                 work / "m3j" / case.name)
-                    diffs = compare(files, read(exp_dir))
+                    diffs = compare(files, expected(exp_dir))
                     status = "FAIL" if diffs else "PASS"
                     if diffs:
                         print("%-12s %s" % (status, case.name))

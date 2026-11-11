@@ -128,9 +128,13 @@ def m3tests_case(d, work):
 def lib_case(work):
     w = work / "lib"
     w.mkdir(parents=True, exist_ok=True)
-    # lib/java: the bindings of Java classes use a language that cm3 does not have
+    # not the packages with bindings of Java classes (lib/java, and those
+    # with <*EXTERNAL ...:JAVA*>, such as regexp and xml): their language
+    # is one that cm3 does not have
+    java = {"java"} | {f.relative_to(ROOT / "lib").parts[0] for f in (ROOT / "lib").rglob("*.i3")
+                       if re.search(r":JAVA\s*\*>", f.read_text(encoding="latin-1"))}
     files = sorted(str(f) for f in (ROOT / "lib").rglob("*")
-                   if f.suffix in (".i3", ".m3") and "java" not in f.relative_to(ROOT / "lib").parts[:1])
+                   if f.suffix in (".i3", ".m3") and f.relative_to(ROOT / "lib").parts[0] not in java)
     return Case("lib", w, files)
 
 

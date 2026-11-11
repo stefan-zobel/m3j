@@ -27,12 +27,20 @@ libraries of CM3 are not supported.
 
 ## Quick start
 
-m3j needs JDK 25 or later, and a POSIX shell to be built (Linux, macOS, or
-Git Bash on Windows). In the directory of m3j:
+m3j needs JDK 25 or later. Its tests run on Windows and on Linux; macOS is
+untested.
+
+A release (`m3j-VERSION.tar.gz`, one for every system; `tar -xzf` unpacks
+it on Windows too) is built: unpack it and put its directory `bin` on the PATH,
+with the start scripts `m3j` (the compiler: `m3j Main.m3 -run`) and
+`m3build`. From the sources, m3j is built with a POSIX shell (Linux, macOS,
+or Git Bash on Windows), in the directory of m3j:
 
 ```sh
 JDK25=/path/to/jdk-25 sh build.sh
 ```
+
+(`sh dist.sh` then packs a release in `dist`.)
 
 A program, `Main.m3`:
 
@@ -47,7 +55,9 @@ END Main.
 ```
 
 runs at once, compiled in memory, or is compiled into a jar that runs with
-the runtime of m3j (`M3J` stands for the directory of m3j):
+the runtime of m3j (`M3J` stands for the directory of m3j; with `bin` on
+the PATH, `m3j` stands for `java -cp $M3J/m3j.jar m3j.jvm.Compile` and
+`m3build` for `java -jar $M3J/m3build.jar`):
 
 ```sh
 java -cp $M3J/m3j.jar m3j.jvm.Compile Main.m3 -run

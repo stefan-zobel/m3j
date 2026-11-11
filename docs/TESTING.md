@@ -41,6 +41,23 @@ JDK25=/path/to/jdk-25 python3 tools/dump_test.py fingerprint
 JDK25=/path/to/jdk-25 python3 tools/dump_test.py middle
 ```
 
+The tests run on Windows and on Linux; [`tools/README.md`](../tools/README.md)
+lists all of them and what each needs. Some compare with packages of
+Python or with OpenSSH; on Ubuntu they come with
+
+```sh
+sudo apt-get install --no-install-recommends python3-asyncssh python3-cryptography \
+  python3-nacl python3-python-multipart python3-requests-toolbelt openssh-sftp-server
+```
+
+(without `--no-install-recommends`, apt may also install and start an SSH
+server).
+
+A release, packed by `dist.sh` after `build.sh`, is tested on each system
+by `python3 tools/release_test.py dist/m3j-VERSION.tar.gz`, which unpacks
+it in a new directory and uses its start scripts. The tests of the SQL library need the drivers of H2 and SQLite in
+the local repository of Maven (`~/.m2`), see `tools/sql_test.py`.
+
 These need a cm3 installation or cm3 sources outside the tree:
 
 ```sh

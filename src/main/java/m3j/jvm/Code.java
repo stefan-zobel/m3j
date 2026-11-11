@@ -2439,6 +2439,19 @@ final class Code {
         }
         M3String.T[] s8 = new M3String.T[1];
         M3WString.T[] s32 = new M3WString.T[1];
+        if (c instanceof TextExpr.P p && p.posix != null) {
+            // a text that depends on the system (Wr.EOL): that of the
+            // system the program runs on
+            Label win32 = cb.newLabel(), end = cb.newLabel();
+            cb.getstatic(OS_CLASS, "POSIX", ConstantDescs.CD_boolean);
+            cb.ifeq(win32);
+            cb.loadConstant(textOf(p.posix));
+            cb.goto_(end);
+            cb.labelBinding(win32);
+            cb.loadConstant(textOf(p.win32));
+            cb.labelBinding(end);
+            return true;
+        }
         if (TextExpr.split8(c, s8)) {
             cb.loadConstant(M3String.toText(s8[0]));
             return true;
@@ -2460,6 +2473,13 @@ final class Code {
             }
         }
         return false;
+    }
+
+    private static final ClassDesc OS_CLASS = ClassDesc.of("m3j.rt.OS");
+
+    /** The value of a text literal. */
+    private static String textOf(TextExpr.P p) {
+        return p.value8 != null ? M3String.toText(p.value8) : wideText(p.value32);
     }
 
     static String wideText(M3WString.T t) {

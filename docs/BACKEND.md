@@ -662,13 +662,24 @@ The library is hybrid:
   `PathnameWin32`, which are both in the library, changed to export
   interfaces of their own, after `M3jOS.Posix ()`, and the procedures of
   `OSConfig` report the system the program runs on. The constants of
-  `OSConfig` (`ArcSep`, `PathSep`, `LineSep`, and with it `Wr.EOL`) are
-  constants of the language, which the front end folds into the code:
-  they are those of the system that the compiler runs on, which takes, of
-  a unit that the library has in a directory `POSIX` and in one `WIN32`
-  (`OSConfig.i3`), the one of its system. Everything else stays as on the
+  `OSConfig` are constants of the language, which the front end folds
+  into the code; the compiler takes, of a unit that the library has in a
+  directory `POSIX` and in one `WIN32` (`OSConfig.i3`), the one of its
+  system. `LineSep`, and with it `Wr.EOL`, is the exception: the front end
+  keeps both values of it and of every text constant made of it
+  (`TextExpr.P.posix` and `win32`, from `Constant`, carried on by
+  concatenation), and the back end loads the one of the system the
+  program runs on (`m3j.rt.OS.POSIX`), so that a program, and the tools of
+  m3j, write the lines of that system wherever they were compiled; the
+  value that the front end otherwise uses, for fingerprints and the
+  intermediate code compared with cm3, is that of the compiling system.
+  `ArcSep`, `PathSep` and `UnixEpoch` stay those of the compiling system;
+  the library does not use them (pathnames go through `Pathname`).
+  Everything else stays as on the
   target `AMD64_NT` on every system: sizes, alignments and layouts, and
-  the messages and exit status of runtime errors.
+  the messages and exit status of runtime errors. So is `Compiler.ThisOS`,
+  a constant that is always `WIN32`: a program that must know the system
+  it runs on asks `M3jOS.Posix ()`, as m3build and m3tk do.
 
 Java code that calls compiled code (a `Thread.Closure`'s `apply`, a
 procedure value of type `PROCEDURE ()`) looks the method up by its name

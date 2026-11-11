@@ -1,0 +1,11 @@
+#!/bin/sh
+# Copyright (c) 2026 the m3j authors.
+# SPDX-License-Identifier: MIT
+#
+# m3build, the build system of m3j, in bin of a release: m3build [OPTION]...
+# in the directory of a package (docs/USING.md). Runs java of $JAVA_HOME if
+# it is set, else java from the PATH (JDK 25 or later).
+
+dir=$(cd "$(dirname "$0")/.." && pwd)
+if [ -n "$JAVA_HOME" ]; then java="$JAVA_HOME/bin/java"; else java=java; fi
+exec "$java" -jar "$dir/m3build.jar" "$@"

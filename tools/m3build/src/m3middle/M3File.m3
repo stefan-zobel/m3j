@@ -14,10 +14,12 @@
 
 MODULE M3File;
 
-IMPORT Compiler, FS, File, OSError;
+IMPORT FS, File, OSError, M3jOS;
 
-CONST
-  OnUnix = (Compiler.ThisOS = Compiler.OS.POSIX);
+VAR
+  (* the system that m3build runs on: a constant of the compiler
+     (Compiler.ThisOS) would be that of m3j's target, always WIN32 *)
+  OnUnix := M3jOS.Posix ();
   (* We need to preserve permission bits on Unix.  On Win32 it's
      too hard (Win95 doesn't have security, and WinNT w/o NTFS
      is broken too!), so we don't bother.  *)

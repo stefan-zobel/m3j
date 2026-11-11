@@ -92,5 +92,5 @@ BEGIN
           & Get ("dironly.txt", Rsrc.BuildPath (b)));
   Line ("no path: " & Get ("hello.txt", NIL));
   Line ("$UNSET_VARIABLE_OF_BUNDLE_TEST: " & Get ("hello.txt", Rsrc.BuildPath ("$UNSET_VARIABLE_OF_BUNDLE_TEST", b))
-          & " SystemRoot set " & Fmt.Bool (Env.Get ("SystemRoot") # NIL));
+          & " environment not empty " & Fmt.Bool (Env.Count > 0));
 END Main.

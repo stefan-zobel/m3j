@@ -217,7 +217,9 @@ public final class Compile {
         }
         for (Path f : files) {
             Path d = f.toAbsolutePath().getParent();
-            if (!dirs.contains(d)) {
+            // a directory that -I names, also by a relative path, is added
+            // below, with its units named as there (not by absolute paths)
+            if (dirs.stream().noneMatch(x -> x.toAbsolutePath().equals(d))) {
                 c.env.addSourceDir(d);
             }
         }

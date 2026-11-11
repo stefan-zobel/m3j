@@ -9,7 +9,7 @@
      Main [-I DIR]... [-pkg DIR]... -o OUTDIR [-list FILE] [-OPTION]... [FILE]...
 
    -I DIR    a source directory: its units *.i3, *.m3, *.ig and *.mg,
-             named by their paths DIR\FILE
+             named by their paths DIR\FILE (DIR/FILE on POSIX)
    -pkg DIR  a source package: its units in DIR\src and below, named as
              cm3 names them ("../src/rw/IO.m3"), and in DIR\AMD64_NT, named
              by their file names
@@ -72,6 +72,8 @@ TYPE
   END;
 
 VAR
+  posix    := M3jOS.Posix ();
+  sep      := ARRAY BOOLEAN OF TEXT {"\\", "/"}[posix];  (* between the parts of a path *)
   units    := NEW (TextRefTbl.Default).init ();  (* file name -> Source *)
   asts     := NEW (IntRefTbl.Default).init ();   (* M3ID.T -> tree *)
   quiet    := FALSE;     (* while TRUE, diagnostics are not printed *)
@@ -109,7 +111,8 @@ PROCEDURE Add (file, path, name: TEXT) =
   END Add;
 
 (* The entries of directory dir, sorted as m3j's driver sorts paths
-   (Windows paths compare without regard to case). *)
+   (Windows paths compare without regard to case, POSIX paths by their
+   characters). *)
 PROCEDURE ListDir (dir: TEXT): REF ARRAY OF TEXT =
   VAR
     it   : FS.Iterator;
@@ -157,8 +160,9 @@ PROCEDURE PathLess (a, b: TEXT): BOOLEAN =
   VAR na := Text.Length (a);  nb := Text.Length (b);  ca, cb: CHAR;
   BEGIN
     FOR i := 0 TO MIN (na, nb) - 1 DO
-      ca := Upper (Text.GetChar (a, i));
-      cb := Upper (Text.GetChar (b, i));
+      ca := Text.GetChar (a, i);
+      cb := Text.GetChar (b, i);
+      IF NOT posix THEN ca := Upper (ca);  cb := Upper (cb) END;
       IF ca # cb THEN RETURN ca < cb END;
     END;
     RETURN na < nb;
@@ -177,7 +181,7 @@ PROCEDURE AddSourceDir (dir: TEXT) =
   VAR e := ListDir (dir);  path: TEXT;
   BEGIN
     FOR i := 0 TO LAST (e^) DO
-      path := dir & "\\" & e[i];
+      path := dir & sep & e[i];
       IF IsUnit (e[i]) AND NOT IsDirectory (path) THEN
         Add (e[i], path, path);
       END;
@@ -208,7 +212,7 @@ PROCEDURE AddSourcePackage (pkg: TEXT) =
     VAR e := ListDir (dir);  path: TEXT;
     BEGIN
       FOR i := 0 TO LAST (e^) DO
-        path := dir & "\\" & e[i];
+        path := dir & sep & e[i];
         IF IsDirectory (path) THEN
           Walk (path, rel & "/" & e[i]);
         ELSIF IsUnit (e[i]) THEN
@@ -226,12 +230,13 @@ PROCEDURE AddSourcePackage (pkg: TEXT) =
   VAR rel, file, other: TEXT;  k: INTEGER;
   BEGIN
     IF M3jOS.Posix () THEN other := "WIN32" ELSE other := "POSIX" END;
-    IF IsDirectory (pkg & "\\src") THEN
-      Walk (pkg & "\\src", "src");
+    IF IsDirectory (pkg & sep & "src") THEN
+      Walk (pkg & sep & "src", "src");
       b := NEW (REF ARRAY OF TEXT, n);
       b^ := SUBARRAY (files^, 0, n);
-      (* sorted as paths: by their names with '\' between the parts *)
-      FOR i := 0 TO n - 1 DO b[i] := Backslashes (b[i]) END;
+      (* sorted as paths: by their names with the separator of the
+         system between the parts *)
+      FOR i := 0 TO n - 1 DO b[i] := Native (b[i]) END;
       Sort (b^);
       (* the units in a directory of the other system last *)
       FOR last := FALSE TO TRUE DO
@@ -240,26 +245,27 @@ PROCEDURE AddSourcePackage (pkg: TEXT) =
           IF InDir (rel, other) = last THEN
             k := Text.FindCharR (rel, '/');
             file := Text.Sub (rel, k + 1);
-            Add (file, pkg & "\\" & b[i], "../" & rel);
+            Add (file, pkg & sep & b[i], "../" & rel);
           END;
         END;
       END;
     END;
-    IF IsDirectory (pkg & "\\" & Build) THEN
-      WITH e = ListDir (pkg & "\\" & Build) DO
+    IF IsDirectory (pkg & sep & Build) THEN
+      WITH e = ListDir (pkg & sep & Build) DO
         FOR i := 0 TO LAST (e^) DO
           IF IsUnit (e[i]) THEN
-            Add (e[i], pkg & "\\" & Build & "\\" & e[i], e[i]);
+            Add (e[i], pkg & sep & Build & sep & e[i], e[i]);
           END;
         END;
       END;
     END;
   END AddSourcePackage;
 
-PROCEDURE Backslashes (t: TEXT): TEXT =
+PROCEDURE Native (t: TEXT): TEXT =
+  (* t, its parts separated by '/', with the separator of the system *)
   BEGIN
-    RETURN Replace (t, '/', '\\');
-  END Backslashes;
+    RETURN Replace (t, '/', Text.GetChar (sep, 0));
+  END Native;
 
 PROCEDURE Slashes (t: TEXT): TEXT =
   BEGIN
@@ -520,7 +526,7 @@ PROCEDURE Run () =
         EXCEPT OSError.E =>
           Fail ("cannot read " & e.path);
         END;
-        cg_file := out_dir & "\\" & Fmt.Int (k + 1) & ".cg";
+        cg_file := out_dir & sep & Fmt.Int (k + 1) & ".cg";
         quiet := e.quiet;
         ok := M3Front.Compile (src, env, SUBARRAY (options^, 0, n_opts));
         quiet := FALSE;

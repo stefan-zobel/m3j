@@ -12,6 +12,8 @@
 /stubgen.jar
 /m3_lang_server.jar
 /tools/langserver/JVM/
+# releases (dist.sh)
+/dist/
 
 # programs built with cm3 to record expected outputs (tools/fpdump,
 # tools/middump)

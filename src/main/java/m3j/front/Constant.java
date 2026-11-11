@@ -216,6 +216,11 @@ public final class Constant {
             if (e == null) {
                 Error.msg("Value of CONST is not constant (2.4.2, 2.6.15).");
             } else {
+                if (e instanceof TextExpr.P p && "OSConfig.LineSep".equals(Value.globalName(t))) {
+                    // m3j: the separator of lines (and Wr.EOL, made of it)
+                    // is that of the system the program runs on
+                    e = TextExpr.onSystem(p, M3String.add("\n"), M3String.add("\r\n"));
+                }
                 e.isNamedConst = true;
                 ArrayExpr.noteTargetType(e, t.tipe);
                 t.valExpr = e;

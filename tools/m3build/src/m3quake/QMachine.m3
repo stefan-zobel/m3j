@@ -25,10 +25,12 @@ IMPORT QIdent, QValue, QVal, QCode, QCompiler, QVTbl, QVSeq, QScanner;
 FROM Quake IMPORT Error, ID, IDMap, NoID;
 IMPORT Date, Time;
 IMPORT TextUtils, FSUtils, System, DirStack; (* sysutils *)
-IMPORT Compiler, M3Path, MxConfigC, QPromise, QPromiseSeq, ETimer;
+IMPORT M3Path, MxConfigC, QPromise, QPromiseSeq, ETimer;
 
-CONST
-  OnUnix = (Compiler.ThisOS = Compiler.OS.POSIX);
+VAR
+  (* the system that m3build runs on: a constant of the compiler
+     (Compiler.ThisOS) would be that of m3j's target, always WIN32 *)
+  OnUnix := M3jOS.Posix ();
 
 TYPE
   QK = QValue.Kind;

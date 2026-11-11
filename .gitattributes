@@ -2,3 +2,8 @@
 # (#!/bin/sh, #!/usr/bin/env python3) works on Linux and macOS.
 *.py text eol=lf
 *.sh text eol=lf
+# the start scripts of a release (tools/dist), which have no extension
+tools/dist/m3j text eol=lf
+tools/dist/m3build text eol=lf
+# cmd.exe needs CR LF
+*.cmd text eol=crlf

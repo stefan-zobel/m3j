@@ -57,9 +57,13 @@ java -jar m3bundle.jar -name NAME -element ELEMENT FILE ...   # m3j-runtime.jar 
 
 A compiled program follows the conventions of the operating system that it
 runs on (`Pathname`, `OSConfig`); `-Dm3j.os=POSIX` or `-Dm3j.os=WIN32` for
-the JVM chooses one. The constants `Wr.EOL`, `OSConfig.LineSep`, `ArcSep`
-and `PathSep` are fixed when the program is compiled: they are those of the
-system that the compiler runs on (or that `-Dm3j.os` names for it).
+the JVM chooses one. So do `Wr.EOL`, `OSConfig.LineSep` and the text
+constants made of them, although they are constants: a program compiled on
+Windows writes `\n` at the end of a line on Linux, and `\r\n` the other way
+round. The constants `OSConfig.ArcSep`, `PathSep` and `UnixEpoch` are fixed
+when the program is compiled: they are those of the system that the
+compiler runs on (or that `-Dm3j.os` names for it); `Pathname` gives the
+conventions of the system that the program runs on.
 
 # Java APIs
 

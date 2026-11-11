@@ -28,7 +28,9 @@ The files that it writes there (the stubs INTF_T_vN.i3, .m3), its output
 and its exit code must be those of stubgen built by cm3, recorded in
 tests/stubgen/expected/PKG/INTF.T-vN: the files, and run.txt with the
 exit code and the output (the path of tests/stubgen written as
-<stubgen>). CASE is PKG or PKG/INTF.T; without arguments all cases run.
+<stubgen>). The record is of Windows: on another system its lines are
+compared as ending in LF. CASE is PKG or PKG/INTF.T; without arguments all
+cases run.
 
 --record builds stubgen with cm3 (cm3 -build in a copy of DIR, by
 default the stubgen of the sources of cm3, cm3-src/m3-comm/stubgen; cm3
@@ -158,6 +160,9 @@ def check_case(args, jar, case, version, work):
     cmd = [args.java, "-Xss64m", "-cp", str(ROOT / "m3j-runtime.jar") + SEP + str(jar), "m3.Main"] + case.args(version)
     got = run(args, cmd, work / "jvm" / case.pkg / ("%s-v%d" % (case.obj, version)))
     want = {f.name: f.read_bytes() for f in e.iterdir()}
+    if os.name != "nt":
+        # recorded on Windows, whose lines end in CR LF
+        want = {n: b.replace(b"\r\n", b"\n") for n, b in want.items()}
     if got == want:
         return "PASS", "%d files" % (len(want) - 1)
     for n in sorted(set(want) | set(got)):

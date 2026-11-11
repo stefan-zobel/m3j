@@ -11,8 +11,11 @@ interface in NAMEWin32.m3 by its EXPORTS, and in the modules of a source
 package (-pkg) by their EXPORTS, without a warning for an interface of
 variables alone, and with the module of the name of an interface the other
 modules of its directory that export it too (not those of another
-directory), and the errors of bindings of Java classes. The programs are
-in tests/cli; the expected results are below, checked by hand.
+directory), the errors of bindings of Java classes, and Wr.EOL and the
+constants made of it in a program compiled as on one system (m3j.os) and
+run on both: their values are those of the system it runs on. The
+programs are in tests/cli; the expected results are below, checked by
+hand.
 
   python3 tools/cli_test.py [--java JAVA] [--jar JAR] [--keep] [--jvm-arg=ARG]...
 """
@@ -94,6 +97,46 @@ CASES = [
 ]
 
 
+def show_eol(eol):
+    """The output of Eol.m3 for the separator of lines eol (shown as text)."""
+    return (f"EOL [{eol}] LineSep [{eol}]\n"
+            f"X [a{eol}b] Y [{eol}{eol}]\n"
+            f"A [{eol}][z{eol}][plain] 3\n"
+            f"default [{eol}] field [{eol}] RC [r{eol}]\n"
+            "equal TRUE\n")
+
+
+EOLS = {"POSIX": r"\n", "WIN32": r"\r\n"}
+
+
+def eol(args, cwd):
+    """Eol.m3 compiled as on one system and run on the other: the texts made
+    of OSConfig.LineSep are those of the system it runs on. Returns the
+    number of failures."""
+    failed = 0
+    for built, runs in (("WIN32", "POSIX"), ("POSIX", "WIN32")):
+        out = cwd / ("eol-" + built)
+        c = subprocess.run([args.java] + args.jvm_arg + ["-Dm3j.os=" + built, "-Xss64m", "-cp", args.jar,
+                            "m3j.jvm.Compile", "Eol.m3", "-d", str(out)], cwd=cwd, capture_output=True)
+        why = None
+        if c.returncode != 0:
+            why = "compiling: " + c.stderr.decode("latin-1").strip()[:300]
+        else:
+            for system in (built, runs):
+                r = subprocess.run([args.java] + args.jvm_arg + ["-Dm3j.os=" + system, "-cp",
+                                    args.jar + os.pathsep + str(out), "m3.Main"], cwd=cwd, capture_output=True)
+                got = r.stdout.decode("latin-1")
+                if r.returncode != 0 or got != show_eol(EOLS[system]):
+                    why = f"run on {system}: exit {r.returncode}, {got!r} {r.stderr.decode('latin-1')[:300]!r}"
+                    break
+        if why:
+            print(f"FAIL eol-{built}: {why}")
+            failed += 1
+        else:
+            print(f"PASS eol-{built}")
+    return failed
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--java")
@@ -130,6 +173,7 @@ def main():
                 failed += 1
             else:
                 print(f"PASS {name}")
+        failed += eol(args, work / "cli")
     finally:
         if args.keep:
             print("work directory:", work)

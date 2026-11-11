@@ -5,7 +5,8 @@
    handles (seek, read, write, readonly handles, which cannot be written).
    The program works in a directory "fsdir" in the current directory, which
    it creates and deletes. The messages of errors depend on the system; only
-   the fact of an error is printed.
+   the fact of an error is printed. Path names are printed with '/' between
+   their parts, so that the output is the same on every system.
 
    With an argument, the program tests FS.SetModificationTime instead, which
    fails in cm3 on Windows (it opens the file read-only and then cannot set
@@ -66,18 +67,30 @@ PROCEDURE TypeName (t: File.Type): TEXT =
     END;
   END TypeName;
 
+PROCEDURE Shown (p: TEXT): TEXT =
+  (* p with '/' for every '\' *)
+  VAR r := "";  c: CHAR;
+  BEGIN
+    FOR i := 0 TO Text.Length(p) - 1 DO
+      c := Text.GetChar(p, i);
+      IF c = '\\' THEN c := '/' END;
+      r := r & Text.FromChar(c);
+    END;
+    RETURN r;
+  END Shown;
+
 PROCEDURE ShowStatus (p: TEXT) =
   VAR s: File.Status;
   BEGIN
     TRY
       s := FS.Status(p);
       IF s.type = FS.DirectoryFileType THEN
-        Line("status " & p & ": directory");
+        Line("status " & Shown(p) & ": directory");
       ELSE
-        Line("status " & p & ": " & TypeName(s.type) & " " & Fmt.LongInt(s.size));
+        Line("status " & Shown(p) & ": " & TypeName(s.type) & " " & Fmt.LongInt(s.size));
       END;
     EXCEPT
-    | OSError.E => Failed("status " & p);
+    | OSError.E => Failed("status " & Shown(p));
     END;
   END ShowStatus;
 

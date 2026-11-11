@@ -1,13 +1,13 @@
 # Differential tests against cm3 (tools/diff_test.py): programs that test one
 # area at its edges, each in a package of tests/diff/src/check.
-# NAME DIR [arg ...] [stdin=FILE] [exe=PROGRAM] [os=OS] [result=NAME2]
+# NAME DIR [arg ...] [stdin=FILE] [exe=PROGRAM] [os=OS] [result=NAME2] [expected=FILE] [host=OS]
 
 check/float-fmt tests/diff/src/check/float-fmt
 check/float-ops tests/diff/src/check/float-ops
 check/float-math tests/diff/src/check/float-math approx=1e-14
 check/backend tests/diff/src/check/backend
 check/pickle tests/diff/src/check/pickle
-check/pathname tests/diff/src/check/pathname
+check/pathname tests/diff/src/check/pathname os=WIN32
 check/pathname-posix tests/diff/src/check/pathname-posix
 check/pathname-on-posix tests/diff/src/check/pathname os=POSIX result=check/pathname-posix
 check/threads tests/diff/src/check/threads
@@ -38,10 +38,12 @@ check/tcp tests/diff/src/check/tcp
 check/tcp-hand tests/diff/src/check/tcp hand-checked expected=hand-checked.txt
 check/text-forall tests/diff/src/check/text-forall
 check/floatmode tests/diff/src/check/floatmode expected=hand-checked.txt
-check/process tests/diff/src/check/process
+check/process tests/diff/src/check/process host=WIN32
+check/process-posix tests/diff/src/check/process host=POSIX expected=posix.txt
 check/libunits tests/diff/src/check/libunits
 check/runtime-hand tests/diff/src/check/runtime-hand expected=hand-checked.txt
-check/sysutils tests/diff/src/check/sysutils
+check/sysutils tests/diff/src/check/sysutils host=WIN32
+check/sysutils-posix tests/diff/src/check/sysutils host=POSIX expected=posix.txt
 check/bundle tests/diff/src/check/bundle
 check/weakref tests/diff/src/check/weakref
 check/weakref-hand tests/diff/src/check/weakref hand-checked expected=hand-checked.txt

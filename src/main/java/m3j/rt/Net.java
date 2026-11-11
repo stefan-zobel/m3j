@@ -149,6 +149,9 @@ final class Net {
         return (b[0] & 0xFFL) << 24 | (b[1] & 0xFFL) << 16 | (b[2] & 0xFFL) << 8 | (b[3] & 0xFFL);
     }
 
+    /** The connections that wait to be accepted on a connector, at most. */
+    private static final int BACKLOG = 128;
+
     /** A connector on addr and port (0 for any): its handle. */
     static long listen(long addr, long port) {
         ServerSocketChannel c = null;
@@ -156,7 +159,11 @@ final class Net {
             c = ServerSocketChannel.open();
             c.configureBlocking(false);
             c.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-            c.bind(new InetSocketAddress(inet(addr), (int) port), 8);
+            // cm3 listens with a backlog of 8; on Linux the connections
+            // beyond it are dropped while the network objects runtime
+            // accepts one at a time (50 callbacks at once in tests/net/fd
+            // ended in UnexpectedEOF)
+            c.bind(new InetSocketAddress(inet(addr), (int) port), BACKLOG);
             Sock s = new Sock(c);
             s.rkey = c.register(s.rsel, SelectionKey.OP_ACCEPT);
             return add(s);
