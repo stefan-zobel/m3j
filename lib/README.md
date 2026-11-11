@@ -259,6 +259,25 @@ Where m3j differs from cm3 for Windows: `System.Hostname` gives the name
 of the machine (cm3 gives `"amnesiac"` in a program that has not started
 Windows Sockets, as its `gethostname` fails then).
 
+## patternmatching
+
+The package patternmatching of CM3: `RegEx`, the small regular expressions
+of regex(3) (`.`, `[]`, `*`, `+`, `?`, `^`, `$`, `\(` `\)` and `\1` to
+`\9`), `Glob`, shell patterns for file names, and `GlobTree`, expressions
+of them with AND, OR and NOT. `RegEx.m3` and `GlobTree.m3` are copies; the
+module `RegEx` is safe here (cm3's is UNSAFE only for calls that it had
+already replaced). cm3's `Glob.m3` is UNSAFE and calls the function
+`fnmatch` of C (from FreeBSD) through `Uglob`; m3j's `Glob.m3` is that
+function written in Modula-3, safe, with all its options, and `Uglob` is
+left out. As in C, a text ends at its first null character for `Glob`, and
+`CaseFold` folds only the letters of ASCII. The notices are in each file and
+in `licenses/COPYRIGHT-XEROX`, `BSD-POLSTRA` and `BSD-UCB`; the test against
+cm3 is `check/patternmatching` of `tools/diff_test.py`.
+
+`RegEx.Compile ("")` reads a variable that it has not set; in m3j it is
+null, so the empty pattern matches every text, while in cm3 the result
+depends on what was on the stack.
+
 ## json
 
 The package json of CM3 5.12.0 (`m3-libs/json`, by Peter McKinna, with

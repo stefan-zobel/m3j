@@ -60,3 +60,4 @@ check/java-threads-pool tests/diff/src/check/java-threads pool
 check/java-sub tests/diff/src/check/java-sub expected=hand-checked.txt
 check/java-sub-raise tests/diff/src/check/java-sub raise
 check/java-arrays tests/diff/src/check/java-arrays expected=hand-checked.txt
+check/patternmatching tests/diff/src/check/patternmatching

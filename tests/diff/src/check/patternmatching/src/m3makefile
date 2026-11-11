@@ -1,0 +1,6 @@
+% The package patternmatching: RegEx on the tests of cm3, Glob under each
+% combination of its options, GlobTree.
+import ("libm3")
+import ("patternmatching")
+implementation ("Main")
+program ("patternmatching")

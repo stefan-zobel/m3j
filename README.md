@@ -44,7 +44,8 @@ The library (the units of m3core and libm3 that the tests use: `IO`, `Rd`,
 others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
 tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package ssh: `SSH`, `SFTP`, the package sql: `SQL`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
-`TextUtils` and others, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
+`TextUtils` and others, the package patternmatching: `RegEx`, `Glob`,
+`GlobTree`, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
 the jar; for these no cm3 installation is needed:
 
@@ -620,7 +621,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, java, zip, encoding, crypto, ssh, sql), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, patternmatching, java, zip, encoding, crypto, ssh, sql), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.
@@ -723,9 +724,11 @@ The ported CM3 sources are distributed under their original licenses, in
 Corporation, [`COPYRIGHT-CMASS`](licenses/COPYRIGHT-CMASS) for the code from Critical Mass,
 [`COPYRIGHT-COLUMBIA`](licenses/COPYRIGHT-COLUMBIA) for the code from Columbia University,
 [`COPYRIGHT-LUCENT`](licenses/COPYRIGHT-LUCENT) for the notice of David Gay's conversion code,
-[`MIT-BATES`](licenses/MIT-BATES) for `ArrayExpr`, and [`MIT-MCKINNA`](licenses/MIT-MCKINNA) for the language server).
+[`MIT-BATES`](licenses/MIT-BATES) for `ArrayExpr`, [`MIT-MCKINNA`](licenses/MIT-MCKINNA) for the language server,
+[`COPYRIGHT-XEROX`](licenses/COPYRIGHT-XEROX) for `RegEx`, [`BSD-POLSTRA`](licenses/BSD-POLSTRA) for `Glob` and
+`GlobTree`, and [`BSD-UCB`](licenses/BSD-UCB) for the function fnmatch of FreeBSD, after which `Glob` is written).
 The sources copied from CM3 keep their notices: `lib` (m3core, libm3, tcp,
-netobj, sysutils, libbuf, and json with the notice of its author,
+netobj, sysutils, libbuf, patternmatching, and json with the notice of its author,
 [`lib/json/COPYRIGHT-BSD`](lib/json/COPYRIGHT-BSD), see [`lib/README.md`](lib/README.md)), `tools/langserver/src`
 (CM3's language server), `tests/m3tests`,
 `tests/diff/src`, `tests/pkg`, `tests/net`, `tests/m3front` (CM3's front end, see

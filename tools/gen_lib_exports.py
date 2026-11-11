@@ -39,14 +39,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LIB = ROOT / "lib"
-PACKAGES = ["m3core", "libm3", "tcp", "netobj", "sysutils", "json", "libbuf"]
+PACKAGES = ["m3core", "libm3", "tcp", "netobj", "sysutils", "json", "libbuf", "patternmatching"]
 # source packages outside lib: where they are in the tree of m3j
 TOOLKIT = {"m3tk-misc": ROOT / "tests" / "stubgen" / "m3tk-misc",
            "m3tk": ROOT / "tests" / "stubgen" / "m3tk"}
 # where the sources of each package are in the tree of cm3
 SOURCES = {"m3core": "m3-libs/m3core", "libm3": "m3-libs/libm3", "tcp": "m3-comm/tcp",
            "netobj": "m3-comm/netobj", "sysutils": "m3-libs/sysutils", "json": "m3-libs/json",
-           "libbuf": "m3-libs/libbuf", "m3tk-misc": "m3-libs/m3tk-misc", "m3tk": "m3-tools/m3tk"}
+           "libbuf": "m3-libs/libbuf", "patternmatching": "m3-libs/patternmatching", "m3tk-misc": "m3-libs/m3tk-misc", "m3tk": "m3-tools/m3tk"}
 LINE = re.compile(r'^(_map_add_(?:interface|module|generic_interface|generic_module))'
                   r'\("([^"]+)", "([^"]+)", "([^"]*)", "([^"]*)"\)$')
 KINDS = {".i3": "_map_add_interface", ".m3": "_map_add_module",
