@@ -25,8 +25,8 @@ rm -rf out && mkdir -p out
   $(find src/vendor/jsch -name '*.java')
 "$JAVAC" --release 25 -Xlint:all -Werror -encoding UTF-8 -cp out -d out \
   $(find src/main/java -name '*.java')
-# the Modula-3 library that m3j brings (lib: m3core, libm3, tcp, netobj, sysutils, json, libbuf and
-# patternmatching of cm3, tls, http, xml, regexp, zip, encoding, crypto, ssh, sql, and the units of m3j),
+# the Modula-3 library that m3j brings (lib: m3core, libm3, tcp, netobj, sysutils, libbuf and
+# patternmatching of cm3, tls, http, xml, regexp, json, zip, encoding, crypto, ssh, sql, and the units of m3j),
 # a resource of the jar
 cp -r lib out/lib
 
