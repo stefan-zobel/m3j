@@ -93,6 +93,14 @@ On Windows, the entries of a class path are separated by `;`.
 - **m3bundle and stubgen** of CM3, compiled by m3j, for resources and
   network objects.
 
+## An example
+
+[`examples/feedreader`](examples/feedreader) is a reader of news feeds
+with a web interface: it fetches RSS and Atom feeds with several threads,
+keeps them in SQLite with a full-text search, has a login, a JSON API and
+live updates, and shows the HTML of the feeds in a sandbox. It is built by
+m3build like any package and uses most of the libraries above.
+
 ## Documentation
 
 | File | What it has |
@@ -105,6 +113,7 @@ On Windows, the entries of a class path are separated by `;`.
 | [`MODULA3-JVM.md`](MODULA3-JVM.md) | the plan of m3j: ground rules, the size of the port, how the front end is tested against CM3 |
 | [`lib/README.md`](lib/README.md) | the packages of `lib` and what m3j changed in those of CM3 |
 | [`tools/README.md`](tools/README.md) | the tools and tests |
+| [`examples/feedreader/README.md`](examples/feedreader/README.md) | the example: how to run it, a tour of its sources |
 
 ## License
 

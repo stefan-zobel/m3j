@@ -1,0 +1,5 @@
+% An option with a quote, which the scripts could not pass on.
+import ("libm3")
+java_option ("-Dm3j.bad=\"x\"")
+implementation ("Main")
+program ("badopt")

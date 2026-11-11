@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>With a byte order mark – 中文 😀</title>
+  <entry>
+    <title>Été</title>
+    <id>tag:example.org,2003:bom</id>
+    <link href="https://example.org/été" />
+    <updated>2003-07-08T00:00:00Z</updated>
+  </entry>
+</feed>

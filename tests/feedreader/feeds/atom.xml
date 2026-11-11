@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://example.org/blog/">
+  <title type="html">Atom &amp;amp; friends</title>
+  <subtitle type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">A <em>subtitle</em></div></subtitle>
+  <link rel="self" href="https://example.org/blog/feed.atom" />
+  <link href="." />
+  <id>urn:uuid:60a76c80-d399-11d9-b93C-0003939e0af6</id>
+  <updated>2003-12-13T18:30:02Z</updated>
+  <entry>
+    <title>Text, the default type: &lt;b&gt; stays</title>
+    <link href="2003/12/13/atom03" />
+    <link rel="edit" href="https://example.org/edit/1" />
+    <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+    <published>2003-12-13T08:29:29-04:00</published>
+    <updated>2003-12-14T18:30:02Z</updated>
+    <author><name>Mark</name><email>mark@example.org</email></author>
+    <author><name>Second author</name></author>
+    <summary>Some text with &lt;b&gt; and &amp;.</summary>
+  </entry>
+  <entry xml:base="https://other.example.org/x/">
+    <title type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">An <b>xhtml</b> title</div></title>
+    <link rel="alternate" type="text/html" href="../y/z.html" />
+    <id>tag:example.org,2003:2</id>
+    <updated>2003-12-15T00:00:00Z</updated>
+    <content type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+        <p>Paragraph with an <img src="pic.png" alt="a &quot;pic&quot;"/> image<br/>and a line &amp; an ampersand.</p>
+      </div>
+    </content>
+  </entry>
+  <entry>
+    <title type="html">&lt;i&gt;HTML&lt;/i&gt; title &amp;amp; entity</title>
+    <link rel="related" href="https://example.org/related" />
+    <id>tag:example.org,2003:3</id>
+    <updated>2003-12-16T00:00:00Z</updated>
+    <summary type="html">&lt;p&gt;A summary.&lt;/p&gt;</summary>
+    <content src="https://example.org/blog/3.html" type="text/html" />
+  </entry>
+  <entry>
+    <title>No date at all</title>
+    <id>tag:example.org,2003:4</id>
+    <content type="text">Plain text content, five &lt; six.</content>
+  </entry>
+</feed>

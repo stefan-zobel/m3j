@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Fish &amp;amp; Chips &#8211; a test</title>
+    <atom:link rel="self" href="https://example.org/feeds/x.xml" />
+    <link>/blog/</link>
+    <description><![CDATA[News about <b>fish</b> &amp; chips.]]></description>
+    <language>en</language>
+    <item>
+      <title>All the fields</title>
+      <link>https://example.org/blog/all</link>
+      <guid isPermaLink="false">tag:example.org,2026:1</guid>
+      <pubDate>Tue, 01 Jul 2003 10:52:37 +0200</pubDate>
+      <author>jane@example.org (Jane Doe)</author>
+      <description><![CDATA[<p>A <em>short</em> summary &amp; more.</p>]]></description>
+      <content:encoded><![CDATA[<p>The full text.</p><script>alert(1)</script><style>p { }</style><!-- a comment --><p>Second&nbsp;paragraph.</p>]]></content:encoded>
+      <media:title>not the title</media:title>
+    </item>
+    <item>
+      <title>A relative link, a zone by name</title>
+      <link>posts/2?a=1&amp;b=2</link>
+      <pubDate>Wed, 02 Jul 2003 08:00:00 EST</pubDate>
+      <dc:creator>Joe Bloggs</dc:creator>
+      <description>Escaped &lt;b&gt;HTML&lt;/b&gt; in the description.</description>
+    </item>
+    <item>
+      <title>The guid is the link</title>
+      <guid>https://example.org/blog/3</guid>
+      <pubDate>Thu, 3 Jul 03 9:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>A guid that is no link</title>
+      <guid>12345</guid>
+      <pubDate>Fri, 04 Jul 2003 10:00:00</pubDate>
+    </item>
+    <item>
+      <title>Zones that RFC 5322 does not know</title>
+      <link>https://example.org/blog/5</link>
+      <pubDate>Sat, 05 Jul 2003 10:00:00 CEST</pubDate>
+      <dc:date>2001-01-01T00:00:00Z</dc:date>
+    </item>
+    <item>
+      <title>Only a dc:date</title>
+      <link>https://example.org/blog/6</link>
+      <dc:date>2003-07-06T10:00:00+02:00</dc:date>
+    </item>
+    <item>
+      <title>A date that is none</title>
+      <link>https://example.org/blog/7</link>
+      <pubDate>sometime last week</pubDate>
+    </item>
+    <item>
+      <description>An item without a title, whose text becomes its title, cut at a space when it is longer than a hundred characters, as this one is.</description>
+    </item>
+    <item>
+      <title>A link that is no web link</title>
+      <link>javascript:alert(1)</link>
+    </item>
+    <item>
+      <title>An episode of a podcast</title>
+      <enclosure url="https://cdn.example.org/ep 1.mp3" length="1000" type="audio/mpeg" />
+      <guid isPermaLink="false">ep1</guid>
+    </item>
+    <item>
+      <title>Links outside of ASCII</title>
+      <link>https://example.org/wiki/Müller Straße</link>
+    </item>
+    <item>
+      <title>Markup in the description that is not escaped</title>
+      <description>Some <b>bold</b> text<br/>and a line.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,9 @@
+% A program whose scripts pass options to java: what the shell and cmd
+% would take for their own must arrive unchanged.
+import ("libm3")
+import ("java")
+java_option ("-Dm3j.first=a b $HOME %PATH% `x` 'y' \\")
+java_option ("-Dm3j.second=2")
+interface ("JSystem")
+implementation ("Main")
+program ("jopt")

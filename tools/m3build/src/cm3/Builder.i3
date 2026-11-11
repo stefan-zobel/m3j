@@ -29,6 +29,10 @@ PROCEDURE AddClassPath (m: Quake.Machine;  path: TEXT) RAISES {Quake.Error};
 (* Adds the jar or directory path to the Java classes of the program or
    library that the machine builds. *)
 
+PROCEDURE AddJavaOption (m: Quake.Machine;  option: TEXT) RAISES {Quake.Error};
+(* m3j: adds option to the java command of the scripts that run the
+   program that the machine builds. *)
+
 PROCEDURE CleanUp ();
 (* Last chance to dump state and clean up *)
 

@@ -1,0 +1,30 @@
+Atom: Atom & friends
+link: https://example.org/blog/
+description: A subtitle
+4 entries
+* 2003-12-13T12:29:29Z  Text, the default type: <b> stays
+  link: https://example.org/blog/2003/12/13/atom03
+  id: urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a
+  author: Mark
+  text: Some text with <b> and &.
+  summary: Some text with &lt;b&gt; and &amp;.
+  base: https://example.org/blog/
+* 2003-12-15T00:00:00Z  An xhtml title
+  link: https://other.example.org/y/z.html
+  id: tag:example.org,2003:2
+  text: Paragraph with an image and a line & an ampersand.
+  content: <p>Paragraph with an <img src="pic.png" alt="a &quot;pic&quot;"> image<br>and a line &amp; an ampersand.</p>
+  base: https://other.example.org/x/
+* 2003-12-16T00:00:00Z  HTML title & entity
+  link: -
+  id: tag:example.org,2003:3
+  text: A summary.
+  summary: <p>A summary.</p>
+  base: https://example.org/blog/
+* no date  No date at all
+  link: -
+  id: tag:example.org,2003:4
+  text: Plain text content, five < six.
+  content: Plain text content, five &lt; six.
+  base: https://example.org/blog/
+exit 0

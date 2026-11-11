@@ -1,0 +1,2 @@
+feedreader: broken.xml: 7:7: <message of the parser>
+exit 1

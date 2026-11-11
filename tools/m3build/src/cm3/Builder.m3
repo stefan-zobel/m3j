@@ -90,7 +90,9 @@ PROCEDURE ProgramFiles (prog: TEXT): ARRAY [0..2] OF TEXT =
     RETURN ARRAY [0..2] OF TEXT {prog & ".jar", prog, prog & ".cmd"};
   END ProgramFiles;
 
-CONST ClassPathVar = "M3J_CLASSPATH";
+CONST
+  ClassPathVar = "M3J_CLASSPATH";
+  JavaOptionsVar = "M3J_JAVA_OPTIONS";  (* the options of java_option, a line each *)
 
 (*------------------------------------------------------------ compiling ---*)
 
@@ -107,7 +109,8 @@ PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
     u       := units.head;
     bad     := FALSE;
     classPath := ClassPath (m);
-    file, jar, argFile, all, dir: TEXT;
+    options := JavaOptions (m);
+    file, jar, argFile, all, stamp, dir: TEXT;
   BEGIN
     IF Defined (m, "M3J_EXPORTS") THEN RETURN; END;
 
@@ -164,10 +167,13 @@ PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
       jar := ProgramFiles (name)[0];
       args.addhi ("-d");  args.addhi (jar);
       all := Join (args, ' ');
+      (* what the jar and the scripts were made from *)
+      stamp := all;
+      IF NOT Text.Empty (options) THEN stamp := all & "\n" & options; END;
       argFile := name & ".m3j";
       IF Utils.IsFile (jar)
         AND Utils.ModificationTime (jar) >= newest
-        AND Text.Equal (ReadFile (argFile), all) THEN
+        AND Text.Equal (ReadFile (argFile), stamp) THEN
         Msg.Explain ("program \"", jar, "\" is up to date");
         RETURN;
       END;
@@ -187,8 +193,8 @@ PROCEDURE Compile (name: TEXT;  READONLY units: M3Unit.Set;
     END;
     IF program THEN
       Utils.NoteNewFile (jar);
-      WriteText (argFile, all);
-      WriteScripts (name, jar, home, classPath);
+      WriteText (argFile, stamp);
+      WriteScripts (name, jar, home, classPath, options);
     END;
   END Compile;
 
@@ -333,6 +339,28 @@ PROCEDURE OnClassPath (classPath, path: TEXT): BOOLEAN =
     RETURN FALSE;
   END OnClassPath;
 
+PROCEDURE JavaOptions (m: Quake.Machine): TEXT =
+  (* What java_option has collected, a line each. *)
+  VAR v: TEXT := NIL;
+  BEGIN
+    TRY
+      v := Quake.LookUp (m, JavaOptionsVar);
+    EXCEPT Quake.Error =>
+    END;
+    IF v = NIL THEN RETURN ""; END;
+    RETURN v;
+  END JavaOptions;
+
+PROCEDURE AddJavaOption (m: Quake.Machine;  option: TEXT) RAISES {Quake.Error} =
+  VAR old := JavaOptions (m);
+  BEGIN
+    IF Text.Empty (old) THEN
+      Quake.Define (m, JavaOptionsVar, option);
+    ELSE
+      Quake.Define (m, JavaOptionsVar, old & "\n" & option);
+    END;
+  END AddJavaOption;
+
 PROCEDURE AddClassPath (m: Quake.Machine;  path: TEXT) RAISES {Quake.Error} =
   VAR old := ClassPath (m);
   BEGIN
@@ -393,27 +421,68 @@ PROCEDURE WriteText (file, text: TEXT) =
     Utils.CloseWriter (wr, file);
   END WriteText;
 
-PROCEDURE WriteScripts (prog, jar, home, classPath: TEXT) =
+PROCEDURE ShellQuoted (t: TEXT): TEXT =
+  (* t in double quotes for a POSIX shell: with "$", "`" and "\" escaped. *)
+  VAR r := "\"";  c: CHAR;
+  BEGIN
+    FOR i := 0 TO Text.Length (t) - 1 DO
+      c := Text.GetChar (t, i);
+      IF (c = '$') OR (c = '`') OR (c = '\\') THEN r := r & "\\"; END;
+      r := r & Text.FromChar (c);
+    END;
+    RETURN r & "\"";
+  END ShellQuoted;
+
+PROCEDURE CmdQuoted (t: TEXT): TEXT =
+  (* t in double quotes for cmd.exe and the java launcher: "%" doubled, so
+     that cmd leaves it alone, and the backslashes at the end doubled, so
+     that the launcher does not take the closing quote for one of t. *)
+  VAR r := "\"";  c: CHAR;  n := Text.Length (t);  tail := n;
+  BEGIN
+    WHILE (tail > 0) AND (Text.GetChar (t, tail - 1) = '\\') DO DEC (tail); END;
+    FOR i := 0 TO n - 1 DO
+      c := Text.GetChar (t, i);
+      IF c = '%' THEN r := r & "%"; END;
+      IF (c = '\\') AND (i >= tail) THEN r := r & "\\"; END;
+      r := r & Text.FromChar (c);
+    END;
+    RETURN r & "\"";
+  END CmdQuoted;
+
+PROCEDURE WriteScripts (prog, jar, home, classPath, options: TEXT) =
   (* The scripts that run the program in jar, which is next to them, with
-     the java of m3build, the runtime of m3j and the Java classes of its
-     bindings. *)
+     the java of m3build and the options of java_option, the runtime of m3j
+     and the Java classes of its bindings. *)
   VAR
     java    := M3jCompile.Java ();
     runtime := Pathname.Join (home, "m3j-runtime.jar", NIL);
     sep     := PathSeparator ();
     files   := ProgramFiles (prog);
     extra   := "";
+    shOpts  := "";
+    cmdOpts := "";
+    start   := 0;
+    stop    : INTEGER;
+    o       : TEXT;
   BEGIN
     IF NOT Text.Empty (classPath) THEN extra := sep & classPath; END;
+    WHILE start < Text.Length (options) DO
+      stop := Text.FindChar (options, '\n', start);
+      IF stop < 0 THEN stop := Text.Length (options); END;
+      o := Text.Sub (options, start, stop - start);
+      shOpts := shOpts & " " & ShellQuoted (o);
+      cmdOpts := cmdOpts & " " & CmdQuoted (o);
+      start := stop + 1;
+    END;
     WriteText (files[1],
       "#!/bin/sh" & "\n" &
       "# runs the program " & prog & ", compiled by m3j" & "\n" &
-      "exec \"" & java & "\" -cp \"" & runtime & sep &
+      "exec \"" & java & "\"" & shOpts & " -cp \"" & runtime & sep &
       "$(dirname \"$0\")/" & jar & extra & "\" m3.Main \"$@\"" & "\n");
     WriteText (files[2],
       "@echo off" & "\r\n" &
       "rem runs the program " & prog & ", compiled by m3j" & "\r\n" &
-      "\"" & java & "\" -cp \"" & runtime & ";%~dp0" & jar & extra &
+      "\"" & java & "\"" & cmdOpts & " -cp \"" & runtime & ";%~dp0" & jar & extra &
       "\" m3.Main %*" & "\r\n");
   END WriteScripts;
 

@@ -1,0 +1,24 @@
+RDF: An RSS 1.0 feed
+link: https://example.org/
+description: Items are outside of the channel.
+4 entries
+* 2003-07-01T08:52:00Z  A date without seconds
+  link: https://example.org/a
+  id: https://example.org/a
+  author: Jane Doe
+  text: First.
+  summary: First.
+  base: https://example.org/feeds/rdf.xml
+* 2003-07-02T00:00:00Z  Only a day
+  link: https://example.org/b
+  id: https://example.org/b
+  base: https://example.org/feeds/rdf.xml
+* 2003-07-03T08:30:00Z  A space for the T, and no zone
+  link: https://example.org/c
+  id: https://example.org/c
+  base: https://example.org/feeds/rdf.xml
+* 2003-07-04T03:00:00Z  Fractions, and a zone without a colon
+  link: https://example.org/d
+  id: https://example.org/d
+  base: https://example.org/feeds/rdf.xml
+exit 0

@@ -15,8 +15,8 @@ installation for these units:
   (`HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`), the
   package xml (`XmlReader`, `XmlWriter`), the package regexp (`Regexp`), the
   package json (`JsonWriter`, `JsonReader`), the package zip (`Deflate`,
-  `Zip`), the package encoding (`Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`),
-  the package crypto (`Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`,
+  `Zip`), the package encoding (`Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`,
+  `RFC5322`, `Html`), the package crypto (`Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`,
   `X25519`, `UUID`), the package ssh (`SSH`, `SFTP`) and the package sql
   (`SQL`);
 - the bindings of the Java platform in the package java; any other Java
@@ -273,9 +273,9 @@ and `SafeName` does. Encrypted archives and two entries of one name are refused.
 # Encodings
 
 The library encoding has the small formats that protocols are made of, in plain
-Modula-3: `Hex`, `Utf8`, `Base64`, `URI` and `RFC3339`. Except for `Utf8`, a
-`TEXT` here stands for bytes, one character for each byte, so text in Unicode
-goes through `Utf8.Encode` first. Input from elsewhere that is malformed makes
+Modula-3: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, `RFC5322` and `Html`. Except
+for `Utf8` and `Html`, a `TEXT` here stands for bytes, one character for each
+byte, so text in Unicode goes through `Utf8.Encode` first. Input from elsewhere that is malformed makes
 a procedure return `FALSE`:
 
 ```modula-3
@@ -288,12 +288,25 @@ END;
 
 IF RFC3339.Parse ("1996-12-19T16:39:57-08:00", time, offset) THEN ... END;
 text := RFC3339.Format (Time.Now (), digits := 3);   (* in UTC, ending in Z *)
+
+IF RFC5322.Parse ("Tue, 01 Jul 2003 10:52:37 +0200", time, offset) THEN ... END;
+text := RFC5322.Format (Time.Now ());   (* Wed, 11 Nov 2026 12:00:00 +0000 *)
+
+Wr.PutText (wr, "<a href=\"" & Html.Escape (url) & "\">" & Html.Escape (title) & "</a>");
+text := Html.Unescape ("caf&eacute; &#8211; &amp;");   (* "café – &" *)
 ```
 
 `Base64.Decode` accepts each value in one form only. `URI.Parse` follows the
 grammar of RFC 3986 and refuses what it does not allow, such as a backslash. The
 parts of a `URI.T` keep their escapes, and a part that is missing is `NIL`,
 which is different from one that is empty.
+
+`RFC5322` has the times of mail and of RSS, with the obsolete forms that
+RFC 5322 still accepts: a year of two digits, the zones by name of North
+America (`EST`), a comment at the end. `Html.Escape` makes a text safe in the
+content of an element and in an attribute value, in HTML and in XML;
+`Html.Unescape` replaces numeric references and the named ones of HTML 4,
+and leaves alone a reference that it does not know.
 
 # Cryptography
 

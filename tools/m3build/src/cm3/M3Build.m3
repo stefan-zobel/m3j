@@ -444,6 +444,7 @@ CONST
     Builtin {"import_obj",                    DoImportObj,       1, FALSE},
     Builtin {"import_lib",                    DoImportLib,       2, FALSE},
     Builtin {"java_classpath",                DoJavaClasspath,   1, FALSE},
+    Builtin {"java_option",                   DoJavaOption,      1, FALSE},
 
     (* objects *)
     Builtin {"pgm_object",                    DoPgmObject,       2, FALSE},
@@ -1181,6 +1182,21 @@ PROCEDURE DoJavaClasspath (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
       t.error ("java_classpath: no such file or directory: " & x);
     END;
   END DoJavaClasspath;
+
+PROCEDURE DoJavaOption (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
+  RAISES {Quake.Error} =
+  (* m3j: java_option ("-Xss16m") adds an option to the java command of the
+     scripts that run the program of this package. In a package that is
+     imported it has no effect: a program names the options it needs. *)
+  VAR t := Self (m);  x := PopText (t);
+  BEGIN
+    IF (t.mode # MM.Build) OR (t.importing > 0) THEN RETURN; END;
+    IF Text.Empty (x) OR (Text.FindChar (x, '"') >= 0)
+      OR (Text.FindChar (x, '\n') >= 0) OR (Text.FindChar (x, '\r') >= 0) THEN
+      t.error ("java_option: an option may be neither empty nor contain a quote or a line end: " & x);
+    END;
+    Builder.AddJavaOption (m, x);
+  END DoJavaOption;
 
 PROCEDURE DoImportObj (m: QMachine.T;  <*UNUSED*> n_args: INTEGER)
   RAISES {Quake.Error} =

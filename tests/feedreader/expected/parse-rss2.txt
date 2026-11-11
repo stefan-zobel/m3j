@@ -1,0 +1,64 @@
+RSS: Fish & Chips – a test
+link: https://example.org/blog/
+description: News about fish & chips.
+12 entries
+* 2003-07-01T08:52:37Z  All the fields
+  link: https://example.org/blog/all
+  id: tag:example.org,2026:1
+  author: jane@example.org (Jane Doe)
+  text: The full text. Second paragraph.
+  summary: <p>A <em>short</em> summary &amp; more.</p>
+  content: <p>The full text.</p><script>alert(1)</script><style>p { }</style><!-- a comment --><p>Second&nbsp;paragraph.</p>
+  base: https://example.org/feeds/rss2.xml
+* 2003-07-02T13:00:00Z  A relative link, a zone by name
+  link: https://example.org/feeds/posts/2?a=1&b=2
+  id: -
+  author: Joe Bloggs
+  text: Escaped HTML in the description.
+  summary: Escaped <b>HTML</b> in the description.
+  base: https://example.org/feeds/rss2.xml
+* 2003-07-03T09:05:00Z  The guid is the link
+  link: https://example.org/blog/3
+  id: https://example.org/blog/3
+  base: https://example.org/feeds/rss2.xml
+* 2003-07-04T10:00:00Z  A guid that is no link
+  link: -
+  id: 12345
+  base: https://example.org/feeds/rss2.xml
+* 2003-07-05T08:00:00Z  Zones that RFC 5322 does not know
+  link: https://example.org/blog/5
+  id: -
+  base: https://example.org/feeds/rss2.xml
+* 2003-07-06T08:00:00Z  Only a dc:date
+  link: https://example.org/blog/6
+  id: -
+  base: https://example.org/feeds/rss2.xml
+* bad date "sometime last week"  A date that is none
+  link: https://example.org/blog/7
+  id: -
+  base: https://example.org/feeds/rss2.xml
+* no date  An item without a title, whose text becomes its title, cut at a space when it is longer than a...
+  link: -
+  id: -
+  text: An item without a title, whose text becomes its title, cut at a space when it is longer than a hundred characters, as this one is.
+  summary: An item without a title, whose text becomes its title, cut at a space when it is longer than a hundred characters, as this one is.
+  base: https://example.org/feeds/rss2.xml
+* no date  A link that is no web link
+  link: -
+  id: -
+  base: https://example.org/feeds/rss2.xml
+* no date  An episode of a podcast
+  link: https://cdn.example.org/ep%201.mp3
+  id: ep1
+  base: https://example.org/feeds/rss2.xml
+* no date  Links outside of ASCII
+  link: https://example.org/wiki/M%C3%BCller%20Stra%C3%9Fe
+  id: -
+  base: https://example.org/feeds/rss2.xml
+* no date  Markup in the description that is not escaped
+  link: -
+  id: -
+  text: Some bold text and a line.
+  summary: Some <b>bold</b> text<br>and a line.
+  base: https://example.org/feeds/rss2.xml
+exit 0

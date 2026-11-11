@@ -1,4 +1,4 @@
-% exports of encoding: hexadecimal, UTF-8, Base64, URIs and the times of RFC 3339
+% exports of encoding: hexadecimal, UTF-8, Base64, URIs, the times of RFC 3339 and RFC 5322, and HTML text
 _define_lib("encoding")
 import_version("m3core", "JVM")
 import_version("libm3", "JVM")
@@ -6,8 +6,12 @@ _map_add_interface("Base64.i3", "encoding", "src", "")
 _map_add_module("Base64.m3", "encoding", "src", "hidden")
 _map_add_interface("Hex.i3", "encoding", "src", "")
 _map_add_module("Hex.m3", "encoding", "src", "hidden")
+_map_add_interface("Html.i3", "encoding", "src", "")
+_map_add_module("Html.m3", "encoding", "src", "hidden")
 _map_add_interface("RFC3339.i3", "encoding", "src", "")
 _map_add_module("RFC3339.m3", "encoding", "src", "hidden")
+_map_add_interface("RFC5322.i3", "encoding", "src", "")
+_map_add_module("RFC5322.m3", "encoding", "src", "hidden")
 _map_add_interface("URI.i3", "encoding", "src", "")
 _map_add_module("URI.m3", "encoding", "src", "hidden")
 _map_add_interface("Utf8.i3", "encoding", "src", "")

@@ -12,7 +12,7 @@
 
 MODULE Main;
 
-IMPORT Base64, FileRd, FileWr, Fmt, Hex, Params, RFC3339, Rd, Scan, Text, TextWr, URI, Utf8, Wr;
+IMPORT Base64, FileRd, FileWr, Fmt, Hex, Html, Params, RFC3339, RFC5322, Rd, Scan, Text, TextWr, URI, Utf8, Wr;
 
 <*FATAL ANY*>
 
@@ -187,6 +187,20 @@ PROCEDURE Do (a: Tokens): TEXT =
       IF RFC3339.Parse (Bytes (a[1]), t, offset) THEN
         RETURN Fmt.LongReal (t, Fmt.Style.Fix, 6) & " " & Fmt.Int (offset);
       END;
+    ELSIF Text.Equal (op, "mf") THEN
+      RETURN RFC5322.Format (Scan.LongReal (a[1]), Int (a[2]));
+    ELSIF Text.Equal (op, "mp") THEN
+      IF RFC5322.Parse (Bytes (a[1]), t, offset) THEN
+        RETURN Fmt.LongReal (t, Fmt.Style.Fix, 0) & " " & Fmt.Int (offset);
+      END;
+    ELSIF Text.Equal (op, "mpw") THEN
+      IF RFC5322.Parse (Wide (a[1]), t, offset) THEN RETURN "accepted" END;
+    ELSIF Text.Equal (op, "xe") THEN
+      RETURN Show (Html.Escape (Wide (a[1])), wide := TRUE);
+    ELSIF Text.Equal (op, "xu") THEN
+      RETURN Show (Html.Unescape (Wide (a[1])), wide := TRUE);
+    ELSIF Text.Equal (op, "xl") THEN
+      RETURN Fmt.Int (Html.Lookup (Bytes (a[1])));
     ELSE
       <*ASSERT FALSE*>
     END;
@@ -230,6 +244,14 @@ PROCEDURE Breach (kind: TEXT) =
       t := RFC3339.Format (253402300800.0D0);
     ELSIF Text.Equal (kind, "lateoffset") THEN
       t := RFC3339.Format (253402300799.0D0, offset := 3600);
+    ELSIF Text.Equal (kind, "mminutes") THEN
+      t := RFC5322.Format (0.0D0, offset := 30);
+    ELSIF Text.Equal (kind, "mday") THEN
+      t := RFC5322.Format (0.0D0, offset := -86400);
+    ELSIF Text.Equal (kind, "mearly") THEN
+      t := RFC5322.Format (-2208988801.0D0);
+    ELSIF Text.Equal (kind, "mlate") THEN
+      t := RFC5322.Format (253402300800.0D0);
     ELSE
       t := "unknown";
     END;

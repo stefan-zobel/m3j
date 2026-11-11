@@ -20,6 +20,8 @@ The cases:
   resolve   the examples of section 5.4 of RFC 3986
   normalize normalization by syntax
   rfc3339   formatting and parsing against datetime and tables
+  rfc5322   the times of mail: formatting, the forms that parsing accepts, tables
+  html      escaping, and the references of HTML against the module html
   breach    what must be a checked runtime error
 """
 
@@ -607,9 +609,192 @@ def case_rfc3339(env):
     compare(env, ["rpw " + w(u) for u in wides], ["no"] * len(wides))
 
 
+DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+LONG_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+FIRST_5322 = -2208988800                    # 1900-01-01T00:00:00Z
+
+
+def local(sec, offset):
+    tz = datetime.timezone(datetime.timedelta(seconds=offset))
+    return (datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=sec)).astimezone(tz)
+
+
+def mail(sec, offset):
+    d = local(sec, offset)
+    return "%s, %02d %s %04d %02d:%02d:%02d %s%02d%02d" % (
+        DAYS[d.weekday()], d.day, MONTHS[d.month - 1], d.year, d.hour, d.minute, d.second,
+        "-" if offset < 0 else "+", abs(offset) // 3600, abs(offset) // 60 % 60)
+
+
+MAIL_ZONES = {"UT": 0, "GMT": 0, "Z": 0, "EST": -5, "EDT": -4, "CST": -6, "CDT": -5, "MST": -7, "MDT": -6, "PST": -8,
+              "PDT": -7, "A": 0, "M": 0, "N": 0, "Y": 0}
+
+
+def variant(rng, sec, offset):
+    """A text of RFC 5322 for the time, in one of the forms that Parse accepts, and the offset it has."""
+    if rng.random() < 0.3:
+        name = rng.choice(sorted(MAIL_ZONES))
+        offset = MAIL_ZONES[name] * 3600
+        zone = rng.choice([name, name.lower()])
+    else:
+        zone = None
+    d = local(sec, offset)
+    parts = []
+    r = rng.random()
+    if r < 0.4:
+        parts.append(DAYS[d.weekday()] + rng.choice([",", " ,"]) + " ")
+    elif r < 0.5:
+        parts.append(rng.choice(LONG_DAYS) + ", ")      # not checked against the date
+    parts.append(("%d" if rng.random() < 0.5 else "%02d") % d.day)
+    parts.append(" " + rng.choice([MONTHS[d.month - 1], MONTHS[d.month - 1].upper(), MONTHS[d.month - 1].lower()]) + " ")
+    if 1950 <= d.year < 2050 and rng.random() < 0.3:
+        parts.append("%02d" % (d.year % 100))
+    elif 1900 <= d.year < 2000 and rng.random() < 0.2:
+        parts.append("%03d" % (d.year - 1900))
+    else:
+        parts.append("%04d" % d.year)
+    seconds = d.second != 0 or rng.random() < 0.8
+    parts.append(rng.choice([" ", "  ", "\t", "\r\n "]))
+    parts.append(("%d:%02d" if rng.random() < 0.3 else "%02d:%02d") % (d.hour, d.minute))
+    if seconds:
+        parts.append(":%02d" % d.second)
+    parts.append(" ")
+    if zone is None:
+        if offset == 0 and rng.random() < 0.2:
+            parts.append("-0000")
+        else:
+            parts.append("%s%02d%02d" % ("-" if offset < 0 else "+", abs(offset) // 3600, abs(offset) // 60 % 60))
+    else:
+        parts.append(zone)
+    if rng.random() < 0.2:
+        parts.append(rng.choice([" (UTC)", " (a (nested) comment)", "  ()"]))
+    if rng.random() < 0.1:
+        parts.append(" ")
+    return "".join(parts), offset
+
+
+MAIL_VALID = [("Tue, 01 Jul 2003 10:52:37 +0200", 1057049557, 7200), ("1 Jul 2003 10:52 +0200", 1057049520, 7200),
+              ("Thu, 13 Feb 1969 23:32:54 -0330", -27723426, -12600), ("Fri, 21 Nov 1997 09:55:06 -0600", 880127706, -21600),
+              ("Fri, 21 Nov 97 09:55:06 GMT", 880106106, 0), ("21 Nov 49 09:55:06 GMT", 2521101306, 0),
+              ("21 Nov 50 09:55:06 GMT", -603122694, 0), ("21 Nov 097 09:55:06 GMT", 880106106, 0),
+              ("Sat, 31 Dec 2016 23:59:60 +0000", 1483228800, 0), ("Sat, 31 Dec 2016 18:59:60 EST", 1483228800, -18000),
+              ("Thu, 30 Jun 2015 23:59:60 GMT", 1435708800, 0), ("Mon, 01 Jan 1900 00:00:00 +0000", -2208988800, 0),
+              ("Fri, 31 Dec 9999 23:59:59 +0000", 253402300799, 0), ("Tue, 29 Feb 2000 12:00:00 +2359", 951739260, 86340),
+              ("tue, 29 FEB 2000 12:00:00 z", 951825600, 0), ("Tue,29 Feb 2000 12:00:00 j" + "x", None, 0)]
+
+MAIL_INVALID = ["", "Tue, 01 Jul 2003", "Tue, 01 Jul 2003 10:52:37", "Tue, 01 Jul 2003 10:52:37 +02", "Tue, 01 Jul 2003 10:52:37 +02:00",
+                "Tue, 01 Jul 2003 10:52:37 +2400", "Tue, 01 Jul 2003 10:52:37 +0060", "Tue, 01 Jul 2003 10:52:37 CET",
+                "Tue, 01 Jul 2003 10:52:37 J", "Tue, 01 Jul 2003 10:52:37 +0200 x", "Tue, 01 Jul 2003 10:52:37 +0200 (open",
+                "Tue 01 Jul 2003 10:52:37 +0200", "Tux, 01 Jul 2003 10:52:37 +0200", ", 01 Jul 2003 10:52:37 +0200",
+                "Tue, 001 Jul 2003 10:52:37 +0200", "Tue, 32 Jul 2003 10:52:37 +0200", "Tue, 00 Jul 2003 10:52:37 +0200",
+                "Tue, 31 Jun 2003 10:52:37 +0200", "Tue, 29 Feb 2003 10:52:37 +0200", "Tue, 29 Feb 1900 10:52:37 +0200",
+                "Tue, 01 July 2003 10:52:37 +0200", "Tue, 01 Jux 2003 10:52:37 +0200", "Tue, 01 Jul 20031 10:52:37 +0200",
+                "Tue, 01 Jul 2 10:52:37 +0200", "Tue, 01 Jul 1899 10:52:37 +0200", "Tue, 01-Jul-2003 10:52:37 +0200",
+                "Tue, 01 Jul 2003 24:00:00 +0200", "Tue, 01 Jul 2003 10:60:00 +0200", "Tue, 01 Jul 2003 10:52:61 +0200",
+                "Tue, 01 Jul 2003 10:52:60 +0000", "Sat, 31 Dec 2016 23:59:60 +0100", "Tue, 01 Jul 2003 10:5:37 +0200",
+                "Tue, 01 Jul 2003 100:52:37 +0200", "Tue, 01 Jul 2003 10:52:7 +0200", "Tue, 01 Jul 2003 10:52:37+0200",
+                "Tue, 01 Jul 2003 10.52.37 +0200", "Tue, 01 Jul 2003T10:52:37 +0200", "2003-07-01T10:52:37Z",
+                "Tue, 01 Jul 2003 10:52:37 +0200)", "Tue, 01 Jul 2003 10:52:37 GMT+1", "Tue, 01 Jul 2003 10:52:37 UTC"]
+
+
+def case_rfc5322(env):
+    rng = random.Random(5322)
+    lines, wants = [], []
+    for sec, offset in [(0, 0), (0, 3600), (0, -3600), (0, 19800), (0, -86340), (FIRST_5322, 0), (253402300799, 0),
+                        (1709251199, 0), (-1, 0)]:
+        lines.append("mf %r %d" % (float(sec), offset))
+        wants.append(mail(sec, offset))
+    for _ in range(20000):
+        sec = rng.randint(FIRST_5322 + 86400, 253402300799 - 86400)
+        offset = rng.randint(-1439, 1439) * 60
+        frac = rng.choice([0.0, 0.25, 0.75])
+        lines.append("mf %r %d" % (sec + frac, offset))
+        wants.append(mail(sec, offset))
+    compare(env, lines, wants)
+
+    lines, wants = [], []
+    for _ in range(30000):
+        sec = rng.randint(FIRST_5322 + 86400, 253402300799 - 86400) if rng.random() < 0.3 else \
+            rng.randint(-2**31, 2**31)
+        offset = rng.randint(-1439, 1439) * 60
+        t, offset = variant(rng, sec, offset)
+        lines.append("mp " + x(t))
+        wants.append("%d %d" % (sec, offset))
+    compare(env, lines, wants, [l[3:] for l in lines])
+
+    valid = [(t, s, o) for t, s, o in MAIL_VALID if s is not None]
+    compare(env, ["mp " + x(t) for t, _, _ in valid], ["%d %d" % (s, o) for _, s, o in valid], [t for t, _, _ in valid])
+    invalid = MAIL_INVALID + [t for t, s, _ in MAIL_VALID if s is None]
+    compare(env, ["mp " + x(t) for t in invalid], ["no"] * len(invalid), invalid)
+    wides = [utf16("Tue, 01 Jul 2003 10:52:37 +0200\u4e2d"), utf16("Tue, 01 Jul 2003 10:52:37 \u0130ST")]
+    compare(env, ["mpw " + w(u) for u in wides], ["no"] * len(wides))
+
+
+def html_escape_want(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#39;")
+
+
+def html_reference(m):
+    import html
+    import html.entities
+    name = m.group(1)
+    if name.startswith("#"):
+        v = int(name[2:], 16) if name[1] in "xX" else int(name[1:])
+        if v == 0 or 0xD800 <= v <= 0xDFFF or v > 0x10FFFF:
+            return "\ufffd"
+        if 0x80 <= v <= 0x9F:
+            return html._invalid_charrefs.get(v, chr(v))
+        return chr(v)
+    if name == "apos":
+        return "'"
+    if name in html.entities.name2codepoint:
+        return chr(html.entities.name2codepoint[name])
+    return m.group(0)
+
+
+HTML_REF = None
+
+
+def html_unescape_want(s):
+    import re
+    global HTML_REF
+    if HTML_REF is None:
+        HTML_REF = re.compile(r"&(#[xX][0-9a-fA-F]{1,8}|#[0-9]{1,8}|[A-Za-z0-9]+);")
+    return HTML_REF.sub(html_reference, s)
+
+
+def case_html(env):
+    import html.entities
+    names = sorted(html.entities.name2codepoint)
+    check(len(names), 252, "the names of HTML 4")
+    unknown = ["Nbsp", "nbs", "hellip2", "zz", "x", "AMP", "39", "euros", "thetasymx"]
+    compare(env, ["xl " + x(n) for n in names + ["apos"] + unknown],
+            ["%d" % html.entities.name2codepoint[n] for n in names] + ["39"] + ["-1"] * len(unknown))
+
+    rng = random.Random(1866)
+    pieces = ["a", "b", " ", "&", "<", ">", '"', "'", ";", "#", "x", "\u00e9", "\u4e2d", "\U0001f600", "\ufffd"]
+    texts = ["", "plain", "&", "<>", "''", '""', "a & b < c > d \" e ' f"]
+    for _ in range(3000):
+        texts.append("".join(rng.choice(pieces) for _ in range(rng.randint(0, 20))))
+    compare(env, ["xe " + w(utf16(s)) for s in texts], [w(utf16(html_escape_want(s))) for s in texts], texts)
+
+    refs = ["&%s;" % n for n in names] + ["&apos;", "&#0;", "&#9;", "&#38;", "&#x26;", "&#X26;", "&#xd800;", "&#xDFFF;",
+                                           "&#x10FFFF;", "&#x110000;", "&#1114112;", "&#99999999;", "&#x1F600;",
+                                           "&#128512;", "&#00000065;", "&#000000065;", "&#xFFFFFFFF;", "&#x100000000;",
+                                           "&#;", "&#x;", "&#a;", "&amp", "&amp ;", "& amp;", "&;", "&&amp;",
+                                           "&amp;amp;", "&unknown;", "&Amp;", "&#65", "&#x41g;"]
+    refs += ["&#%d;" % v for v in range(0x7E, 0xA2)] + ["&#x%x;" % v for v in range(0x7E, 0xA2)]
+    texts = list(refs)
+    for _ in range(5000):
+        texts.append("".join(rng.choice(refs + pieces) for _ in range(rng.randint(0, 8))))
+    compare(env, ["xu " + w(utf16(s)) for s in texts], [w(utf16(html_unescape_want(s))) for s in texts], texts)
+
+
 BREACHES = [("hex", "Hex.m3"), ("base64", "Base64.m3"), ("escape", "URI.m3"), ("query", "URI.m3"), ("rawquery", "URI.m3"),
             ("digits", "RFC3339.m3"), ("minutes", "RFC3339.m3"), ("day", "RFC3339.m3"), ("early", "RFC3339.m3"),
-            ("late", "RFC3339.m3"), ("lateoffset", "RFC3339.m3")]
+            ("late", "RFC3339.m3"), ("lateoffset", "RFC3339.m3"), ("mminutes", "RFC5322.m3"), ("mday", "RFC5322.m3"),
+            ("mearly", "RFC5322.m3"), ("mlate", "RFC5322.m3")]
 
 
 def case_breach(env):
@@ -621,7 +806,8 @@ def case_breach(env):
 
 
 CASES = {"hex": case_hex, "utf8": case_utf8, "base64": case_base64, "escape": case_escape, "query": case_query, "uri": case_uri,
-         "ipv6": case_ipv6, "resolve": case_resolve, "normalize": case_normalize, "rfc3339": case_rfc3339, "breach": case_breach}
+         "ipv6": case_ipv6, "resolve": case_resolve, "normalize": case_normalize, "rfc3339": case_rfc3339,
+         "rfc5322": case_rfc5322, "html": case_html, "breach": case_breach}
 
 
 def main():

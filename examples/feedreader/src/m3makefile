@@ -1,0 +1,45 @@
+% Copyright (c) 2026 the m3j authors.
+% SPDX-License-Identifier: MIT
+
+% A reader of news feeds, written to show the libraries of m3j at work.
+
+import ("libm3")
+import ("http")
+import ("xml")
+import ("regexp")
+import ("encoding")
+import ("zip")
+import ("crypto")
+import ("sql")
+import ("json")
+
+% The JDBC driver of SQLite, which fetch-driver.sh fetches; it loads code
+% of its own, which the JDK allows with this option only.
+java_classpath ("../lib/sqlite-jdbc-3.53.4.0.jar")
+java_option ("--enable-native-access=ALL-UNNAMED")
+
+module ("Api")
+module ("Auth")
+module ("Discover")
+module ("Events")
+module ("Feed")
+module ("FeedDate")
+module ("Fetch")
+module ("Fetcher")
+module ("HtmlText")
+module ("Links")
+module ("Log")
+module ("Opml")
+module ("Page")
+module ("Store")
+module ("TextBuf")
+module ("Web")
+implementation ("Main")
+
+% The files that the program serves or reads, in its jar.
+resource_named ("style.css", "static/style.css")
+resource_named ("app.js", "static/app.js")
+resource ("demo.opml")
+bundle ("Static")
+
+program ("feedreader")

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Feeds to start with</title>
+  </head>
+  <body>
+    <outline text="Programming languages">
+      <outline type="rss" text="CM3: commits" title="CM3: commits" xmlUrl="https://github.com/modula3/cm3/commits/master.atom" htmlUrl="https://github.com/modula3/cm3"/>
+      <outline type="rss" text="OpenJDK: tags" title="OpenJDK: tags" xmlUrl="https://github.com/openjdk/jdk/tags.atom" htmlUrl="https://github.com/openjdk/jdk"/>
+      <outline type="rss" text="The Go Blog" title="The Go Blog" xmlUrl="https://go.dev/blog/feed.atom" htmlUrl="https://go.dev/blog/"/>
+      <outline type="rss" text="Rust Blog" title="Rust Blog" xmlUrl="https://blog.rust-lang.org/feed.xml" htmlUrl="https://blog.rust-lang.org/"/>
+      <outline type="rss" text="arXiv: Programming Languages" title="arXiv: Programming Languages" xmlUrl="https://rss.arxiv.org/rss/cs.PL" htmlUrl="https://arxiv.org/list/cs.PL/recent"/>
+    </outline>
+    <outline text="News">
+      <outline type="rss" text="Hacker News" title="Hacker News" xmlUrl="https://news.ycombinator.com/rss" htmlUrl="https://news.ycombinator.com/"/>
+      <outline type="rss" text="LWN.net" title="LWN.net" xmlUrl="https://lwn.net/headlines/rss" htmlUrl="https://lwn.net/"/>
+    </outline>
+    <outline text="Other">
+      <outline type="rss" text="Wikipedia: featured articles" title="Wikipedia: featured articles" xmlUrl="https://en.wikipedia.org/w/api.php?action=featuredfeed&amp;feed=featured&amp;feedformat=atom" htmlUrl="https://en.wikipedia.org/wiki/Main_Page"/>
+      <outline type="rss" text="xkcd" title="xkcd" xmlUrl="https://xkcd.com/atom.xml" htmlUrl="https://xkcd.com/"/>
+    </outline>
+  </body>
+</opml>

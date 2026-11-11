@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN"
+  "http://my.netscape.com/publish/formats/rss-0.91.dtd">
+<rss version="0.91">
+  <channel>
+    <title>An RSS 0.91 feed with a DOCTYPE</title>
+    <link>https://example.org/</link>
+    <description>The DOCTYPE is skipped unread.</description>
+    <item>
+      <title>Its only item</title>
+      <link>https://example.org/only</link>
+      <description>Text &amp; more.</description>
+    </item>
+  </channel>
+</rss>

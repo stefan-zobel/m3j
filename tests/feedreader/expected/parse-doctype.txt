@@ -1,0 +1,11 @@
+RSS: An RSS 0.91 feed with a DOCTYPE
+link: https://example.org/
+description: The DOCTYPE is skipped unread.
+1 entry
+* no date  Its only item
+  link: https://example.org/only
+  id: -
+  text: Text & more.
+  summary: Text & more.
+  base: https://example.org/feeds/doctype.xml
+exit 0

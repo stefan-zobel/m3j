@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns="http://purl.org/rss/1.0/"
+         xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel rdf:about="https://example.org/">
+    <title>An RSS 1.0 feed</title>
+    <link>https://example.org/</link>
+    <description>Items are outside of the channel.</description>
+    <items>
+      <rdf:Seq>
+        <rdf:li rdf:resource="https://example.org/a" />
+        <rdf:li rdf:resource="https://example.org/b" />
+      </rdf:Seq>
+    </items>
+  </channel>
+  <image rdf:about="https://example.org/logo.png">
+    <title>Logo</title>
+    <url>https://example.org/logo.png</url>
+  </image>
+  <item rdf:about="https://example.org/a">
+    <title>A date without seconds</title>
+    <link>https://example.org/a</link>
+    <dc:date>2003-07-01T10:52+02:00</dc:date>
+    <dc:creator>Jane Doe</dc:creator>
+    <description>First.</description>
+  </item>
+  <item rdf:about="https://example.org/b">
+    <title>Only a day</title>
+    <link>https://example.org/b</link>
+    <dc:date>2003-07-02</dc:date>
+  </item>
+  <item rdf:about="https://example.org/c">
+    <title>A space for the T, and no zone</title>
+    <link>https://example.org/c</link>
+    <dc:date>2003-07-03 08:30:00</dc:date>
+  </item>
+  <item rdf:about="https://example.org/d">
+    <title>Fractions, and a zone without a colon</title>
+    <link>https://example.org/d</link>
+    <dc:date>2003-07-04T08:30:00.123+0530</dc:date>
+  </item>
+</rdf:RDF>

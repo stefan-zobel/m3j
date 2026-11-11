@@ -1,0 +1,8 @@
+Atom: With a byte order mark – 中文 😀
+link: https://example.org/
+1 entry
+* 2003-07-08T00:00:00Z  Été
+  link: https://example.org/%C3%A9t%C3%A9
+  id: tag:example.org,2003:bom
+  base: https://example.org/feeds/bom.xml
+exit 0

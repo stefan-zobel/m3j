@@ -1,0 +1,9 @@
+RSS: Café über alles
+link: https://example.org/
+description: In ISO-8859-1: äöüß ©
+1 entry
+* 2003-07-07T10:00:00Z  Grüße aus Köln
+  link: https://example.org/k%C3%B6ln
+  id: -
+  base: https://example.org/feeds/latin1.xml
+exit 0

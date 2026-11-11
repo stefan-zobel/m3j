@@ -265,7 +265,7 @@ sources changed. A library is checked (its UNSAFE modules are left out)
 and installed as its sources and its `.M3EXPORTS`, since m3j compiles a
 program from the sources of the libraries it uses. Packages are found in
 the installation (`-root DIR` or `M3J_ROOT`), then among those that m3j
-brings (`lib`: m3core, libm3, tcp, netobj, sysutils, json, libbuf, patternmatching, regexp, java, zip, encoding, crypto, ssh, sql), then in a cm3
+brings (`lib`: m3core, libm3, tcp, netobj, sysutils, libbuf, patternmatching, tls, http, xml, regexp, json, java, zip, encoding, crypto, ssh, sql), then in a cm3
 installation (`-cm3 DIR` or `CM3_ROOT`). C sources and the options of
 cm3's back ends are not supported; `-exports` writes only the
 `.M3EXPORTS`. `java -jar m3build.jar -help` lists the options.
@@ -280,6 +280,12 @@ imports the library, directly or through another one, has it on its class
 path. A directory cannot be passed on (pack it into a jar), and two jars
 of a library must differ in name. The option `-pkg DIR` of the compiler
 reads such a `.M3EXPORTS` too.
+
+`java_option ("--enable-native-access=ALL-UNNAMED")` adds an option to the
+java command of the scripts `JVM/NAME` and `JVM/NAME.cmd`, quoted for the
+shell and for cmd, for example for a JDBC driver that loads native code. It
+counts in the m3makefile of the program only, not in a package that the
+program imports; an option may contain neither a quote nor a line end.
 
 # Editors: the language server
 

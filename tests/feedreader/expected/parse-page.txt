@@ -1,0 +1,2 @@
+feedreader: page.xml: not a feed: the root element is <html>
+exit 1

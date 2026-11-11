@@ -1,0 +1,7 @@
+# what m3build makes, the driver that fetch-driver.sh fetches, and the database
+/JVM/
+/lib/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

@@ -565,6 +565,12 @@ public final class Xml {
         f.setProperty("jdk.xml.maxElementDepth", Long.toString(maxDepth));
         f.setProperty("jdk.xml.elementAttributeLimit", Long.toString(maxAttributes));
         f.setProperty("jdk.xml.maxXMLNameLimit", Long.toString(maxNameChars));
+        // Without a DTD the only entities are the five predefined ones, whose
+        // references the JDK counts against these limits all the same: a
+        // text with more than 100,000 of "&lt;" would fail. The limit of a
+        // token applies instead.
+        f.setProperty("jdk.xml.maxGeneralEntitySizeLimit", "0");
+        f.setProperty("jdk.xml.totalEntitySizeLimit", "0");
         reader = f.createXMLStreamReader(source);
         version = reader.getVersion();
     }

@@ -605,6 +605,9 @@ def case_limits(env):
         ("unreported comment far above the limit", "<a><!--%s--></a>" % (x * 3), token, "Limit"),
         ("many small tokens", many, ["token=2000"], None),
         ("tokens without a limit", "<a><![CDATA[%s]]></a>" % (x * 3), ["token=0"], None),
+        ("references in a text", "<a>%s</a>" % ("&lt;" * 150000), [], None),
+        ("references in an attribute", "<a x='%s'/>" % ("&amp;" * 150000), [], None),
+        ("references in many texts", "<a>%s</a>" % ("<b>&lt;&#65;</b>" * 150000), [], None),
     ]
     got = env.batch([(d.encode("utf-8"), f) for _, d, f, _ in table])
     for (name, _, _, want), lines in zip(table, got):
