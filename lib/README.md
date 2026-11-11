@@ -305,27 +305,14 @@ unlike in Java. The test is `tools/regexp_test.py`.
 
 ## json
 
-The package json of CM3 5.12.0 (`m3-libs/json`, by Peter McKinna, with
-the notice of its author, `json/COPYRIGHT-BSD`): JSON texts parsed into
-trees of nodes (`Json`), searched by paths, changed and formatted. Its
-m3makefile does not import the package table-list of cm3, whose units it
-does not use.
-
-| Module | Change |
-|---|---|
-| `json/src/Json.m3` | safe: `Dump` prints the name of the parent instead of its address (`LOOPHOLE`); `find` does not find a name below a node without children and `iterate` gives no children of an empty object or array, where cm3's module fails on a `NIL` table |
-| `json/src/JsonKeyword.m3` | safe: the characters taken with the checks of their subscripts instead of through an untraced pointer |
-
-`json/src/JsonWriter.i3` and `JsonWriter.m3` are m3j's own, not from cm3: JSON
-written piece by piece to a `Wr.T`, in plain Modula-3. `Json.format` joins the
-tree into one text and does not escape strings; the values of a `Json.T` are
-the text of the source, with its escapes and as bytes, and so they do not go
-through `JsonWriter.text`.
-
-`json/src/JsonReader.i3` and `JsonReader.m3` are also m3j's own: JSON read
-piece by piece from a `Rd.T`, in plain Modula-3. It follows RFC 8259 strictly
-and decodes strings, where `Json` holds the whole document and the text of its
-source.
+Not the package json of cm3, whose module `Json` (a tree of nodes, searched
+by paths) m3j does not bring: it kept arrays in the order of the texts of
+their indexes, so that the element 10 came before the element 2, and it gave
+strings as the text of the source, with their escapes. Its only user in cm3
+is the language server, which m3j has moved to the two units of this
+package, both m3j's own, in plain Modula-3: `JsonWriter` writes JSON piece by
+piece to a `Wr.T`, and `JsonReader` reads it piece by piece from a `Rd.T`,
+following RFC 8259 strictly and decoding strings.
 
 ## libbuf
 

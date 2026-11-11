@@ -17,8 +17,7 @@ module hidden, as cm3 lists them. A unit that is in more than one
 directory of the package (the parts for POSIX and for Windows) is listed
 once, the first found in cm3's exports or else in the order of the
 directories. import_version names the build directory JVM, and a
-package that lib does not have is not imported (json imports table-list
-in cm3, whose units it does not use); the linker data of cm3
+package that lib does not have is not imported; the linker data of cm3
 (_import_m3lib, import_sys_lib, _map_add_c, _map_add_h) is left out. m3core imports the package m3j (lib/m3j: the interfaces that
 the runtime of m3j implements), so that its units are found too.
 
@@ -39,13 +38,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LIB = ROOT / "lib"
-PACKAGES = ["m3core", "libm3", "tcp", "netobj", "sysutils", "json", "libbuf", "patternmatching"]
+PACKAGES = ["m3core", "libm3", "tcp", "netobj", "sysutils", "libbuf", "patternmatching"]
 # source packages outside lib: where they are in the tree of m3j
 TOOLKIT = {"m3tk-misc": ROOT / "tests" / "stubgen" / "m3tk-misc",
            "m3tk": ROOT / "tests" / "stubgen" / "m3tk"}
 # where the sources of each package are in the tree of cm3
 SOURCES = {"m3core": "m3-libs/m3core", "libm3": "m3-libs/libm3", "tcp": "m3-comm/tcp",
-           "netobj": "m3-comm/netobj", "sysutils": "m3-libs/sysutils", "json": "m3-libs/json",
+           "netobj": "m3-comm/netobj", "sysutils": "m3-libs/sysutils",
            "libbuf": "m3-libs/libbuf", "patternmatching": "m3-libs/patternmatching", "m3tk-misc": "m3-libs/m3tk-misc", "m3tk": "m3-tools/m3tk"}
 LINE = re.compile(r'^(_map_add_(?:interface|module|generic_interface|generic_module))'
                   r'\("([^"]+)", "([^"]+)", "([^"]*)", "([^"]*)"\)$')

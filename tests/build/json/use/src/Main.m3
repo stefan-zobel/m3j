@@ -2,7 +2,7 @@
 
 MODULE Main;
 
-IMPORT IO, Json, JsonReader, JsonWriter, Text, TextWr;
+IMPORT IO, JsonReader, JsonWriter, TextWr;
 
 <*FATAL ANY*>
 
@@ -21,6 +21,5 @@ BEGIN
   r := JsonReader.FromText (doc);
   r.object ();
   EVAL r.member ();
-  <*ASSERT Text.Equal (Json.ParseBuf (doc).find ("b").value (), "linked")*>
   IO.Put (r.text () & "\n");
 END Main.

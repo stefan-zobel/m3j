@@ -33,17 +33,19 @@
    - The check of the JSON of each reply and the log of each message are
      only made when there is a log (Debug).
    - The collector of cm3 is not started (RTCollectorSRC).
-   - The reply to initialize (msg.json) offers only what the server
-     does (no formatting, renaming, semantic tokens or signature help)
-     and definitions, and names the server. *)
+   - The reply to initialize offers only what the server does (no
+     formatting, renaming, semantic tokens or signature help) and
+     definitions, and names the server.
+   - A message is read with JsonReader, which takes from it the fields
+     that the server uses (Parse), instead of a tree of Json. *)
 
 MODULE LSP;
 
 (*
   This is a Modula-3 language server.
 
-  It waits for a message on stdin, parses it into a Json.T,
-  extracts the id and method and checks if it handles the message.
+  It waits for a message on stdin, reads the fields it uses from it,
+  among them the id and method, and checks if it handles the message.
   The handler may send a response on stdout.
   The protocol has two types of messages, those with and id which should
   be responded to and those without, which  are notification messages only.
@@ -56,8 +58,8 @@ MODULE LSP;
 
 
 IMPORT Fmt, Wr, Stdio, Thread, Text, TextSeq, TextUtils, Process, File;
-IMPORT FS, OSError, Pathname, RuntimeError;
-IMPORT Json, Msg, AstCompile, Feature, Utils, Debug, Uri, M3jCompile;
+IMPORT FS, OSError, Pathname, RuntimeError, Rd, TextRd, Utf8;
+IMPORT JsonReader, Msg, AstCompile, Feature, Utils, Debug, Uri, M3jCompile;
 IMPORT IO, Buf, RefSeq, TextRefTbl;
 
 CONST
@@ -91,12 +93,33 @@ TYPE
 
   MsgClass = {Request, Notification};
 
+  (* the id of a message as it was read *)
+  IdKind = {None, Int, Text, NotInteger, Other};
+
+  (* a change of contentChanges; a field that the change does not have,
+     or has of another kind, is NIL or -1 *)
+  Change = RECORD
+    text          : TEXT    := NIL;
+    l1, c1, l2, c2: INTEGER := -1;
+  END;
+
+  Changes = REF ARRAY OF Change;
+
+  (* The fields of a message that the server uses, as Parse reads them.
+     A field that the message does not have, or has of another kind, is
+     NIL or -1; a text holds the bytes of UTF-8 of the string. *)
   VS = OBJECT
          id       : Msg.Id;
+         idKind   : IdKind     := IdKind.None;
          type     : MsgType;
-         method   : TEXT;
+         method   : TEXT       := NIL;
          msgClass : MsgClass   := MsgClass.Notification;
-         json     : Json.T;
+         uri      : TEXT       := NIL;     (* params/textDocument/uri *)
+         text     : TEXT       := NIL;     (* params/textDocument/text *)
+         line     : INTEGER    := -1;      (* params/position/line *)
+         character: INTEGER    := -1;      (* params/position/character *)
+         changes  : Changes    := NIL;     (* params/contentChanges *)
+         nChanges : CARDINAL   := 0;
          errorCode: INTEGER    := 0;
          errorText: TEXT       := "";
        END;
@@ -320,40 +343,205 @@ PROCEDURE Exit (cl: CompilerClosure) =
     EVAL Thread.Join(compThread);
   END Exit;
 
-(* the fields of a message, FALSE if there is none of the kind *)
-PROCEDURE GetText (node: Json.T; path: TEXT; VAR t: TEXT): BOOLEAN =
-  BEGIN
-    IF node = NIL THEN RETURN FALSE; END;
-    node := node.find(path);
-    IF node = NIL OR node.kind() # Json.NodeKind.nkText THEN
-      RETURN FALSE;
-    END;
-    t := Utils.UnEncode(node.value());
-    RETURN TRUE;
-  END GetText;
+CONST
+  (* what is not UTF-8 in a string is U+FFFD, as an editor would show it *)
+  ReadOptions = JsonReader.Options {replaceInvalid := TRUE};
 
-PROCEDURE GetInt (node: Json.T; path: TEXT; VAR i: INTEGER): BOOLEAN =
+TYPE
+  Kind = JsonReader.Kind;
+
+(* the next value if it is a string, as the bytes of its UTF-8, else NIL *)
+PROCEDURE ReadText (r: JsonReader.T): TEXT
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
   BEGIN
-    IF node = NIL THEN RETURN FALSE; END;
-    node := node.find(path);
-    IF node = NIL OR node.kind() # Json.NodeKind.nkInt THEN
-      RETURN FALSE;
+    IF r.peek() = Kind.Text THEN RETURN Utf8.Encode(r.text()); END;
+    r.skip();
+    RETURN NIL;
+  END ReadText;
+
+(* the next value if it is an integer that fits, else -1 *)
+PROCEDURE ReadInt (r: JsonReader.T): INTEGER
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  BEGIN
+    IF r.peek() = Kind.Number THEN
+      TRY
+        RETURN r.int();
+      EXCEPT
+      | JsonReader.Error (f) =>
+          IF f.problem # JsonReader.Problem.BadValue THEN
+            RAISE JsonReader.Error(f);
+          END;
+      END;
     END;
-    TRY
-      i := node.getInt();
-    EXCEPT
-    | Json.E => RETURN FALSE;
+    r.skip();
+    RETURN -1;
+  END ReadInt;
+
+(* TRUE if the next value is an object, whose beginning is taken; else
+   the value is skipped *)
+PROCEDURE ReadObject (r: JsonReader.T): BOOLEAN
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  BEGIN
+    IF r.peek() = Kind.Object THEN r.object(); RETURN TRUE; END;
+    r.skip();
+    RETURN FALSE;
+  END ReadObject;
+
+(* the members line and character of an object *)
+PROCEDURE ReadPosition (r: JsonReader.T; VAR line, character: INTEGER)
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  BEGIN
+    IF NOT ReadObject(r) THEN RETURN; END;
+    WHILE r.member() DO
+      IF r.is("line") THEN
+        line := ReadInt(r);
+      ELSIF r.is("character") THEN
+        character := ReadInt(r);
+      ELSE
+        r.skip();
+      END;
     END;
-    RETURN TRUE;
-  END GetInt;
+  END ReadPosition;
+
+PROCEDURE ReadId (r: JsonReader.T; vs: VS)
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  VAR n: TEXT;
+  BEGIN
+    vs.id := Msg.Id{};
+    CASE r.peek() OF
+    | Kind.Number =>
+        TRY
+          vs.id.num := r.int();
+          vs.idKind := IdKind.Int;
+        EXCEPT
+        | JsonReader.Error (f) =>
+            IF f.problem # JsonReader.Problem.BadValue THEN
+              RAISE JsonReader.Error(f);
+            END;
+            (* a fraction or an exponent, or an integer too large *)
+            n := r.number();
+            IF Text.FindChar(n, '.') >= 0 OR Text.FindChar(n, 'e') >= 0
+                 OR Text.FindChar(n, 'E') >= 0 THEN
+              vs.idKind := IdKind.Other;
+            ELSE
+              vs.idKind := IdKind.NotInteger;
+            END;
+        END;
+    | Kind.Text =>
+        vs.id.text := r.text();
+        vs.idKind := IdKind.Text;
+    ELSE
+      r.skip();
+      vs.idKind := IdKind.Other;
+    END;
+  END ReadId;
+
+PROCEDURE ReadChange (r: JsonReader.T; VAR c: Change)
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  BEGIN
+    IF NOT ReadObject(r) THEN RETURN; END;
+    WHILE r.member() DO
+      IF r.is("text") THEN
+        c.text := ReadText(r);
+      ELSIF r.is("range") THEN
+        c.l1 := -1;
+        c.c1 := -1;
+        c.l2 := -1;
+        c.c2 := -1;
+        IF ReadObject(r) THEN
+          WHILE r.member() DO
+            IF r.is("start") THEN
+              ReadPosition(r, c.l1, c.c1);
+            ELSIF r.is("end") THEN
+              ReadPosition(r, c.l2, c.c2);
+            ELSE
+              r.skip();
+            END;
+          END;
+        END;
+      ELSE
+        r.skip();
+      END;
+    END;
+  END ReadChange;
+
+PROCEDURE ReadChanges (r: JsonReader.T; vs: VS)
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  VAR new: Changes;
+  BEGIN
+    vs.changes := NIL;
+    vs.nChanges := 0;
+    IF r.peek() # Kind.Array THEN r.skip(); RETURN; END;
+    r.array();
+    vs.changes := NEW(Changes, 4);
+    WHILE r.element() DO
+      IF vs.nChanges = NUMBER(vs.changes^) THEN
+        new := NEW(Changes, 2 * vs.nChanges);
+        SUBARRAY(new^, 0, vs.nChanges) := vs.changes^;
+        vs.changes := new;
+      END;
+      vs.changes[vs.nChanges] := Change{};
+      ReadChange(r, vs.changes[vs.nChanges]);
+      INC(vs.nChanges);
+    END;
+  END ReadChanges;
+
+PROCEDURE ReadParams (r: JsonReader.T; vs: VS)
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  BEGIN
+    IF NOT ReadObject(r) THEN RETURN; END;
+    WHILE r.member() DO
+      IF r.is("textDocument") THEN
+        IF ReadObject(r) THEN
+          WHILE r.member() DO
+            IF r.is("uri") THEN
+              vs.uri := ReadText(r);
+            ELSIF r.is("text") THEN
+              vs.text := ReadText(r);
+            ELSE
+              r.skip();
+            END;
+          END;
+        END;
+      ELSIF r.is("position") THEN
+        ReadPosition(r, vs.line, vs.character);
+      ELSIF r.is("contentChanges") THEN
+        ReadChanges(r, vs);
+      ELSE
+        r.skip();
+      END;
+    END;
+  END ReadParams;
+
+(* the fields of the message msg (its bytes) that the server uses; if a
+   field comes twice, the last one counts *)
+PROCEDURE Parse (vs: VS; msg: TEXT)
+  RAISES {JsonReader.Error, Rd.Failure, Thread.Alerted} =
+  VAR r := JsonReader.FromRd(TextRd.New(msg), ReadOptions);
+  BEGIN
+    IF ReadObject(r) THEN
+      WHILE r.member() DO
+        IF r.is("id") THEN
+          ReadId(r, vs);
+        ELSIF r.is("method") THEN
+          vs.method := ReadText(r);
+        ELSIF r.is("params") THEN
+          ReadParams(r, vs);
+        ELSE
+          r.skip();
+        END;
+      END;
+    END;
+    r.finish();
+  END Parse;
 
 PROCEDURE GetPosition (vs: VS; VAR uri: TEXT; VAR line, col: INTEGER):
   BOOLEAN =
   BEGIN
-    IF GetText(vs.json, "/params/textDocument/uri", uri)
-         AND GetInt(vs.json, "/params/position/line", line)
-         AND GetInt(vs.json, "/params/position/character", col)
-         AND line >= 0 AND col >= 0 THEN
+    IF vs.uri # NIL AND vs.line >= 0 AND vs.character >= 0 THEN
+      uri := vs.uri;
+      line := vs.line;
+      col := vs.character;
       RETURN TRUE;
     END;
     vs.errorCode := InvalidParams;
@@ -363,27 +551,20 @@ PROCEDURE GetPosition (vs: VS; VAR uri: TEXT; VAR line, col: INTEGER):
 
 PROCEDURE Classify (vs: VS): MsgType =
   VAR
-    node: Json.T;
     ret : MsgType;
   BEGIN
-    node := vs.json.find("id");
-    IF node = NIL THEN
+    IF vs.idKind = IdKind.None THEN
       vs.id.null := TRUE;
       vs.msgClass := MsgClass.Notification;
     ELSE
       vs.msgClass := MsgClass.Request;
-      CASE node.kind() OF
-      | Json.NodeKind.nkInt =>
-          TRY
-            vs.id.num := node.getInt();
-          EXCEPT
-          | Json.E =>
-              vs.id.null := TRUE;
-              vs.errorCode := InvalidRequest;
-              vs.errorText := "the id is not an integer";
-              RETURN MsgType.Error;
-          END;
-      | Json.NodeKind.nkText => vs.id.text := node.value();
+      CASE vs.idKind OF
+      | IdKind.Int, IdKind.Text =>
+      | IdKind.NotInteger =>
+          vs.id.null := TRUE;
+          vs.errorCode := InvalidRequest;
+          vs.errorText := "the id is not an integer";
+          RETURN MsgType.Error;
       ELSE
         vs.id.null := TRUE;
         vs.errorCode := InvalidRequest;
@@ -392,13 +573,11 @@ PROCEDURE Classify (vs: VS): MsgType =
       END;
     END;
 
-    node := vs.json.find("method");
-    IF node = NIL OR node.kind() # Json.NodeKind.nkText THEN
+    IF vs.method = NIL THEN
       vs.errorCode := InvalidRequest;
       vs.errorText := "no method";
       RETURN MsgType.Error;
     END;
-    vs.method := Utils.UnEncode(node.value());
 
     (* Messages *)
 
@@ -446,9 +625,13 @@ PROCEDURE CheckResult (msg: TEXT) =
     (* debug check if result is correct json.*)
     Debug.Write("Checking json reply\n");
     TRY
-      EVAL Json.ParseBuf(msg);
+      WITH r = JsonReader.FromRd(TextRd.New(msg)) DO
+        r.skip();
+        r.finish();
+      END;
     EXCEPT
-    | Json.E => Debug.Write("Reply is not JSON: " & msg & "\n");
+    | JsonReader.Error, Rd.Failure, Thread.Alerted =>
+        Debug.Write("Reply is not JSON: " & msg & "\n");
     END;
   END CheckResult;
 
@@ -603,10 +786,9 @@ PROCEDURE DidOpen (vs: VS) =
     textSeq  : TextSeq.T;
   BEGIN
     (* get the input message details *)
-    IF NOT GetText(vs.json, "/params/textDocument/text", text)
-         OR NOT GetText(vs.json, "/params/textDocument/uri", uri) THEN
-      RETURN;
-    END;
+    text := vs.text;
+    uri := vs.uri;
+    IF text = NIL OR uri = NIL THEN RETURN; END;
 
     Debug.Write("DidOpen Uri: " & uri & "\n");
 
@@ -625,9 +807,8 @@ PROCEDURE DidClose (vs: VS) =
     textSeq: REFANY;
   BEGIN
     (* get the input message details *)
-    IF NOT GetText(vs.json, "/params/textDocument/uri", uri) THEN
-      RETURN;
-    END;
+    uri := vs.uri;
+    IF uri = NIL THEN RETURN; END;
     Debug.Write("DidClose uri-" & uri & "\n");
 
     EVAL compilerClosure.textSeqTbl.delete(uri, textSeq);
@@ -638,9 +819,8 @@ PROCEDURE DidSave (vs: VS) =
   VAR
     uri, name: TEXT;
   BEGIN
-    IF NOT GetText(vs.json, "/params/textDocument/uri", uri) THEN
-      RETURN;
-    END;
+    uri := vs.uri;
+    IF uri = NIL THEN RETURN; END;
     Debug.Write("DidSave uri-" & uri & "\n");
     (* the imports of a package are made again when its m3makefile or
        m3overrides is saved *)
@@ -653,12 +833,11 @@ PROCEDURE DidSave (vs: VS) =
 PROCEDURE DidChangeResponse (vs: VS) =
   VAR
     uri, change, comp: TEXT;
-    node, n          : Json.T;
     start, end       : Utils.Range;
     incrCap          : BOOLEAN;
     ts               : REFANY;
     textSeq          : TextSeq.T;
-    l1, c1, l2, c2   : INTEGER;
+    c                : Change;
   BEGIN
     (* For incremental we also get range - start end and
        (deprc)rangeLength(int) as well as text.  So start with orig
@@ -668,34 +847,30 @@ PROCEDURE DidChangeResponse (vs: VS) =
        If text length > 0 and ranges different then replace text.
        There can be multiple changes in one message.
        Change the textDocumentSync from 1 to 2 to get incremental
-       in msg.json init reply *)
+       in the init reply (Msg) *)
 
     (* get the input message details *)
-    IF NOT GetText(vs.json, "/params/textDocument/uri", uri) THEN
-      RETURN;
-    END;
+    uri := vs.uri;
+    IF uri = NIL THEN RETURN; END;
 
     incrCap := Msg.GetIncrCap();
 
     (* Get the textSeq (Master document) for this uri *)
     IF NOT compilerClosure.textSeqTbl.get(uri, ts) THEN RETURN; END;
     textSeq := NARROW(ts, TextSeq.T);
-    node := vs.json.find("/params/contentChanges");
-    IF node = NIL OR node.kind() # Json.NodeKind.nkArray THEN RETURN; END;
+    IF vs.changes = NIL THEN RETURN; END;
     (* the changes in their order *)
-    FOR i := 0 TO node.size() - 1 DO
-      n := node.find(Fmt.Int(i));
-      IF GetText(n, "/text", change) THEN
+    FOR i := 0 TO vs.nChanges - 1 DO
+      c := vs.changes[i];
+      change := c.text;
+      IF change # NIL THEN
         (* ranges only if incremental is true *)
-        IF incrCap AND GetInt(n, "/range/start/line", l1)
-             AND GetInt(n, "/range/start/character", c1)
-             AND GetInt(n, "/range/end/line", l2)
-             AND GetInt(n, "/range/end/character", c2)
-             AND l1 >= 0 AND c1 >= 0 AND l2 >= 0 AND c2 >= 0 THEN
-          start.line := l1;
-          start.col := c1;
-          end.line := l2;
-          end.col := c2;
+        IF incrCap AND c.l1 >= 0 AND c.c1 >= 0 AND c.l2 >= 0
+             AND c.c2 >= 0 THEN
+          start.line := c.l1;
+          start.col := c.c1;
+          end.line := c.l2;
+          end.col := c.c2;
           EVAL UpdateDoc(textSeq, change, start, end);
 
           Debug.Write("didChange changed>>" & change & "<<\n");
@@ -755,33 +930,29 @@ PROCEDURE ErrorResponse (vs: VS) =
 
 PROCEDURE HandleMsg (msg: TEXT): BOOLEAN =
   VAR
-    json: Json.T;
     type: MsgType;
     exit: BOOLEAN := FALSE;
     vs  : VS;
   BEGIN
     vs := NEW(VS);
     TRY
-      json := Json.ParseBuf(msg);
-      vs.json := json;
+      Parse(vs, msg);
       type := Classify(vs);
     EXCEPT
-    | Json.E =>
+    | JsonReader.Error, Rd.Failure, Thread.Alerted =>
        type := MsgType.Error;
        (* the id is not known: a reply with a null id *)
        vs.msgClass := MsgClass.Request;
        vs.id.null := TRUE;
        vs.errorCode := ParseError;
        vs.errorText := "the message is not JSON";
-       Debug.Write("Json ERROR\n");
+       Debug.Write("JSON error\n");
     END;
 
     IF Debug.IsDebug() THEN
       Debug.Write("New Message:\nMessage Type: " & Fmt.Int(ORD(vs.msgClass))
                     & "\nMessage Id: " & Fmt.Int(vs.id.num) & "\n");
-      IF json # NIL THEN
-        Debug.Write("Message Contents:" & json.format() & "\n");
-      END;
+      Debug.Write("Message Contents:" & msg & "\n");
     END;
 
     TRY

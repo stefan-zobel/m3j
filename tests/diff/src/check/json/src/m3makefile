@@ -1,7 +1,0 @@
-% The packages json and libbuf: JSON texts parsed, searched, formatted and
-% changed; files and texts read into buffers, and texts built in memory.
-import ("libm3")
-import ("json")
-import ("libbuf")
-implementation ("Main")
-program ("json")

@@ -16,11 +16,12 @@ The cases:
            closed afterwards, and what was written is the beginning of a
            document that the json module of Python accepts
   random   random documents against the model they were made from: the bytes
-           are those of json.dumps, and Python and Json read the model back
+           are those of json.dumps, and Python and JsonReader read the model
+           back
   chars    each character in a value and in a key; surrogates without their
            partner are refused or replaced; pairs on the edge of a chunk
-  reals    random numbers from their bits, read by Python and by Json, as
-           floating-point numbers
+  reals    random numbers from their bits, read by Python and by JsonReader,
+           as floating-point numbers
   ints     the limits of INTEGER and random ones
   numbers  numbers as texts against the grammar of RFC 8259
   depth    the limit of nesting, just below and just above; no limit
@@ -273,14 +274,13 @@ def same(a, b):
     return a == b
 
 
-def raw_text(h):
-    """A string as Json gives it: the bytes of the source, with their escapes."""
-    b = b"" if h == "=" else bytes.fromhex(h)
-    return json.loads('"' + b.decode("utf-8") + '"')
+def from_units(h):
+    """A string from its code units of UTF-16, four hexadecimal digits each."""
+    return "" if h == "=" else bytes.fromhex(h).decode("utf-16-be", "surrogatepass")
 
 
 def parse_tree(lines):
-    """What Json has read, from the lines of Dump: Python values, objects as dicts."""
+    """What JsonReader has read, from the lines of Dump: Python values, objects as dicts."""
     pos = [0]
 
     def value():
@@ -288,25 +288,26 @@ def parse_tree(lines):
         pos[0] += 1
         if f[0] == "{":
             d = {}
-            for _ in range(int(f[1])):
+            while lines[pos[0]] != "}":
                 k = lines[pos[0]].split(" ")
                 pos[0] += 1
                 if k[0] != "k":
                     raise Failed("a key was expected: " + lines[pos[0] - 1])
-                name = raw_text(k[1])
+                name = from_units(k[1])
                 d[name] = value()
+            pos[0] += 1
             return d
         if f[0] == "[":
-            return [value() for _ in range(int(f[1]))]
+            a = []
+            while lines[pos[0]] != "]":
+                a.append(value())
+            pos[0] += 1
+            return a
         if f[0] == "s":
-            return raw_text(f[1])
+            return from_units(f[1])
         if f[0] == "i":
-            if int(f[1]) != int(f[2]):
-                raise Failed("Json: %s reads as %s" % (f[1], f[2]))
             return int(f[1])
         if f[0] == "f":
-            if not same(float(f[1]), float(f[2])):
-                raise Failed("Json: %s reads as %s" % (f[1], f[2]))
             return float(f[1])
         if f[0] == "b":
             return f[1] == "true"
@@ -334,7 +335,7 @@ def check_read(model, data, tree, label):
     if not same(canon(model), read(data)):
         raise Failed("%s: Python reads something else:\n  %r" % (label, data[:300]))
     if tree is not None and not same_tree(model, parse_tree(tree)):
-        raise Failed("%s: Json reads something else:\n  %r" % (label, data[:300]))
+        raise Failed("%s: JsonReader reads something else:\n  %r" % (label, data[:300]))
 
 
 def complete(data):
@@ -681,9 +682,9 @@ def case_depth(env):
         w = "[" * 1000 + "1" + "]" * 1000 if kind == 0 else '{"a":' * 1000 + "1" + "}" * 1000
         if data != w.encode("ascii"):
             raise Failed("depth 1000: the bytes differ")
-        t = tree
-        if t.count("[ 1") + t.count("{ 1") != 1000:
-            raise Failed("depth 1000: Json has %d levels" % (t.count("[ 1") + t.count("{ 1")))
+        levels = sum(1 for line in tree if line in ("[", "{"))
+        if levels != 1000:
+            raise Failed("depth 1000: JsonReader has %d levels" % levels)
 
     for kind in (0, 1):
         n = 1001

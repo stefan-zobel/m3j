@@ -1,11 +1,14 @@
 % Changed for m3j: no import of m3quake, from which the server only took
 % the name of the build directory (JVM for m3build); the module Uri; the
 % interface M3jCompile, which the runtime of m3j implements (as for
-% m3build). m3tk and m3tk-misc are the source packages of tests/stubgen
-% (see m3overrides).
+% m3build); encoding for Utf8, and no msg.json and its bundle, since
+% the messages are read with JsonReader and written with JsonWriter.
+% m3tk and m3tk-misc are the source packages of tests/stubgen (see
+% m3overrides).
 
 import("libm3")
 import("json")
+import("encoding")
 import("m3tk")
 import("libbuf")
 
@@ -24,9 +27,6 @@ module("Debug")
 module("Feature")
 module("Uri")
 interface("M3jCompile")
-
-resource("msg.json")
-bundle("MsgBundle")
 
 implementation("Main")
 

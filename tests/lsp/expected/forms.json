@@ -3,112 +3,112 @@
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
-   "diagnostics": [],
-   "uri": "file:<work>/forms/src/Main.m3"
+   "uri": "file:<work>/forms/src/Main.m3",
+   "diagnostics": []
   }
  },
  {
-  "id": 1,
   "jsonrpc": "2.0",
+  "id": 1,
   "result": {
    "contents": [
     "c : WIDECHAR"
    ],
    "range": {
-    "end": {
-     "character": 3,
-     "line": 15
-    },
     "start": {
-     "character": 2,
-     "line": 15
+     "line": 15,
+     "character": 2
+    },
+    "end": {
+     "line": 15,
+     "character": 3
     }
    }
   }
  },
  {
+  "jsonrpc": "2.0",
   "id": 2,
-  "jsonrpc": "2.0",
   "result": {
+   "uri": "file:<work>/forms/src/Main.m3",
    "range": {
-    "end": {
-     "character": 3,
-     "line": 15
-    },
     "start": {
-     "character": 2,
-     "line": 15
+     "line": 15,
+     "character": 2
+    },
+    "end": {
+     "line": 15,
+     "character": 3
     }
-   },
-   "uri": "file:<work>/forms/src/Main.m3"
+   }
   }
  },
  {
+  "jsonrpc": "2.0",
   "id": 3,
-  "jsonrpc": "2.0",
   "result": {
+   "uri": "file:<work>/forms/src/Main.m3",
    "range": {
-    "end": {
-     "character": 7,
-     "line": 7
-    },
     "start": {
-     "character": 2,
-     "line": 7
+     "line": 7,
+     "character": 2
+    },
+    "end": {
+     "line": 7,
+     "character": 7
     }
-   },
-   "uri": "file:<work>/forms/src/Main.m3"
+   }
   }
  },
  {
+  "jsonrpc": "2.0",
   "id": 4,
-  "jsonrpc": "2.0",
   "result": {
+   "uri": "file:<work>/forms/src/Main.m3",
    "range": {
-    "end": {
-     "character": 35,
-     "line": 14
-    },
     "start": {
-     "character": 29,
-     "line": 14
+     "line": 14,
+     "character": 29
+    },
+    "end": {
+     "line": 14,
+     "character": 35
     }
-   },
-   "uri": "file:<work>/forms/src/Main.m3"
+   }
   }
  },
  {
+  "jsonrpc": "2.0",
   "id": 5,
-  "jsonrpc": "2.0",
   "result": {
+   "uri": "file:<m3j>/lib/m3core/src/thread/Common/Thread.i3",
    "range": {
-    "end": {
-     "character": 7,
-     "line": 13
-    },
     "start": {
-     "character": 2,
-     "line": 13
+     "line": 13,
+     "character": 2
+    },
+    "end": {
+     "line": 13,
+     "character": 7
     }
-   },
-   "uri": "file:<m3j>/lib/m3core/src/thread/Common/Thread.i3"
+   }
   }
  },
  {
-  "id": 6,
   "jsonrpc": "2.0",
+  "id": 6,
   "result": {
    "contents": [
     "count : INTEGER"
    ],
    "range": {
-    "end": {
-     "character": 20,
-     "line": 20
-    },
     "start": {
-     "character": 15,
-     "line": 20
+     "line": 20,
+     "character": 15
+    },
+    "end": {
+     "line": 20,
+     "character": 20
     }
    }
   }
@@ -117,627 +117,627 @@
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
+   "uri": "file:<work>/forms/src/Labels.m3",
    "diagnostics": [
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 13,
-       "line": 16
-      },
       "start": {
-       "character": 4,
-       "line": 16
+       "line": 16,
+       "character": 4
+      },
+      "end": {
+       "line": 16,
+       "character": 13
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     },
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 14,
-       "line": 13
-      },
       "start": {
-       "character": 4,
-       "line": 13
+       "line": 13,
+       "character": 4
+      },
+      "end": {
+       "line": 13,
+       "character": 14
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     },
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 8,
-       "line": 12
-      },
       "start": {
-       "character": 4,
-       "line": 12
+       "line": 12,
+       "character": 4
+      },
+      "end": {
+       "line": 12,
+       "character": 8
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     }
-   ],
-   "uri": "file:<work>/forms/src/Labels.m3"
+   ]
   }
  },
  {
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
-   "diagnostics": [],
-   "uri": "file:<work>/forms/src/Accepted.m3"
+   "uri": "file:<work>/forms/src/Accepted.m3",
+   "diagnostics": []
   }
  },
  {
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
+   "uri": "file:<work>/forms/src/Values.m3",
    "diagnostics": [
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 6,
-       "line": 25
-      },
       "start": {
-       "character": 4,
-       "line": 25
+       "line": 25,
+       "character": 4
+      },
+      "end": {
+       "line": 25,
+       "character": 6
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     },
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 18,
-       "line": 20
-      },
       "start": {
-       "character": 4,
-       "line": 20
+       "line": 20,
+       "character": 4
+      },
+      "end": {
+       "line": 20,
+       "character": 18
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     },
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 12,
-       "line": 18
-      },
       "start": {
-       "character": 4,
-       "line": 18
+       "line": 18,
+       "character": 4
+      },
+      "end": {
+       "line": 18,
+       "character": 12
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     },
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 18,
-       "line": 16
-      },
       "start": {
-       "character": 4,
-       "line": 16
+       "line": 16,
+       "character": 4
+      },
+      "end": {
+       "line": 16,
+       "character": 18
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     },
     {
-     "message": "duplicated case label",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 7,
-       "line": 14
-      },
       "start": {
-       "character": 4,
-       "line": 14
+       "line": 14,
+       "character": 4
+      },
+      "end": {
+       "line": 14,
+       "character": 7
       }
      },
-     "severity": 1,
+     "message": "duplicated case label",
      "source": "m3tk"
     }
-   ],
-   "uri": "file:<work>/forms/src/Values.m3"
+   ]
   }
  },
  {
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
+   "uri": "file:<work>/forms/src/Refused.m3",
    "diagnostics": [
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 25,
+       "character": 11
+      },
+      "end": {
+       "line": 25,
+       "character": 14
+      }
+     },
      "message": "type error in arguments to text concatentation operator",
-     "range": {
-      "end": {
-       "character": 14,
-       "line": 25
-      },
-      "start": {
-       "character": 11,
-       "line": 25
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 25,
+       "character": 11
+      },
+      "end": {
+       "line": 25,
+       "character": 14
+      }
+     },
      "message": "expression cannot be evaluated",
-     "range": {
-      "end": {
-       "character": 14,
-       "line": 25
-      },
-      "start": {
-       "character": 11,
-       "line": 25
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 24,
+       "character": 9
+      },
+      "end": {
+       "line": 24,
+       "character": 12
+      }
+     },
+     "message": "type error in arguments to text concatentation operator",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 24,
+       "character": 9
+      },
+      "end": {
+       "line": 24,
+       "character": 12
+      }
+     },
      "message": "expression cannot be evaluated",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 10
-      },
-      "start": {
-       "character": 10,
-       "line": 10
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 24
+      },
+      "end": {
+       "line": 14,
+       "character": 27
+      }
+     },
      "message": "actual parameter not assignable to formal",
-     "range": {
-      "end": {
-       "character": 24,
-       "line": 9
-      },
-      "start": {
-       "character": 22,
-       "line": 9
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 10
+      },
+      "end": {
+       "line": 14,
+       "character": 13
+      }
+     },
      "message": "expression cannot be evaluated",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 9
-      },
-      "start": {
-       "character": 10,
-       "line": 9
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 13,
+       "character": 10
+      },
+      "end": {
+       "line": 13,
+       "character": 13
+      }
+     },
+     "message": "expression overflow",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 12,
+       "character": 10
+      },
+      "end": {
+       "line": 12,
+       "character": 13
+      }
+     },
+     "message": "expression overflow",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 11,
+       "character": 16
+      },
+      "end": {
+       "line": 11,
+       "character": 17
+      }
+     },
      "message": "actual parameter not assignable to formal",
-     "range": {
-      "end": {
-       "character": 22,
-       "line": 8
-      },
-      "start": {
-       "character": 20,
-       "line": 8
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
-     "message": "expression cannot be evaluated",
+     "severity": 1,
      "range": {
-      "end": {
-       "character": 13,
-       "line": 8
-      },
       "start": {
-       "character": 10,
-       "line": 8
+       "line": 10,
+       "character": 27
+      },
+      "end": {
+       "line": 10,
+       "character": 29
       }
      },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
      "message": "actual parameter not assignable to formal",
-     "range": {
-      "end": {
-       "character": 22,
-       "line": 7
-      },
-      "start": {
-       "character": 21,
-       "line": 7
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 10,
+       "character": 10
+      },
+      "end": {
+       "line": 10,
+       "character": 13
+      }
+     },
      "message": "expression cannot be evaluated",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 7
-      },
-      "start": {
-       "character": 10,
-       "line": 7
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 9,
+       "character": 22
+      },
+      "end": {
+       "line": 9,
+       "character": 24
+      }
+     },
+     "message": "actual parameter not assignable to formal",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 9,
+       "character": 10
+      },
+      "end": {
+       "line": 9,
+       "character": 13
+      }
+     },
+     "message": "expression cannot be evaluated",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 8,
+       "character": 20
+      },
+      "end": {
+       "line": 8,
+       "character": 22
+      }
+     },
+     "message": "actual parameter not assignable to formal",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 8,
+       "character": 10
+      },
+      "end": {
+       "line": 8,
+       "character": 13
+      }
+     },
+     "message": "expression cannot be evaluated",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 7,
+       "character": 21
+      },
+      "end": {
+       "line": 7,
+       "character": 22
+      }
+     },
+     "message": "actual parameter not assignable to formal",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 7,
+       "character": 10
+      },
+      "end": {
+       "line": 7,
+       "character": 13
+      }
+     },
+     "message": "expression cannot be evaluated",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 19,
+       "character": 2
+      },
+      "end": {
+       "line": 19,
+       "character": 5
+      }
+     },
      "message": "Identifier 'Word.OR' not declared",
-     "range": {
-      "end": {
-       "character": 5,
-       "line": 19
-      },
-      "start": {
-       "character": 2,
-       "line": 19
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 19,
+       "character": 2
+      },
+      "end": {
+       "line": 19,
+       "character": 5
+      }
+     },
      "message": "Identifier 'OR' not declared",
-     "range": {
-      "end": {
-       "character": 5,
-       "line": 19
-      },
-      "start": {
-       "character": 2,
-       "line": 19
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     },
     {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 19,
+       "character": 2
+      },
+      "end": {
+       "line": 19,
+       "character": 5
+      }
+     },
      "message": "Identifier 'Not_Declared' not declared",
-     "range": {
-      "end": {
-       "character": 5,
-       "line": 19
-      },
-      "start": {
-       "character": 2,
-       "line": 19
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "type error in arguments to text concatentation operator",
-     "range": {
-      "end": {
-       "character": 12,
-       "line": 24
-      },
-      "start": {
-       "character": 9,
-       "line": 24
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "expression cannot be evaluated",
-     "range": {
-      "end": {
-       "character": 12,
-       "line": 24
-      },
-      "start": {
-       "character": 9,
-       "line": 24
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "actual parameter not assignable to formal",
-     "range": {
-      "end": {
-       "character": 27,
-       "line": 14
-      },
-      "start": {
-       "character": 24,
-       "line": 14
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "expression cannot be evaluated",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 14
-      },
-      "start": {
-       "character": 10,
-       "line": 14
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "expression overflow",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 13
-      },
-      "start": {
-       "character": 10,
-       "line": 13
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "expression overflow",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 12
-      },
-      "start": {
-       "character": 10,
-       "line": 12
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "actual parameter not assignable to formal",
-     "range": {
-      "end": {
-       "character": 17,
-       "line": 11
-      },
-      "start": {
-       "character": 16,
-       "line": 11
-      }
-     },
-     "severity": 1,
-     "source": "m3tk"
-    },
-    {
-     "message": "actual parameter not assignable to formal",
-     "range": {
-      "end": {
-       "character": 29,
-       "line": 10
-      },
-      "start": {
-       "character": 27,
-       "line": 10
-      }
-     },
-     "severity": 1,
      "source": "m3tk"
     }
-   ],
-   "uri": "file:<work>/forms/src/Refused.m3"
+   ]
   }
  },
  {
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
-   "diagnostics": [],
-   "uri": "file:<work>/forms/src/Asserted.m3"
+   "uri": "file:<work>/forms/src/Asserted.m3",
+   "diagnostics": []
   }
  },
  {
   "jsonrpc": "2.0",
   "method": "textDocument/publishDiagnostics",
   "params": {
+   "uri": "file:<work>/forms/src/Unused.m3",
    "diagnostics": [
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 44,
+       "character": 6
+      },
+      "end": {
+       "line": 44,
+       "character": 13
+      }
+     },
      "message": "warning: 'Alerted' is not used",
-     "range": {
-      "end": {
-       "character": 13,
-       "line": 44
-      },
-      "start": {
-       "character": 6,
-       "line": 44
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 37,
+       "character": 27
+      },
+      "end": {
+       "line": 37,
+       "character": 28
+      }
+     },
      "message": "warning: 'u' is NOT unused!",
-     "range": {
-      "end": {
-       "character": 28,
-       "line": 37
-      },
-      "start": {
-       "character": 27,
-       "line": 37
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 29,
+       "character": 6
+      },
+      "end": {
+       "line": 29,
+       "character": 7
+      }
+     },
      "message": "warning: 'v' is not used",
-     "range": {
-      "end": {
-       "character": 7,
-       "line": 29
-      },
-      "start": {
-       "character": 6,
-       "line": 29
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 24,
+       "character": 6
+      },
+      "end": {
+       "line": 24,
+       "character": 10
+      }
+     },
      "message": "warning: 'late' is not used",
-     "range": {
-      "end": {
-       "character": 10,
-       "line": 24
-      },
-      "start": {
-       "character": 6,
-       "line": 24
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 35
+      },
+      "end": {
+       "line": 14,
+       "character": 36
+      }
+     },
      "message": "warning: 'W' is not used",
-     "range": {
-      "end": {
-       "character": 36,
-       "line": 14
-      },
-      "start": {
-       "character": 35,
-       "line": 14
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 28
+      },
+      "end": {
+       "line": 14,
+       "character": 33
+      }
+     },
      "message": "warning: 'field' is not used",
-     "range": {
-      "end": {
-       "character": 33,
-       "line": 14
-      },
-      "start": {
-       "character": 28,
-       "line": 14
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 17
+      },
+      "end": {
+       "line": 14,
+       "character": 26
+      }
+     },
      "message": "warning: 'inComment' is not used",
-     "range": {
-      "end": {
-       "character": 26,
-       "line": 14
-      },
-      "start": {
-       "character": 17,
-       "line": 14
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 14
+      },
+      "end": {
+       "line": 14,
+       "character": 15
+      }
+     },
      "message": "warning: 'c' is not used",
-     "range": {
-      "end": {
-       "character": 15,
-       "line": 14
-      },
-      "start": {
-       "character": 14,
-       "line": 14
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
+     "severity": 2,
+     "range": {
+      "start": {
+       "line": 14,
+       "character": 6
+      },
+      "end": {
+       "line": 14,
+       "character": 12
+      }
+     },
      "message": "warning: 'inText' is not used",
-     "range": {
-      "end": {
-       "character": 12,
-       "line": 14
-      },
-      "start": {
-       "character": 6,
-       "line": 14
-      }
-     },
-     "severity": 2,
      "source": "m3tk"
     },
     {
-     "message": "warning: 'Fmt' is not used",
+     "severity": 2,
      "range": {
-      "end": {
-       "character": 10,
-       "line": 5
-      },
       "start": {
-       "character": 7,
-       "line": 5
+       "line": 5,
+       "character": 7
+      },
+      "end": {
+       "line": 5,
+       "character": 10
       }
      },
-     "severity": 2,
+     "message": "warning: 'Fmt' is not used",
      "source": "m3tk"
     }
-   ],
-   "uri": "file:<work>/forms/src/Unused.m3"
+   ]
   }
  },
  {
-  "id": 9999,
   "jsonrpc": "2.0",
+  "id": 9999,
   "result": null
  },
  {

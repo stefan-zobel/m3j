@@ -6,7 +6,7 @@
 
 (* Changed for m3j: the id of a request is an Id, a number or a string
    (or null, if the request could not be read); an error reply has a
-   message. *)
+   message; no ReadMessages, as there is no msg.json. *)
 
 INTERFACE Msg;
 
@@ -19,7 +19,6 @@ TYPE
     null : BOOLEAN := FALSE;     (* no id *)
   END;
 
-PROCEDURE ReadMessages();
 PROCEDURE BuildInitReply(id : Id) : TEXT;
 PROCEDURE BuildShutdownReply(id : Id) : TEXT;
 PROCEDURE BuildErrorReply(id : Id; error : INTEGER; message : TEXT) : TEXT;

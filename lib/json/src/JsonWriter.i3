@@ -25,10 +25,7 @@
 
    A "T" belongs to one thread. A text must not be NIL; a key of NIL means
    that there is none. A character above 16_FFFF is a surrogate pair in one
-   TEXT.
-
-   What "Json.T.value" returns is the text of the source, with its escapes
-   and as bytes, so it is not meant for "text". *)
+   TEXT. *)
 
 INTERFACE JsonWriter;
 
@@ -61,8 +58,8 @@ TYPE
        one of them. This holds the keys of the open objects in memory, which
        FALSE avoids. *)
     maxDepth: CARDINAL := 1000;
-    (* The most nesting of objects and arrays, which is what "Json" reads.
-       0 means no limit. *)
+    (* The most nesting of objects and arrays, which is what "JsonReader"
+       reads by default. 0 means no limit. *)
   END;
 
   T <: Public;
@@ -91,7 +88,7 @@ TYPE
     real (r: LONGREAL; key: TEXT := NIL)
       RAISES {Error, Wr.Failure, Thread.Alerted};
     (* The shortest text that reads back as "r", with a fraction or an
-       exponent, so that it is a floating-point number for "Json" too.
+       exponent, so that a reader takes it for a floating-point number.
        JSON has no infinities and no NaN. *)
 
     bool (b: BOOLEAN; key: TEXT := NIL)

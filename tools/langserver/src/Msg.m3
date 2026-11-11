@@ -4,186 +4,190 @@
 (* Changes for m3j: Copyright (c) 2026 the m3j authors, distributed
    under the MIT license in the file LICENSE. *)
 
-(* Changed for m3j: "jsonrpc" is the string "2.0", as JSON-RPC wants it;
-   the id of a reply is that of its request, a number or a string (Id);
-   an error is an object with a code and a message; the texts of
-   messages and hovers are escaped for JSON (Utils.Encode) instead of
-   having their quotes changed to apostrophes; the file of a declaration
-   is a file URI of any system (Uri), and a declaration that was not
-   found is null. *)
+(* Changed for m3j: the messages are written with JsonWriter, not made
+   from the templates of msg.json and its bundle; "jsonrpc" is the
+   string "2.0", as JSON-RPC wants it; the id of a reply is that of its
+   request, a number or a string (Id); an error is an object with a code
+   and a message; the texts of messages and hovers are written as the
+   characters that their bytes of UTF-8 stand for, instead of having
+   their quotes changed to apostrophes; the file of a declaration is a
+   file URI of any system (Uri), and a declaration that was not found is
+   null. *)
 
 MODULE Msg;
 
-IMPORT Json,RefSeq,Utils,Text,TextUtils,Rsrc,MsgBundle,Rd,Thread;
+IMPORT JsonWriter,RefSeq,Utils,Text,TextUtils,TextWr,Thread,Utf8,Wr;
 IMPORT M3Error;
-IMPORT Debug, Uri;
+IMPORT Uri;
+
+<*FATAL JsonWriter.Error, Wr.Failure, Thread.Alerted*>
 
 CONST
-  Head      = "{\"jsonrpc\": \"2.0\" ,";
-  ReqMsg    = Head & "\"id\": 0,\"method\": \"\",\"params\": null}";
-  SuccMsg   = Head & "\"id\": 0,\"result\" : null}";
-  ErrorMsg  = Head & "\"id\": 0,\"error\": {\"code\": 0, \"message\": \"\"}}";
-  NotifyMsg = Head & "\"method\": \"\",\"params\": null}";
+  (* a surrogate without its partner, which no text of the server has,
+     would not end the server *)
+  Options = JsonWriter.Options {replaceInvalid := TRUE};
+
+  (* the changes of a document come as ranges (incremental) *)
+  TextDocumentSync = 2;
 
 TYPE
-  (* these are read from msg.json, a bundled, required file *)
-  Messages = RECORD
-    initreply,registration,unregistration,
-    diag,notify,params,hover,location : Json.T;
+  Writer = RECORD
+    wr : TextWr.T;
+    w  : JsonWriter.T;
   END;
 
-  Replies = RECORD
-    reqMsg,succMsg,errorMsg,notifyMsg : Json.T;
-  END;
-
-VAR
-  msgs : Messages;
-  replies : Replies;
-
-PROCEDURE Init() =
+(* the beginning of a message *)
+PROCEDURE Start(VAR m : Writer) =
   BEGIN
-    TRY
-      replies.notifyMsg := Json.ParseBuf(NotifyMsg);
-      replies.reqMsg := Json.ParseBuf(ReqMsg);
-      replies.succMsg := Json.ParseBuf(SuccMsg);
-      replies.errorMsg := Json.ParseBuf(ErrorMsg);
-    EXCEPT
-    | Json.E => Debug.Write("Error in messages\n");
-    END;
-  END Init;
+    m.wr := TextWr.New();
+    m.w := JsonWriter.ToWr(m.wr, Options);
+    m.w.object();
+    m.w.text("2.0", "jsonrpc");
+  END Start;
 
-PROCEDURE ReadMessages() =
-  VAR node : Json.T;
+(* the beginning of a reply *)
+PROCEDURE StartReply(VAR m : Writer; READONLY id : Id) =
   BEGIN
-    TRY
-      WITH path = Rsrc.BuildPath(MsgBundle.Get()),
-           rd = Rsrc.Open("msg.json", path) DO
-        node := Json.ParseStream(rd);
-        Rd.Close(rd);
-      END;
-    EXCEPT
-    | Json.E => Debug.Write("error in msg.json\n");
-    | Rsrc.NotFound => Debug.Write("msg.json resource not found\n")
-    | Rd.Failure,Thread.Alerted => Debug.Write("msg.json stream error\n")
-    END;
-
-    msgs.initreply := node.find("initreply");
-    <*ASSERT msgs.initreply # NIL *>
-    msgs.registration := node.find("registration");
-    <*ASSERT msgs.registration # NIL *>
-    msgs.unregistration := node.find("unregistration");
-    <*ASSERT msgs.unregistration # NIL *>
-    msgs.diag := node.find("diagnostic");
-    <*ASSERT msgs.diag # NIL *>
-(* need new name for params must be lots of diff types *)
-    msgs.params := node.find("params");
-    <*ASSERT msgs.params # NIL *>
-    msgs.notify := node.find("notify");
-    <*ASSERT msgs.notify # NIL *>
-    msgs.hover := node.find("hover");
-    <*ASSERT msgs.hover # NIL *>
-    msgs.location := node.find("location");
-    <*ASSERT msgs.location # NIL *>
-  END ReadMessages;
-
-PROCEDURE SetId(msg : Json.T; id : Id) =
-  <*FATAL Json.E*>
-  BEGIN
-    (* adding with the same name replaces *)
+    Start(m);
     IF id.null THEN
-      EVAL msg.addNull("id");
+      m.w.null("id");
     ELSIF id.text # NIL THEN
-      EVAL msg.addText("id", id.text);
+      m.w.text(id.text, "id");
     ELSE
-      EVAL msg.addInt("id", id.num);
+      m.w.int(id.num, "id");
     END;
-  END SetId;
+  END StartReply;
+
+(* the end of a message, and its bytes *)
+PROCEDURE Finish(VAR m : Writer) : TEXT =
+  BEGIN
+    m.w.end();
+    m.w.finish();
+    RETURN TextWr.ToText(m.wr);
+  END Finish;
+
+(* the characters of a text of the server, which holds the bytes of
+   UTF-8, as the documents and the messages it reads do; bytes that are
+   not UTF-8 stand for themselves *)
+PROCEDURE Chars(t : TEXT) : TEXT =
+  VAR r : TEXT;
+  BEGIN
+    IF Utf8.Decode(t, r) THEN RETURN r; END;
+    RETURN t;
+  END Chars;
+
+PROCEDURE Range(w : JsonWriter.T; line, col, len : INTEGER) =
+  BEGIN
+    w.object("range");
+    w.object("start");
+    w.int(line, "line");
+    w.int(col, "character");
+    w.end();
+    w.object("end");
+    w.int(line, "line");
+    w.int(col + len, "character");
+    w.end();
+    w.end();
+  END Range;
 
 PROCEDURE BuildInitReply(id : Id) : TEXT =
-  VAR
-    res,initMsg : Json.T;
-    msg : TEXT;
+  VAR m : Writer;
   BEGIN
-    initMsg := replies.succMsg.copy();
-    res := msgs.initreply.copy();
-    (* eg of updating a capability *)
-    res.updateBool("capabilities/documentSymbolProvider",FALSE);
-    SetId(initMsg, id);
-    initMsg.updateArrObj("result",res);
-
-    msg := initMsg.format();
-    RETURN msg;
+    StartReply(m, id);
+    m.w.object("result");
+    (* only what the server does *)
+    m.w.object("capabilities");
+    m.w.int(TextDocumentSync, "textDocumentSync");
+    m.w.bool(FALSE, "completionProvider");
+    m.w.bool(TRUE, "hoverProvider");
+    m.w.bool(TRUE, "definitionProvider");
+    m.w.bool(TRUE, "declarationProvider");
+    m.w.bool(TRUE, "typeDefinitionProvider");
+    m.w.bool(FALSE, "implementationProvider");
+    m.w.bool(FALSE, "documentSymbolProvider");
+    m.w.bool(FALSE, "workspaceSymbolProvider");
+    m.w.bool(FALSE, "foldingRangeProvider");
+    m.w.bool(FALSE, "codeActionProvider");
+    m.w.bool(FALSE, "codeLensProvider");
+    m.w.bool(FALSE, "documentFormattingProvider");
+    m.w.bool(FALSE, "documentRangeFormattingProvider");
+    m.w.bool(FALSE, "renameProvider");
+    m.w.end();
+    m.w.object("serverInfo");
+    m.w.text("m3_lang_server", "name");
+    m.w.end();
+    m.w.end();
+    RETURN Finish(m);
   END BuildInitReply;
 
 PROCEDURE GetIncrCap() : BOOLEAN =
-  VAR
-    node : Json.T;
-    capInt : INTEGER;
   BEGIN
-    node := msgs.initreply.copy();
-    node := node.find("capabilities/textDocumentSync");
-    capInt := node.getInt();
-    IF capInt = 2 THEN RETURN TRUE; ELSE RETURN FALSE; END;
+    RETURN TextDocumentSync = 2;
   END GetIncrCap;
 
 PROCEDURE BuildRegistration(id,method : TEXT) : TEXT =
-  VAR
-    res : Json.T;
-    msg : TEXT;
+  VAR m : Writer;
   BEGIN
     (* method example "textDocument/diagnostic" *)
-    res := msgs.registration.copy();
-    res.updateText("params/registrations/0/id",id);
-    res.updateText("params/registrations/0/method",method);
-    msg := res.format();
-    RETURN msg;
+    Start(m);
+    m.w.text("client/registerCapability", "method");
+    m.w.object("params");
+    m.w.array("registrations");
+    m.w.object();
+    m.w.text(id, "id");
+    m.w.text(method, "method");
+    m.w.object("registerOptions");
+    m.w.end();
+    m.w.end();
+    m.w.end();
+    m.w.end();
+    RETURN Finish(m);
   END BuildRegistration;
 
 PROCEDURE BuildUnregistration(id,method : TEXT) : TEXT =
-  VAR
-    res : Json.T;
-    msg : TEXT;
+  VAR m : Writer;
   BEGIN
-    res := msgs.unregistration.copy();
-    res.updateText("params/unregisterations/0/id",id);
-    res.updateText("params/unregisterations/0/method",method);
-    msg := res.format();
-    RETURN msg;
+    Start(m);
+    m.w.text("client/unregisterCapability", "method");
+    m.w.object("params");
+    (* the name that the protocol gives it *)
+    m.w.array("unregisterations");
+    m.w.object();
+    m.w.text(id, "id");
+    m.w.text(method, "method");
+    m.w.end();
+    m.w.end();
+    m.w.end();
+    RETURN Finish(m);
   END BuildUnregistration;
 
+(* a reply with a null result *)
+PROCEDURE NullReply(READONLY id : Id) : TEXT =
+  VAR m : Writer;
+  BEGIN
+    StartReply(m, id);
+    m.w.null("result");
+    RETURN Finish(m);
+  END NullReply;
+
 PROCEDURE BuildShutdownReply(id : Id) : TEXT =
-  VAR
-    shutdownMsg : Json.T;
-    msg : TEXT;
   BEGIN
-    shutdownMsg := replies.succMsg.copy();
-    SetId(shutdownMsg, id);
-    (* adding with same name overwrites *)
-    EVAL shutdownMsg.addNull("result"); <*NOWARN*>
-
-    msg := shutdownMsg.format();
-    RETURN msg;
+    RETURN NullReply(id);
   END BuildShutdownReply;
-
-PROCEDURE Escape(s : TEXT) : TEXT =
-  BEGIN
-    RETURN Utils.Encode(s);
-  END Escape;
 
 PROCEDURE BuildChangeReply(module,uri : TEXT; seq : RefSeq.T) : TEXT =
   VAR
-    ds,d,p,notifyMsg : Json.T;
+    m : Writer;
     errRef : M3Error.RefErr;
     line, col : INTEGER;
-    msg,err : TEXT;
+    severity : Utils.Severity;
   BEGIN
-    notifyMsg := replies.notifyMsg.copy();
-    (* copy the orig message and operate on that *)
-    p := msgs.params.copy();
-    p.updateText("uri", Escape(uri));
+    Start(m);
+    m.w.text("textDocument/publishDiagnostics", "method");
+    m.w.object("params");
+    m.w.text(Chars(uri), "uri");
 (*fixme: add version *)
-    ds := p.find("diagnostics");
-    d := msgs.diag.copy();
+    m.w.array("diagnostics");
 
     (* for each error/warning *)
     WHILE seq.size() > 0 DO
@@ -193,92 +197,60 @@ PROCEDURE BuildChangeReply(module,uri : TEXT; seq : RefSeq.T) : TEXT =
         col := errRef.col;
         line := errRef.line - 1;
         (* ignore messages without pos info - probably bug in m3tk *)
-        IF line >= 0 THEN 
-
-          err := Escape(errRef.msg);
-          d.updateText("message",err);
+        IF line >= 0 THEN
           IF TextUtils.Pos(errRef.msg,"warning:") = -1 THEN
-            d.updateInt("severity",ORD(Utils.Severity.Error));
+            severity := Utils.Severity.Error;
           ELSE
-            d.updateInt("severity",ORD(Utils.Severity.Warning));
+            severity := Utils.Severity.Warning;
           END;
-          d.updateText("source","m3tk");
-          d.updateInt("range/start/line", line);
-          d.updateInt("range/start/character", col);
-          d.updateInt("range/end/line", line);
-          d.updateInt("range/end/character", col + errRef.len);
-          EVAL ds.addObj("",d); <*NOWARN*>
+          m.w.object();
+          m.w.int(ORD(severity), "severity");
+          Range(m.w, line, col, errRef.len);
+          m.w.text(Chars(errRef.msg), "message");
+          m.w.text("m3tk", "source");
+          m.w.end();
         END;
       END;
     END;
 
-    notifyMsg.updateText("method", "textDocument/publishDiagnostics");
-    notifyMsg.updateArrObj("params",p);
-    (* send formatted but could send rawtext *)
-    msg := notifyMsg.format();
-    RETURN msg;
+    m.w.end();
+    m.w.end();
+    RETURN Finish(m);
   END BuildChangeReply;
 
 PROCEDURE BuildFoldingRangeReply(id : Id) : TEXT =
-  VAR
-    frMsg : Json.T;
-    msg : TEXT;
   BEGIN
-    frMsg := replies.succMsg.copy();
-    SetId(frMsg, id);
 (* fixme: what does folding range do? *)
-    EVAL frMsg.addNull("result"); <*NOWARN*>
-
-    msg := frMsg.format();
-    RETURN msg;
+    RETURN NullReply(id);
   END BuildFoldingRangeReply;
 
 PROCEDURE BuildHoverReply(id : Id; hover : TEXT;
                           line, col, len : INTEGER) : TEXT =
-  VAR
-    hoverMsg,p : Json.T;
-    msg : TEXT;
+  VAR m : Writer;
   BEGIN
-    hoverMsg := replies.succMsg.copy();
-    SetId(hoverMsg, id);
-    p := msgs.hover.copy();
-    p.updateInt("range/start/line", line);
-    p.updateInt("range/start/character", col);
-    p.updateInt("range/end/line", line);
-    p.updateInt("range/end/character", col + len);
-
-    IF hover # NIL THEN
-      hover := Escape(hover);
-      p.updateText("contents/0",hover);
-      EVAL hoverMsg.addObj("result",p); <*NOWARN*>
-    END;
-    msg := hoverMsg.format();
-    RETURN msg;
+    IF hover = NIL THEN RETURN NullReply(id); END;
+    StartReply(m, id);
+    m.w.object("result");
+    m.w.array("contents");
+    m.w.text(Chars(hover));
+    m.w.end();
+    Range(m.w, line, col, len);
+    m.w.end();
+    RETURN Finish(m);
   END BuildHoverReply;
 
 PROCEDURE BuildDeclarationReply(id : Id; uri : TEXT;
                                 line, col, len : INTEGER) : TEXT =
-  VAR
-    declMsg,p : Json.T;
-    msg : TEXT;
+  VAR m : Writer;
   BEGIN
-    declMsg := replies.succMsg.copy();
-    SetId(declMsg, id);
-
-    p := msgs.location.copy();
-    p.updateInt("range/start/line", line);
-    p.updateInt("range/start/character", col);
-    p.updateInt("range/end/line", line);
-    p.updateInt("range/end/character", col + len);
-
     (* uri is the pathname of the file *)
-    IF uri # NIL AND line >= 0 THEN
-      uri := Escape(Uri.FromPath(uri));
-      p.updateText("uri",uri);
-      EVAL declMsg.addObj("result",p); <*NOWARN*>
-    END;
-    msg := declMsg.format();
-    RETURN msg;
+    IF uri = NIL OR line < 0 THEN RETURN NullReply(id); END;
+    StartReply(m, id);
+    m.w.object("result");
+    m.w.text(Chars(Uri.FromPath(uri)), "uri");
+    Range(m.w, line, col, len);
+    m.w.end();
+    RETURN Finish(m);
   END BuildDeclarationReply;
 
 PROCEDURE BuildTypeDefinitionReply(id : Id; uri : TEXT;
@@ -288,20 +260,15 @@ PROCEDURE BuildTypeDefinitionReply(id : Id; uri : TEXT;
   END BuildTypeDefinitionReply;
 
 PROCEDURE BuildErrorReply(id : Id; error : INTEGER; message : TEXT) : TEXT =
-  VAR
-    errMsg : Json.T;
-    msg : TEXT;
+  VAR m : Writer;
   BEGIN
-    errMsg := replies.errorMsg.copy();
-    SetId(errMsg, id);
-    errMsg.updateInt("error/code",error);
-    errMsg.updateText("error/message",Escape(message));
-
-    msg := errMsg.format();
-    RETURN msg;
+    StartReply(m, id);
+    m.w.object("error");
+    m.w.int(error, "code");
+    m.w.text(Chars(message), "message");
+    m.w.end();
+    RETURN Finish(m);
   END BuildErrorReply;
 
 BEGIN
-  Init();
-  ReadMessages();
 END Msg.

@@ -1,0 +1,165 @@
+{
+ "comment": "texts with escapes, quotes, backslashes and characters beyond ASCII and beyond the BMP in what the server reads and in what it writes back; ids, keys and positions of the wrong kind; changes of the wrong kind",
+ "steps": [
+  {
+   "comment": "a string id and an unknown method with a quote, a backslash, a slash, a character of two bytes of UTF-8 and one beyond the BMP: both come back as they were sent",
+   "send": {
+    "id": "é\"\\/😀",
+    "method": "x/é\"\\😀",
+    "params": {}
+   }
+  },
+  {
+   "comment": "the same characters as escapes of JSON",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 7, \"method\": \"x/\\u00e9\\ud83d\\ude00\\\"\\\\\\/\"}"
+  },
+  {
+   "comment": "a surrogate without its partner is U+FFFD",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 8, \"method\": \"x/\\ud800\"}"
+  },
+  {
+   "comment": "an id with a fraction",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 1.5, \"method\": \"x\"}"
+  },
+  {
+   "comment": "an id with an exponent",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 1e3, \"method\": \"x\"}"
+  },
+  {
+   "comment": "an integer id too large",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 123456789012345678901234567890, \"method\": \"x\"}"
+  },
+  {
+   "comment": "something after the message: not JSON",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 9, \"method\": \"x\"} x"
+  },
+  {
+   "comment": "a key twice: the last one counts",
+   "raw": "{\"jsonrpc\": \"2.0\", \"id\": 10, \"method\": \"initialize\", \"method\": \"x/last\"}"
+  },
+  {
+   "comment": "a position with a fraction",
+   "send": {
+    "id": 11,
+    "method": "textDocument/hover",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "app/src/Util.m3"
+      }
+     },
+     "position": {
+      "line": 1.0,
+      "character": 0
+     }
+    }
+   }
+  },
+  {
+   "comment": "a file that is not open: no hover",
+   "send": {
+    "id": 12,
+    "method": "textDocument/hover",
+    "params": {
+     "textDocument": {
+      "uri": "file:///nowhere/é.m3"
+     },
+     "position": {
+      "line": 0,
+      "character": 0
+     }
+    }
+   }
+  },
+  {
+   "send": {
+    "method": "textDocument/didOpen",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "app/src/Util.m3"
+      },
+      "languageId": "modula3",
+      "version": 1,
+      "text": {
+       "$text": "app/src/Util.m3"
+      }
+     }
+    }
+   }
+  },
+  {
+   "comment": "changes: one that is not an object, one without a text, one whose range has a character that is not a number (the whole text: characters beyond ASCII in a comment, a text with escapes, and errors after them, one of which quotes a text with escapes), and one with a range that inserts a line",
+   "send": {
+    "method": "textDocument/didChange",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "app/src/Util.m3"
+      },
+      "version": 2
+     },
+     "contentChanges": [
+      5,
+      {
+       "range": {
+        "start": {
+         "line": 0,
+         "character": 0
+        },
+        "end": {
+         "line": 0,
+         "character": 0
+        }
+       }
+      },
+      {
+       "text": "MODULE Util;\n(* é 😀 *)\nCONST T = \"a\\\"\\\\b\";\nVAR v \"q\\\"\\\\\";\nBEGIN\n  EVAL T & 1;\nEND Util.\n",
+       "range": {
+        "start": {
+         "line": 0,
+         "character": "x"
+        },
+        "end": {
+         "line": 0,
+         "character": 0
+        }
+       }
+      },
+      {
+       "text": "VAR i := 0;\n",
+       "range": {
+        "start": {
+         "line": 4,
+         "character": 0
+        },
+        "end": {
+         "line": 4,
+         "character": 0
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "comment": "the hover of the constant whose text has the escapes",
+   "send": {
+    "id": 13,
+    "method": "textDocument/hover",
+    "params": {
+     "textDocument": {
+      "uri": {
+       "$uri": "app/src/Util.m3"
+      }
+     },
+     "position": {
+      "line": 2,
+      "character": 6
+     }
+    }
+   }
+  }
+ ]
+}

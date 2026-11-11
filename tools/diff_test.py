@@ -40,10 +40,9 @@ tests/diff/known.txt (NAME, a tab, the reason) and reported as KNOWN.
 A test whose two runs differ (time, random numbers, addresses) is recorded
 as unstable and not compared. Without --record, each recorded test is
 compiled with m3j from the same units (with -pkg for the packages other
-than those that m3j brings in lib, m3core, libm3, tcp, netobj, sysutils, json,
+than those that m3j brings in lib, m3core, libm3, tcp, netobj, sysutils,
 libbuf and patternmatching, copied from cm3 to tests/pkg; a package that cm3 linked but that is
-not there, whose units the program does not use, is left out: table-list,
-which cm3's json imports) and its run compared with the record. Outputs that differ only in floating-point
+not there, whose units the program does not use, is left out) and its run compared with the record. Outputs that differ only in floating-point
 numbers, by a relative 1e-6 at most, are APPROX (the mathematical functions
 of the C runtime and of Java may differ in the last bit).
 

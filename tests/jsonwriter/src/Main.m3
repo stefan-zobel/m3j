@@ -5,7 +5,7 @@
 
      batch LIST     for each line "SCRIPT OUT" of LIST, the calls of SCRIPT;
                     the document goes to OUT, the result to OUT.res and what
-                    Json reads from the document to OUT.tree
+                    JsonReader reads from the document to OUT.tree
      sink           writers that fail or block, flush, Open and close
      big MB         a generated document of MB megabytes on standard output
      speed MB       the same to nowhere, with the rate
@@ -17,7 +17,7 @@
 
 MODULE Main;
 
-IMPORT FileRd, FileWr, Fmt, IO, Json, JsonWriter, Params, Rd, Scan, Stdio, Text, TextWr,
+IMPORT FileRd, FileWr, Fmt, IO, JsonReader, JsonWriter, Params, Rd, Scan, Stdio, Text, TextWr,
        Thread, Time, Wr, WrClass;
 FROM JsonWriter IMPORT Problem;
 
@@ -100,54 +100,68 @@ PROCEDURE Do (w: JsonWriter.T; READONLY f: ARRAY OF TEXT; VAR finished: BOOLEAN)
     END;
   END Do;
 
-(* The bytes of t in hexadecimal, or "=" if there are none. *)
-PROCEDURE Hex (t: TEXT): TEXT =
-  VAR wr: TextWr.T; c: INTEGER;
+(* The code units of t in hexadecimal, four digits each, or "=" if there
+   are none. *)
+PROCEDURE Units (t: TEXT): TEXT =
+  VAR wr: TextWr.T;
   BEGIN
     IF Text.Empty (t) THEN RETURN "=" END;
     wr := TextWr.New ();
     FOR i := 0 TO Text.Length (t) - 1 DO
-      c := ORD (Text.GetChar (t, i));
-      Wr.PutText (wr, Fmt.Pad (Fmt.Int (c, 16), 2, '0'));
+      Wr.PutText (wr, Fmt.Pad (Fmt.Int (ORD (Text.GetWideChar (t, i)), 16), 4, '0'));
     END;
     RETURN TextWr.ToText (wr);
-  END Hex;
+  END Units;
 
-(* What Json has read, a line for each node. An array goes by its indexes,
-   since iterate gives them in the order of their texts. *)
-PROCEDURE Dump (wr: Wr.T; n: Json.T) =
-  VAR iter: Json.Iterator; name: TEXT; child: Json.T;
+(* What JsonReader reads, a line for each value: an object from "{" to "}"
+   with a line "k" for each key, an array from "[" to "]"; an integer that
+   fits is "i", another number "f" with the nearest LONGREAL, or "x" with
+   its text if that is not finite. *)
+PROCEDURE Dump (wr: Wr.T; r: JsonReader.T) =
   BEGIN
-    CASE n.kind () OF
-    | Json.NodeKind.nkObject =>
-        Wr.PutText (wr, "{ " & Fmt.Int (n.size ()) & "\n");
-        iter := n.iterate ();
-        WHILE iter.next (name, child) DO
-          Wr.PutText (wr, "k " & Hex (name) & "\n");
-          Dump (wr, child);
+    CASE r.peek () OF
+    | JsonReader.Kind.Object =>
+        Wr.PutText (wr, "{\n");
+        r.object ();
+        WHILE r.member () DO
+          Wr.PutText (wr, "k " & Units (r.name ()) & "\n");
+          Dump (wr, r);
         END;
-    | Json.NodeKind.nkArray =>
-        Wr.PutText (wr, "[ " & Fmt.Int (n.size ()) & "\n");
-        FOR i := 0 TO n.size () - 1 DO Dump (wr, n.find (Fmt.Int (i))) END;
-    | Json.NodeKind.nkText => Wr.PutText (wr, "s " & Hex (n.value ()) & "\n");
-    | Json.NodeKind.nkInt =>
-        Wr.PutText (wr, "i " & n.value () & " " & Fmt.Int (n.getInt ()) & "\n");
-    | Json.NodeKind.nkFloat =>
-        Wr.PutText (wr, "f " & n.value () & " " & Fmt.LongReal (n.getFloat ()) & "\n");
-    | Json.NodeKind.nkBool => Wr.PutText (wr, "b " & n.value () & "\n");
-    | Json.NodeKind.nkNull => Wr.PutText (wr, "n\n");
-    | Json.NodeKind.nkRoot => Wr.PutText (wr, "root\n");
+        Wr.PutText (wr, "}\n");
+    | JsonReader.Kind.Array =>
+        Wr.PutText (wr, "[\n");
+        r.array ();
+        WHILE r.element () DO Dump (wr, r) END;
+        Wr.PutText (wr, "]\n");
+    | JsonReader.Kind.Text => Wr.PutText (wr, "s " & Units (r.text ()) & "\n");
+    | JsonReader.Kind.Number =>
+        TRY
+          Wr.PutText (wr, "i " & Fmt.Int (r.int ()) & "\n");
+        EXCEPT
+        | JsonReader.Error =>
+            TRY
+              Wr.PutText (wr, "f " & Fmt.LongReal (r.real ()) & "\n");
+            EXCEPT
+            | JsonReader.Error => Wr.PutText (wr, "x " & r.number () & "\n");
+            END;
+        END;
+    | JsonReader.Kind.Bool =>
+        IF r.bool () THEN Wr.PutText (wr, "b true\n") ELSE Wr.PutText (wr, "b false\n") END;
+    | JsonReader.Kind.Null => r.null (); Wr.PutText (wr, "n\n");
+    ELSE
+      Wr.PutText (wr, "?\n");
+      r.skip ();
     END;
   END Dump;
 
 PROCEDURE Tree (out: TEXT) =
   VAR
-    rd := FileRd.Open (out);
-    doc := Rd.GetText (rd, LAST (CARDINAL));
+    r := JsonReader.Open (out, JsonReader.Options {maxDepth := 0});
     wr := FileWr.Open (out & ".tree");
   BEGIN
-    Rd.Close (rd);
-    Dump (wr, Json.ParseBuf (doc));
+    Dump (wr, r);
+    r.finish ();
+    r.close ();
     Wr.Close (wr);
   END Tree;
 

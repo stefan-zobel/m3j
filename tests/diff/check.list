@@ -46,7 +46,6 @@ check/bundle tests/diff/src/check/bundle
 check/weakref tests/diff/src/check/weakref
 check/weakref-hand tests/diff/src/check/weakref hand-checked expected=hand-checked.txt
 check/pickle2 tests/diff/src/check/pickle2
-check/json tests/diff/src/check/json
 check/java tests/diff/src/check/java expected=hand-checked.txt
 check/java-range tests/diff/src/check/java range
 check/java-index tests/diff/src/check/java index

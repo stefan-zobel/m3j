@@ -4,18 +4,15 @@
 (* Changes for m3j: Copyright (c) 2026 the m3j authors, distributed
    under the MIT license in the file LICENSE. *)
 
-(* Changed for m3j: UnEncode decodes all the escapes of JSON (\uXXXX as
-   UTF-8, \/ and \b too) instead of failing on some; Encode, the escapes
-   of a text for JSON; Replace of a range over several lines by a text
-   of one line replaces the whole range (it took the end of the range on
-   the first line). *)
+(* Changed for m3j: no UnEncode, since JsonReader decodes the strings of
+   a message; Replace of a range over several lines by a text of one
+   line replaces the whole range (it took the end of the range on the
+   first line). *)
 
 MODULE Utils;
 
 IMPORT Text, Wr, Stdio, TextSeq, TextUtils;
 IMPORT Debug, Fmt;
-
-TYPE RefChar = REF ARRAY OF CHAR;
 
 REVEAL
   Incr = IncrPublic BRANDED OBJECT
@@ -142,147 +139,6 @@ PROCEDURE Replace
       st := TextSeq.Cat(st, ts3);
     END;
   END Replace;
-
-(* The json text of a module is escaped for special characters.  We need
-   updated text to match the original file so that we can match the line
-   and col positions of messages like hover.*)
-
-PROCEDURE UnEncode (s: TEXT): TEXT =
-  VAR
-    len          : INTEGER;
-    out          : RefChar;
-    index, i, cp : INTEGER := 0;
-    ch           : CHAR;
-
-  PROCEDURE Out (ch: CHAR) =
-    BEGIN
-      out[index] := ch;
-      INC(index);
-    END Out;
-
-  PROCEDURE Hex4 (at: INTEGER): INTEGER =
-    (* the value of the four hexadecimal digits at "at", or -1 *)
-    VAR v := 0;  d: INTEGER;  c: CHAR;
-    BEGIN
-      IF at + 4 > len THEN RETURN -1; END;
-      FOR k := at TO at + 3 DO
-        c := Text.GetChar(s, k);
-        CASE c OF
-        | '0' .. '9' => d := ORD(c) - ORD('0');
-        | 'a' .. 'f' => d := ORD(c) - ORD('a') + 10;
-        | 'A' .. 'F' => d := ORD(c) - ORD('A') + 10;
-        ELSE
-          RETURN -1;
-        END;
-        v := v * 16 + d;
-      END;
-      RETURN v;
-    END Hex4;
-
-  PROCEDURE OutUtf8 (cp: INTEGER) =
-    BEGIN
-      IF cp < 16_80 THEN
-        Out(VAL(cp, CHAR));
-      ELSIF cp < 16_800 THEN
-        Out(VAL(16_C0 + cp DIV 64, CHAR));
-        Out(VAL(16_80 + cp MOD 64, CHAR));
-      ELSIF cp < 16_10000 THEN
-        Out(VAL(16_E0 + cp DIV 4096, CHAR));
-        Out(VAL(16_80 + (cp DIV 64) MOD 64, CHAR));
-        Out(VAL(16_80 + cp MOD 64, CHAR));
-      ELSE
-        Out(VAL(16_F0 + cp DIV 262144, CHAR));
-        Out(VAL(16_80 + (cp DIV 4096) MOD 64, CHAR));
-        Out(VAL(16_80 + (cp DIV 64) MOD 64, CHAR));
-        Out(VAL(16_80 + cp MOD 64, CHAR));
-      END;
-    END OutUtf8;
-
-  BEGIN
-    IF s = NIL THEN RETURN ""; END;
-    len := Text.Length(s);
-    IF len = 0 THEN RETURN ""; END;
-    (* a character of UTF-8 takes at most 4 bytes, its escape 6 *)
-    out := NEW(RefChar, len);
-    WHILE i < len DO
-      ch := Text.GetChar(s, i);
-      INC(i);
-      IF ch # '\\' OR i >= len THEN
-        Out(ch);
-      ELSE
-        ch := Text.GetChar(s, i);
-        INC(i);
-        CASE ch OF
-        | 'n' => Out('\n');
-        | 't' => Out('\t');
-        | 'f' => Out('\f');
-        | 'r' => Out('\r');
-        | 'b' => Out('\010');
-        | '\"', '\\', '/' => Out(ch);
-        | 'u' =>
-            cp := Hex4(i);
-            IF cp < 0 THEN
-              Out('\\');
-              Out('u');
-            ELSE
-              INC(i, 4);
-              (* a surrogate pair is one character *)
-              IF cp >= 16_D800 AND cp < 16_DC00 AND i + 6 <= len
-                   AND Text.GetChar(s, i) = '\\'
-                   AND Text.GetChar(s, i + 1) = 'u' THEN
-                WITH lo = Hex4(i + 2) DO
-                  IF lo >= 16_DC00 AND lo < 16_E000 THEN
-                    cp := 16_10000 + (cp - 16_D800) * 1024 + (lo - 16_DC00);
-                    INC(i, 6);
-                  END;
-                END;
-              END;
-              OutUtf8(cp);
-            END;
-        ELSE
-          (* not an escape of JSON: as it is *)
-          Out('\\');
-          Out(ch);
-        END;
-      END;
-    END;
-    RETURN Text.FromChars(SUBARRAY(out^, 0, index));
-  END UnEncode;
-
-PROCEDURE Encode (s: TEXT): TEXT =
-  CONST Hex = "0123456789abcdef";
-  VAR
-    len        := Text.Length(s);
-    out        := NEW(RefChar, 6 * len);
-    index      := 0;
-    ch  : CHAR;
-
-  PROCEDURE Out (ch: CHAR) =
-    BEGIN
-      out[index] := ch;
-      INC(index);
-    END Out;
-
-  BEGIN
-    FOR i := 0 TO len - 1 DO
-      ch := Text.GetChar(s, i);
-      CASE ch OF
-      | '\"', '\\' => Out('\\'); Out(ch);
-      | '\n' => Out('\\'); Out('n');
-      | '\r' => Out('\\'); Out('r');
-      | '\t' => Out('\\'); Out('t');
-      | '\f' => Out('\\'); Out('f');
-      | '\010' => Out('\\'); Out('b');
-      | '\000' .. '\007', '\013', '\016' .. '\037' =>
-          Out('\\'); Out('u'); Out('0'); Out('0');
-          Out(Text.GetChar(Hex, ORD(ch) DIV 16));
-          Out(Text.GetChar(Hex, ORD(ch) MOD 16));
-      ELSE
-        Out(ch);
-      END;
-    END;
-    RETURN Text.FromChars(SUBARRAY(out^, 0, index));
-  END Encode;
 
 PROCEDURE Msg(msg : TEXT) =
   BEGIN

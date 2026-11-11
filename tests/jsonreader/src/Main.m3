@@ -13,7 +13,7 @@
 
 MODULE Main;
 
-IMPORT FileRd, Fmt, FileWr, Json, JsonReader, JsonWriter, Params, Random, Rd, RdClass, Stdio,
+IMPORT FileRd, Fmt, FileWr, JsonReader, JsonWriter, Params, Random, Rd, RdClass, Stdio,
        Scan, Text, TextWr, Thread, Time, Wr;
 
 FROM JsonReader IMPORT Kind;
@@ -526,14 +526,9 @@ PROCEDURE Speed (path: TEXT) =
     rd := FileRd.Open (path);
     head := Rd.GetText (rd, MIN (bytes, 32 * 1000 * 1000));
     Rd.Close (rd);
-    (* a shorter document that is complete, for the parser that needs it all *)
+    (* a shorter document that is complete, read from a text *)
     WITH cut = Text.FindCharR (head, '}') DO
       head := Text.Sub (head, 0, cut + 1) & "]";
-    END;
-    FOR pass := 1 TO 3 DO
-      start := Time.Now ();
-      EVAL Json.ParseBuf (head);
-      Rate ("Json", Text.Length (head), start);
     END;
     FOR pass := 1 TO 3 DO
       start := Time.Now ();

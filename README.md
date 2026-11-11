@@ -45,7 +45,7 @@ others, the package tcp: `TCP`, `IP`, `ConnRW`, `ConnMsgRW`, the package
 tls: `TLS`, the package http: `HTTP`, `HTTPServer`, `HTTPClient`, `HTTPCookie`, `Multipart`, the package xml: `XmlReader`, `XmlWriter`, the package regexp: `Regexp`, the package zip: `Deflate`, `Zip`, the package encoding: `Hex`, `Utf8`, `Base64`, `URI`, `RFC3339`, the package crypto: `Crypto`, `Digest`, `Aead`, `Kdf`, `Signature`, `X25519`, `UUID`, the package ssh: `SSH`, `SFTP`, the package sql: `SQL`, the package netobj: `NetObj`, `TCPNetObj`, `StubLib` and the rest of the runtime of
 network objects, the package sysutils: `System`, `FSUtils`,
 `TextUtils` and others, the package patternmatching: `RegEx`, `Glob`,
-`GlobTree`, and the packages json and libbuf: `Json`, `JsonWriter`, `JsonReader`, `Buf`,
+`GlobTree`, and the packages json and libbuf: `JsonWriter`, `JsonReader`, `Buf`,
 `Wx`, and the bindings of the Java platform in the package java) is in
 the jar; for these no cm3 installation is needed:
 
@@ -231,8 +231,7 @@ cm3, the package patternmatching has `RegEx` and `Glob` too.
 
 ### JSON
 
-`Json`, from cm3, parses a text into a tree. `JsonWriter` writes JSON piece by
-piece to a `Wr.T`, without a tree:
+`JsonWriter` writes JSON piece by piece to a `Wr.T`, without a tree:
 
 ```modula-3
 w := JsonWriter.ToWr (wr, JsonWriter.Options {indent := "  "});
@@ -755,8 +754,7 @@ Corporation, [`COPYRIGHT-CMASS`](licenses/COPYRIGHT-CMASS) for the code from Cri
 [`COPYRIGHT-XEROX`](licenses/COPYRIGHT-XEROX) for `RegEx`, [`BSD-POLSTRA`](licenses/BSD-POLSTRA) for `Glob` and
 `GlobTree`, and [`BSD-UCB`](licenses/BSD-UCB) for the function fnmatch of FreeBSD, after which `Glob` is written).
 The sources copied from CM3 keep their notices: `lib` (m3core, libm3, tcp,
-netobj, sysutils, libbuf, patternmatching, and json with the notice of its author,
-[`lib/json/COPYRIGHT-BSD`](lib/json/COPYRIGHT-BSD), see [`lib/README.md`](lib/README.md)), `tools/langserver/src`
+netobj, sysutils, libbuf and patternmatching, see [`lib/README.md`](lib/README.md)), `tools/langserver/src`
 (CM3's language server), `tests/m3tests`,
 `tests/diff/src`, `tests/pkg`, `tests/net`, `tests/m3front` (CM3's front end, see
 [`tests/m3front/README.md`](tests/m3front/README.md)) and `tests/stubgen` (CM3's stub generator for
