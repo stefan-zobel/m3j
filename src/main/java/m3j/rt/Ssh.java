@@ -842,7 +842,7 @@ final class Ssh {
         } catch (JSchException | RuntimeException e) {
             x.closing = true;
             x.ch.disconnect();
-            if (!c.session.isConnected()) {
+            if (!c.session.isAlive()) {
                 return fail(DISCONNECTED, "the connection ended", err);
             }
             return fail(FAILURE, "the server refused the command", err);
@@ -887,11 +887,15 @@ final class Ssh {
         return 0;
     }
 
-    /** The status and signal of an ended command: 0, or DISCONNECTED if the connection broke. */
+    /**
+     * The status and signal of an ended command: 0, or DISCONNECTED if the
+     * connection broke (isAlive, as the session closes the channels of a
+     * broken connection before it counts as disconnected).
+     */
     private static long ending(Conn c, Exec x, LongRef status, ObjRef signal, ObjRef err) {
         String sig = x.ch.getExitSignal();
         int st = x.ch.getExitStatus();
-        if (sig == null && st == -1 && !c.session.isConnected()) {
+        if (sig == null && st == -1 && !c.session.isAlive()) {
             return fail(DISCONNECTED, "the connection ended", err);
         }
         status.set(sig != null ? -1 : st);

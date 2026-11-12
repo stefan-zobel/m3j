@@ -205,6 +205,10 @@ def start_server(feeds):
             pass
 
     class Quiet(http.server.ThreadingHTTPServer):
+        # room for the connections of many workers at once: Windows refuses
+        # a connection when the queue of listen (5 by default) is full
+        request_queue_size = 64
+
         def handle_error(self, request, client_address):
             pass  # a client that gives up a connection
 
@@ -730,7 +734,7 @@ def case_threads(env):
         want = sum(k % 5 + 1 for k in range(n))
         out = env.ok("-db", db, "sync", "-workers", "8")
         check(re.search(r"^%d fetched with %d new entries, 0 not modified, 0 failed" % (n, want), out, re.M),
-              "sync:\n" + out[-500:])
+              "sync:\n" + "\n".join(l for l in out.splitlines() if " new (" not in l)[-1500:])
         hits = {p: c for p, c in feeds.hits.items() if p.startswith("/n/")}
         check(len(hits) == n and set(hits.values()) == {1}, "each feed once: %r" % hits)
         with sqlite3.connect(db) as c:

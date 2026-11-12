@@ -3083,6 +3083,20 @@ public class Session {
     return isConnected;
   }
 
+  /**
+   * Changed for m3j: whether the session is connected and not being
+   * disconnected; false already while disconnect closes the channels.
+   */
+  public boolean isAlive() {
+    Lock l = channelsLock.readLock();
+    l.lock();
+    try {
+      return isConnected && !disconnectingChannels;
+    } finally {
+      l.unlock();
+    }
+  }
+
   public int getTimeout() {
     return timeout;
   }

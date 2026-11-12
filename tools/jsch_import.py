@@ -76,7 +76,34 @@ DROP_FILES = [
 # signatures, from the length of the private value, which may be shorter than
 # the field. The curve now follows from the OID, else from the size of the
 # public point, and the key size from the curve.
+#
+# Session.isAlive: disconnect closes the channels of a broken connection
+# before isConnected turns false, so that a channel that has just ended
+# could not tell a broken connection from a server that closed it.
 PATCHES = [
+    ("Session.java", """\
+  public boolean isConnected() {
+    return isConnected;
+  }
+""", """\
+  public boolean isConnected() {
+    return isConnected;
+  }
+
+  /**
+   * Changed for m3j: whether the session is connected and not being
+   * disconnected; false already while disconnect closes the channels.
+   */
+  public boolean isAlive() {
+    Lock l = channelsLock.readLock();
+    l.lock();
+    try {
+      return isConnected && !disconnectingChannels;
+    } finally {
+      l.unlock();
+    }
+  }
+"""),
     ("KeyPairECDSA.java", """\
       for (int i = 0; i < oids.length; i++) {
         if (Util.array_equals(oids[i], oid_array)) {
