@@ -115,8 +115,10 @@ def run_pair(args, server, client, work, extra=()):
     the port: (server output, client output), or a text that says what
     went wrong."""
     work.mkdir(parents=True, exist_ok=True)
+    # unbuffered: communicate reads the pipe itself and would miss what a
+    # buffered readline took beyond the first line
     s = subprocess.Popen(server + ["server"], cwd=work, stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
     try:
         first = s.stdout.readline().decode("latin-1").strip()
         if not first.startswith("port "):

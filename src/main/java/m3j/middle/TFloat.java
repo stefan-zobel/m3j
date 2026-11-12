@@ -38,6 +38,23 @@ public final class TFloat {
     public static final Float ZeroL = new Float(Precision.Long,     0, 0.0);
     public static final Float ZeroX = new Float(Precision.Extended, 0, 0.0);
 
+    /** The NaN of an invalid operation on x86-64: the sign bit set. */
+    private static final double X86_NAN = Double.longBitsToDouble(0xfff8000000000000L);
+
+    /**
+     * Returns x, the result of an operation on a and b, with a NaN that
+     * the operation made from two numbers replaced by the NaN of x86-64.
+     * The hardware decides the bits of such a NaN (x86-64 sets the sign
+     * bit, AArch64 does not), and a folded constant must not depend on
+     * the host of the compiler. A NaN operand passes through on both.
+     */
+    private static double invalid(double x, double a, double b) {
+        if (Double.isNaN(x) && !Double.isNaN(a) && !Double.isNaN(b)) {
+            return X86_NAN;
+        }
+        return x;
+    }
+
     /**
      * Converts 'chars' to a floating point value with the specified
      * precision.  Note: regardless of the precision, the exponent must
@@ -82,7 +99,7 @@ public final class TFloat {
         if (a.pre != b.pre) {
             return false;
         }
-        double x = a.fraction + b.fraction;
+        double x = invalid(a.fraction + b.fraction, a.fraction, b.fraction);
         f.pre = a.pre;
         f.exponent = 0;
         f.fraction = x;
@@ -94,7 +111,7 @@ public final class TFloat {
         if (a.pre != b.pre) {
             return false;
         }
-        double x = a.fraction - b.fraction;
+        double x = invalid(a.fraction - b.fraction, a.fraction, b.fraction);
         f.pre = a.pre;
         f.exponent = 0;
         f.fraction = x;
@@ -106,7 +123,7 @@ public final class TFloat {
         if (a.pre != b.pre) {
             return false;
         }
-        double x = a.fraction * b.fraction;
+        double x = invalid(a.fraction * b.fraction, a.fraction, b.fraction);
         f.pre = a.pre;
         f.exponent = 0;
         f.fraction = x;
@@ -121,7 +138,7 @@ public final class TFloat {
         if (b.fraction == 0.0) {
             return false;
         }
-        double x = a.fraction / b.fraction;
+        double x = invalid(a.fraction / b.fraction, a.fraction, b.fraction);
         f.pre = a.pre;
         f.exponent = 0;
         f.fraction = x;
@@ -142,7 +159,7 @@ public final class TFloat {
         }
         f.pre = a.pre;
         f.exponent = 0;
-        f.fraction = x - y * (double) floorToInt(x / y);
+        f.fraction = invalid(x - y * (double) floorToInt(x / y), x, y);
         return normalize(f);
     }
 

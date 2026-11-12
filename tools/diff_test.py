@@ -50,7 +50,11 @@ than those that m3j brings in lib, m3core, libm3, tcp, netobj, sysutils,
 libbuf and patternmatching, copied from cm3 to tests/pkg; a package that cm3 linked but that is
 not there, whose units the program does not use, is left out) and its run compared with the record. Outputs that differ only in floating-point
 numbers, by a relative 1e-6 at most, are APPROX (the mathematical functions
-of the C runtime and of Java may differ in the last bit).
+of the C runtime and of Java may differ in the last bit). The records are of
+x86-64, whose NaN of an invalid operation (0/0, infinity - infinity) has the
+sign bit set, which Fmt shows as -NaN; on another machine (AArch64) that NaN
+has no sign, and outputs that differ only in the sign of NaN (and in the
+floating-point numbers as above) are HOST-NAN there.
 
 The AOT cache that build.sh makes next to the jar (m3j.aot) is used for
 compiling and running, unless --aot none. Each --jvm-arg is passed to every
@@ -60,6 +64,7 @@ JVM that compiles or runs a test (such as the agent of tools/coverage.py).
 import argparse
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -77,6 +82,8 @@ SEP = ";" if os.name == "nt" else ":"
 TARGET = "AMD64_NT"
 # the system that the tests run on, as host=OS names it
 HOST = "WIN32" if os.name == "nt" else "POSIX"
+# the NaN of an invalid operation has the sign bit set, as in the records
+X86 = platform.machine().lower() in ("amd64", "x86_64", "x86", "i386", "i686")
 
 
 def read_known():
@@ -284,6 +291,9 @@ def check(t, args, work):
     if r["stdout"] != e["stdout"]:
         if approx_equal(e["stdout"], r["stdout"], tol=t["approx"]):
             return "APPROX", "stdout " + first_diff(e["stdout"], r["stdout"])
+        if not X86 and approx_equal(e["stdout"].replace("-NaN", "NaN"), r["stdout"].replace("-NaN", "NaN"),
+                                    tol=t["approx"]):
+            return "HOST-NAN", "stdout " + first_diff(e["stdout"], r["stdout"])
         return "FAIL", "stdout " + first_diff(e["stdout"], r["stdout"])
     m = re.search(r"not compiled yet: (.*)", msg)
     return "PASS", ("(unsupported: " + m.group(1)[:80] + ")") if m else ""

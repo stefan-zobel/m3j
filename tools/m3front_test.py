@@ -274,6 +274,9 @@ def main():
         args.java = str(Path(jdk) / "bin" / "java") if jdk else "java"
     work = Path(args.work) if args.work else Path(tempfile.mkdtemp(prefix="m3front_"))
     work.mkdir(parents=True, exist_ok=True)
+    # the physical path, as the working directory of the JVM has it (on
+    # macOS the temporary directory is under /var, a link to /private/var)
+    work = work.resolve()
     names = args.cases or GROUPS + ["lib", "self"]
     try:
         jar = Path(args.program) if args.program else build(args, work)

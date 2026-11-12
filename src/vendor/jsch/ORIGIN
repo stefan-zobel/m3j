@@ -3,5 +3,5 @@ archive https://github.com/mwiede/jsch/archive/refs/tags/jsch-2.28.8.zip
 SHA-256 d4bcde785b7af0399f378944100de54e80c3f809b4d8c518acbcfc90afa20c98
 taken by tools/jsch_import.py: package com.jcraft.jsch renamed to m3j.jsch, of each class
 the newest version up to Java 25, the parts that the library ssh does not
-need left out. The licenses are in licenses/BSD-JSCH and
-licenses/ISC-JBCRYPT.
+need left out, the fixes in PATCHES of the script applied. The licenses
+are in licenses/BSD-JSCH and licenses/ISC-JBCRYPT.

@@ -360,7 +360,8 @@ def smoke(args, work):
     c = subprocess.run([node, str(script), str(work)], capture_output=True, timeout=args.timeout * 2, env=env)
     out = (c.stdout + c.stderr).decode("latin-1").strip()
     if c.returncode != 0:
-        return "FAIL", out.splitlines()[-1] if out else "exit %d" % c.returncode
+        failed = [l for l in out.splitlines() if l.startswith("FAIL")]
+        return "FAIL", (failed or out.splitlines() or ["exit %d" % c.returncode])[0]
     return "PASS", ""
 
 
@@ -382,6 +383,9 @@ def main():
         else sorted(p.stem for p in SESSIONS.glob("*.json"))
     work = Path(args.work) if args.work else Path(tempfile.mkdtemp(prefix="m3j-lsp-"))
     work.mkdir(parents=True, exist_ok=True)
+    # the physical path, as the working directory of the JVM has it (on
+    # macOS the temporary directory is under /var, a link to /private/var)
+    work = work.resolve()
     counts = {}
     t0 = time.time()
 

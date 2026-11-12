@@ -162,5 +162,5 @@ network objects, see [`tests/stubgen/README.md`](tests/stubgen/README.md)), and 
 `tools/jsch_import.py` with the package renamed to `m3j.jsch`; it is distributed
 under its license in [`BSD-JSCH`](licenses/BSD-JSCH), its bcrypt under [`ISC-JBCRYPT`](licenses/ISC-JBCRYPT),
 in `m3j-ssh.jar` and `m3j.jar`.
-Every file keeps its notice; the changes, the package name, are distributed
+Every file keeps its notice; the changes, the package name and a few fixes, are distributed
 under the MIT license in [`LICENSE`](LICENSE). `src/vendor/jsch/ORIGIN` names the release.

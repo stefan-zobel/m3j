@@ -26,7 +26,9 @@ The cases:
   auth     password, keyboard-interactive (a prompt with and without
            "password:", which JSch answers itself) and keys made by ssh-keygen
            (Ed25519, ECDSA, RSA; OpenSSH, PEM and PKCS#8; with and without
-           a passphrase), from a file and as text, and the failures
+           a passphrase) and ECDSA keys with explicit parameters of the
+           curve (made by openssl), from a file and as text, and the
+           failures
   exec     exit status, signals, 10 MB through cat, standard output and
            error apart, limits, a broken connection, alerts, timeouts,
            many commands at the same time
@@ -42,8 +44,8 @@ The cases:
 Without arguments all cases run. JAVA defaults to $JDK25/bin/java, else java
 from the PATH; JAR to m3j.jar, the runtime to m3j-runtime.jar and the jar of
 the library ssh (JSch and its bridge) to m3j-ssh.jar in the root of m3j. The Python module asyncssh must be installed; ssh-keygen and
-sftp-server of OpenSSH are taken from Git for Windows on Windows and from
-the PATH or /usr/lib/openssh elsewhere.
+sftp-server of OpenSSH (and openssl) are taken from Git for Windows on
+Windows and from the PATH or /usr/lib/openssh elsewhere.
 """
 
 import argparse
@@ -642,6 +644,12 @@ def make_key(env, name, kind, fmt, passphrase):
     return path, asyncssh.read_public_key(str(path) + ".pub").public_data
 
 
+def openssl(*args):
+    r = subprocess.run([tool("openssl"), *args], capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    if r.returncode:
+        raise Failed("openssl %s: %s" % (" ".join(args), r.stderr))
+
+
 def case_auth(env):
     m = env.program()
     keys = []
@@ -652,6 +660,21 @@ def case_auth(env):
             for passphrase in (None, PASSPHRASE):
                 keys.append(("%s_%s_%s" % (kind, fmt, "enc" if passphrase else "plain"), kind, fmt, passphrase))
     made = {name: make_key(env, name, kind, fmt, passphrase) for name, kind, fmt, passphrase in keys}
+    # ECDSA keys with explicit parameters of the curve instead of its OID (as
+    # ssh-keygen with LibreSSL writes them): PEM, with a passphrase, PKCS#8
+    pem, pub = made["ecdsa_PEM_plain"]
+    explicit = [("ecdsa_explicit_PEM_plain", ["ec", "-param_enc", "explicit"], None),
+                ("ecdsa_explicit_PEM_enc", ["ec", "-param_enc", "explicit", "-aes128",
+                                            "-passout", "pass:" + PASSPHRASE], PASSPHRASE)]
+    for name, args, passphrase in explicit:
+        path = env.work / "keys" / name
+        openssl(*args, "-in", str(pem), "-out", str(path))
+        made[name] = (path, pub)
+        keys.append((name, "ecdsa", "PEM", passphrase))
+    path = env.work / "keys" / "ecdsa_explicit_PKCS8_plain"
+    openssl("pkcs8", "-topk8", "-nocrypt", "-in", str(made["ecdsa_explicit_PEM_plain"][0]), "-out", str(path))
+    made[path.name] = (path, pub)
+    keys.append((path.name, "ecdsa", "PKCS8", None))
     accepted = [pub for _, pub in made.values()]
     port = env.server.start(auth={"keys": accepted})
     known = env.known(port, "known")

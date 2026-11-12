@@ -312,13 +312,19 @@ class KeyPairPKCS8 extends KeyPair {
         if (contents.length != 2) {
           throw new ASN1Exception();
         }
-        if (!contents[1].isOBJECT()) {
+        // Changed for m3j: explicit parameters (a SEQUENCE) instead of the OID
+        // of the curve; the curve then follows from the public point, when
+        // KeyPairECDSA parses the key again below
+        boolean explicit = contents[1].isSEQUENCE();
+        if (!contents[1].isOBJECT() && !explicit) {
           throw new ASN1Exception();
         }
 
         byte[] namedCurve = contents[1].getContent();
         byte[] name;
-        if (!Util.array_equals(namedCurve, secp256r1)) {
+        if (explicit) {
+          name = null;
+        } else if (!Util.array_equals(namedCurve, secp256r1)) {
           name = Util.str2byte("nistp256");
         } else if (!Util.array_equals(namedCurve, secp384r1)) {
           name = Util.str2byte("nistp384");
@@ -374,10 +380,10 @@ class KeyPairPKCS8 extends KeyPair {
           if (goo.length != 1) {
             throw new ASN1Exception();
           }
-          if (!goo[0].isOBJECT()) {
+          if (!explicit && !goo[0].isOBJECT()) {
             throw new ASN1Exception();
           }
-          if (!Util.array_equals(goo[0].getContent(), namedCurve)) {
+          if (!explicit && !Util.array_equals(goo[0].getContent(), namedCurve)) {
             throw new ASN1Exception();
           }
         }

@@ -321,9 +321,11 @@ class KeyPairECDSA extends KeyPair {
       System.arraycopy(plain, index, oid_array, 0, length);
       index += length;
 
+      int curve = -1;
       for (int i = 0; i < oids.length; i++) {
         if (Util.array_equals(oids[i], oid_array)) {
           name = Util.str2byte(names[i]);
+          curve = i;
           break;
         }
       }
@@ -347,8 +349,14 @@ class KeyPairECDSA extends KeyPair {
       r_array = tmp[0];
       s_array = tmp[1];
 
-      if (prv_array != null)
-        key_size = prv_array.length >= 64 ? 521 : (prv_array.length >= 48 ? 384 : 256);
+      // Changed for m3j: without the OID of the curve (explicit parameters)
+      // the size of the public point names the curve; the key size follows
+      // the curve, as the private value may be shorter than the field
+      if (curve < 0) {
+        curve = r_array.length >= 66 ? 2 : (r_array.length >= 48 ? 1 : 0);
+        name = Util.str2byte(names[curve]);
+      }
+      key_size = curve == 2 ? 521 : (curve == 1 ? 384 : 256);
     } catch (Exception e) {
       if (instLogger.getLogger().isEnabled(Logger.ERROR)) {
         instLogger.getLogger().log(Logger.ERROR, "failed to parse key", e);

@@ -260,8 +260,10 @@ def pair(args, copy, path, out):
     "port N" first and serves until the end of its standard input) and as
     its client ("PROGRAM client N")."""
     cmd = program(copy, path)
+    # unbuffered: communicate reads the pipe itself and would miss what a
+    # buffered readline took beyond the first line
     s = subprocess.Popen(cmd + ["server"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT)
+                         stderr=subprocess.STDOUT, bufsize=0)
     first = s.stdout.readline().decode("latin-1").strip()
     if not first.startswith("port "):
         s.kill()
@@ -444,6 +446,9 @@ def main():
 
     work = Path(args.work) if args.work else Path(tempfile.mkdtemp(prefix="m3build-"))
     work.mkdir(parents=True, exist_ok=True)
+    # the physical path, as the working directory of the JVM has it (on
+    # macOS the temporary directory is under /var, a link to /private/var)
+    work = work.resolve()
     counts = {}
     try:
         if "quake" in parts:
