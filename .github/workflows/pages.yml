@@ -1,0 +1,37 @@
+# Copyright (c) 2026 the m3j authors.
+# SPDX-License-Identifier: MIT
+#
+# Publishes the directory site to GitHub Pages. Runs only when started by
+# hand (Actions, Pages, "Run workflow"); never on a push or a pull request.
+# The repository must have "GitHub Actions" as the source of its Pages
+# (Settings, Pages).
+
+name: Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modula-3 on the JVM</title>
+<meta name="description" content="How m3j compiles Modula-3 to Java bytecode: value records, VAR parameters, nested procedures, structural type equivalence, unsigned arithmetic, exceptions and module initialization on a virtual machine built for Java.">
+<link rel="canonical" href="https://stefan-zobel.github.io/m3j/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Modula-3 on the JVM">
+<meta property="og:description" content="How m3j maps value records, VAR parameters, nested procedures, structural types and unsigned arithmetic of Modula-3 onto Java bytecode.">
+<meta property="og:url" content="https://stefan-zobel.github.io/m3j/">
+<meta name="color-scheme" content="light dark">
+<style>
+:root {
+  --bg: #fdfcfa;
+  --fg: #1d1f21;
+  --muted: #5c6166;
+  --rule: #e3e0da;
+  --link: #0b5cad;
+  --code-bg: #f4f2ee;
+  --code-fg: #24292f;
+  --k: #a626a4;
+  --t: #0e7490;
+  --s: #50a14f;
+  --n: #b45309;
+  --c: #8a8f98;
+  --p: #c2410c;
+  --table-head: #f0ede7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181b;
+    --fg: #e4e6e9;
+    --muted: #9aa1a9;
+    --rule: #2d3136;
+    --link: #79b8ff;
+    --code-bg: #1f2226;
+    --code-fg: #d7dae0;
+    --k: #d19ae8;
+    --t: #56c8d8;
+    --s: #98c379;
+    --n: #e5a65e;
+    --c: #7c838c;
+    --p: #f08d5c;
+    --table-head: #22262a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16181b;
+  --fg: #e4e6e9;
+  --muted: #9aa1a9;
+  --rule: #2d3136;
+  --link: #79b8ff;
+  --code-bg: #1f2226;
+  --code-fg: #d7dae0;
+  --k: #d19ae8;
+  --t: #56c8d8;
+  --s: #98c379;
+  --n: #e5a65e;
+  --c: #7c838c;
+  --p: #f08d5c;
+  --table-head: #22262a;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+main { max-width: 46rem; margin: 0 auto; padding: 3rem 16px 4rem; }
+header { margin-bottom: 2.5rem; }
+h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 .6rem; letter-spacing: -.01em; }
+.lede { color: var(--muted); font-size: 1.12rem; margin: 0; }
+h2 { font-size: 1.45rem; line-height: 1.3; margin: 3rem 0 .8rem; padding-top: .4rem; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 2rem 0 .5rem; }
+p, ul, ol, table { margin: 0 0 1.05rem; }
+li { margin: .25rem 0; }
+a { color: var(--link); }
+code, pre { font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+:not(pre) > code { font-size: .88em; background: var(--code-bg); padding: .08em .3em; border-radius: 4px; overflow-wrap: anywhere; }
+pre.code {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-size: .84rem;
+  line-height: 1.5;
+  padding: .9rem 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0 0 1.2rem;
+  position: relative;
+}
+pre.code[data-lang="m3"]::before,
+pre.code[data-lang="java"]::before,
+pre.code[data-lang="javap"]::before {
+  position: absolute; top: .35rem; right: .6rem;
+  font: 600 .66rem/1 -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+}
+pre.code[data-lang="m3"]::before { content: "Modula-3"; }
+pre.code[data-lang="java"]::before { content: "Java"; }
+pre.code[data-lang="javap"]::before { content: "javap"; }
+.k { color: var(--k); }
+.t { color: var(--t); }
+.s { color: var(--s); }
+.n { color: var(--n); }
+.c { color: var(--c); font-style: italic; }
+.p { color: var(--p); }
+.table-wrap { overflow-x: auto; margin: 0 0 1.2rem; }
+table { border-collapse: collapse; font-size: .92rem; width: 100%; margin: 0; }
+th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { background: var(--table-head); font-weight: 600; }
+td code, th code { white-space: nowrap; }
+.note { color: var(--muted); font-size: .94rem; }
+footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .92rem; }
+</style>
+</head>
+<body>
+<main>
+<article>
+<header>
+<h1>Modula-3 on the JVM</h1>
+<p class="lede">Value records, VAR parameters, nested procedures, structural types and unsigned words, compiled for a virtual machine that was built for Java.</p>
+</header>
+
+<h2>Modula-3 in one paragraph</h2>
+
+<p>Modula-3 was designed in the late 1980s at Digital Equipment Corporation's Systems Research Center and Olivetti Research as a successor to Modula-2. It put things together in a small language that were rarely found together at the time: garbage collection, threads and exceptions as part of the language, objects with single inheritance, generic modules, and interfaces compiled separately from their implementations. Operations that can break memory safety are allowed only in modules marked <code>UNSAFE</code>; everything else is safe by construction. Java programmers will recognize much of it, and Python's class mechanism is, in the words of its own tutorial, a mixture of those of C++ and Modula-3. Today the language lives on in a single maintained implementation, Critical Mass Modula-3 (CM3), a descendant of DEC's original compiler.</p>
+
+<p>An interface and its implementation look like this:</p>
+
+<pre class="code" data-lang="m3"><code><span class="k">INTERFACE</span> Stack;
+
+<span class="k">TYPE</span> T &lt;: <span class="t">ROOT</span>;            <span class="c">(* opaque: clients see no fields *)</span>
+
+<span class="k">EXCEPTION</span> Empty;
+
+<span class="k">PROCEDURE</span> New (): T;
+<span class="k">PROCEDURE</span> Push (s: T; x: <span class="t">INTEGER</span>);
+<span class="k">PROCEDURE</span> Pop (s: T): <span class="t">INTEGER</span> <span class="k">RAISES</span> {Empty};
+
+<span class="k">END</span> Stack.</code></pre>
+
+<pre class="code" data-lang="m3"><code><span class="k">MODULE</span> Stack;
+
+<span class="k">REVEAL</span> T = <span class="k">BRANDED</span> <span class="k">OBJECT</span>
+    items: <span class="k">REF</span> <span class="k">ARRAY</span> <span class="k">OF</span> <span class="t">INTEGER</span>;
+    n := <span class="n">0</span>;
+  <span class="k">END</span>;
+
+<span class="k">PROCEDURE</span> New (): T =
+  <span class="k">BEGIN</span>
+    <span class="k">RETURN</span> <span class="t">NEW</span> (T, items := <span class="t">NEW</span> (<span class="k">REF</span> <span class="k">ARRAY</span> <span class="k">OF</span> <span class="t">INTEGER</span>, <span class="n">8</span>));
+  <span class="k">END</span> New;
+
+<span class="k">PROCEDURE</span> Push (s: T; x: <span class="t">INTEGER</span>) =
+  <span class="k">BEGIN</span>
+    <span class="k">IF</span> s.n = <span class="t">NUMBER</span> (s.items^) <span class="k">THEN</span>
+      <span class="k">WITH</span> bigger = <span class="t">NEW</span> (<span class="k">REF</span> <span class="k">ARRAY</span> <span class="k">OF</span> <span class="t">INTEGER</span>, <span class="n">2</span> * s.n) <span class="k">DO</span>
+        <span class="t">SUBARRAY</span> (bigger^, <span class="n">0</span>, s.n) := s.items^;
+        s.items := bigger;
+      <span class="k">END</span>;
+    <span class="k">END</span>;
+    s.items[s.n] := x;
+    <span class="t">INC</span> (s.n);
+  <span class="k">END</span> Push;
+
+<span class="k">PROCEDURE</span> Pop (s: T): <span class="t">INTEGER</span> <span class="k">RAISES</span> {Empty} =
+  <span class="k">BEGIN</span>
+    <span class="k">IF</span> s.n = <span class="n">0</span> <span class="k">THEN</span> <span class="k">RAISE</span> Empty <span class="k">END</span>;
+    <span class="t">DEC</span> (s.n);
+    <span class="k">RETURN</span> s.items[s.n];
+  <span class="k">END</span> Pop;
+
+<span class="k">BEGIN</span>
+<span class="k">END</span> Stack.</code></pre>
+
+<h2>m3j</h2>
+
+<p>m3j compiles Modula-3 to Java class files. A compiled program needs a JDK 25 and nothing else: no C compiler, no native runtime. The front end is a port of CM3's, so programs get the same diagnostics; the back end is new and writes bytecode with the JDK's Class-File API (<code>java.lang.classfile</code>). Where the language definition leaves a choice to the implementation, such as evaluation order, the results at the edges of the number ranges or the text of runtime errors, m3j does what a program compiled natively by CM3 for 64-bit Windows does, so CM3's test suite can serve as the oracle.</p>
+
+<p>A good part of m3j is written in Modula-3 and compiled by m3j itself: not counting tests, about 58 percent of the source lines of the toolchain are Modula-3 (the library, the build system, the language server, the stub generator for network objects and the Modula-3 toolkit both of these run on); the compiler and the core of the runtime are Java.</p>
+
+<p>The JVM brings much of what Modula-3 needs: garbage collection, threads, exceptions, a bytecode verifier and a very good JIT compiler. What it does not bring is just as clear. Its type system is Java's: classes are identified by name, every object lives on the heap behind a reference, there are no pointers to local variables, fields or array elements, no unsigned integers, and no nested functions that can reach the local variables of the function around them. Modula-3 has all of these. The rest of this article is about how m3j bridges each gap, under two constraints: the results must be those of the native compiler, edge cases included, and the bytecode must be the kind the JIT compiles well, with unboxed values, static calls, small methods and checks that are plain compares.</p>
+
+<h2>1. Integers that behave like a 64-bit machine</h2>
+
+<p><code>INTEGER</code> has 64 bits on the reference platform, so it is a JVM <code>long</code>. Smaller types are stored compactly: a subrange such as <code>[0..255]</code> is held in the smallest JVM type that fits, <code>CHAR</code> in a <code>byte</code> (read back with <code>&amp; 0xFF</code>), an enumeration of up to 256 values as its ordinal in a <code>byte</code>, and a set of up to 64 elements as a <code>long</code> bit mask. Arithmetic is done in <code>int</code> only where an analysis of the bounds of the operands proves that the <code>long</code> result would be the same.</p>
+
+<p>Overflow is where the two languages agree for free: CM3 does not check it and wraps around, and so does the JVM. Elsewhere, straightforward Java gives the wrong answer:</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Modula-3</th><th>Result</th><th>Naive Java</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>-7 DIV 2</code></td><td>-4</td><td><code>-7 / 2</code></td><td>-3</td></tr>
+<tr><td><code>-7 MOD 2</code></td><td>1</td><td><code>-7 % 2</code></td><td>-1</td></tr>
+<tr><td><code>Word.Shift (1, 64)</code></td><td>0</td><td><code>1L &lt;&lt; 64</code></td><td>1</td></tr>
+<tr><td><code>Word.LT (1, -1)</code></td><td>TRUE</td><td><code>1L &lt; -1L</code></td><td>false</td></tr>
+<tr><td><code>ROUND (-2.5D0)</code></td><td>-3</td><td><code>Math.round(-2.5)</code></td><td>-2</td></tr>
+<tr><td><code>TRUNC (1.0D30)</code></td><td><code>FIRST (INTEGER)</code></td><td><code>(long) 1e30</code></td><td><code>Long.MAX_VALUE</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<p><code>DIV</code> and <code>MOD</code> round toward minus infinity, so they become <code>Math.floorDiv</code> and <code>Math.floorMod</code>, which the JIT turns into multiplications when the divisor is a constant. The interface <code>Word</code> treats an <code>INTEGER</code> as an unsigned 64-bit word; its comparisons and divisions are <code>Long.compareUnsigned</code>, <code>Long.divideUnsigned</code> and <code>Long.remainderUnsigned</code>, which are JIT intrinsics. Java masks a shift count to its low six bits, while <code>Word.Shift</code> by 64 or more gives 0, so a shift by a count that is not a constant gets a guard. <code>ROUND</code> rounds halves away from zero, unlike <code>Math.round</code>. And a conversion of a value that does not fit gives <code>FIRST (INTEGER)</code> natively, because that is what the x86-64 conversion instruction returns for anything out of range, while the JVM saturates and maps NaN to 0; a small runtime helper corrects the result.</p>
+
+<p>Range checks, for example when a value is assigned to a subrange variable or used as an array index, are inline compares, and they are left out wherever the bounds analysis shows that they cannot fail.</p>
+
+<h2>2. Records are values, arrays are flat</h2>
+
+<p>A Modula-3 record is a value, like a C struct: assignment copies it.</p>
+
+<pre class="code" data-lang="m3"><code><span class="k">TYPE</span> Point = <span class="k">RECORD</span> x, y: <span class="t">INTEGER</span> <span class="k">END</span>;
+<span class="k">VAR</span> p, q: Point;
+
+p.x := <span class="n">3</span>;
+q := p;          <span class="c">(* a copy *)</span>
+q.x := <span class="n">7</span>;        <span class="c">(* p.x is still 3 *)</span></code></pre>
+
+<p>The JVM has no value types yet, so each record type becomes a class with typed fields, and a record variable holds its own object for its whole life. Assignment never replaces that object; it copies into it, through a method generated for the type. A field that is itself a record or a fixed array holds an object that is created with the outer record and never replaced either, so a nested record costs one allocation when its container is created and none afterwards. In Java terms, the code above becomes:</p>
+
+<pre class="code" data-lang="java"><code><span class="k">public</span> <span class="k">class</span> Td1599f69 <span class="k">implements</span> Rec {      <span class="c">// RECORD x, y: INTEGER END</span>
+    <span class="k">public</span> <span class="k">long</span> x, y;
+    <span class="k">public</span> <span class="k">void</span> copyFrom(Td1599f69 other) { ... }
+    <span class="k">public</span> <span class="k">boolean</span> eq(Td1599f69 other) { ... }
+}
+
+Main.p.x = <span class="n">3</span>;
+Main.q.copyFrom(Main.p);
+Main.q.x = <span class="n">7</span>;</code></pre>
+
+<p>The class is named after the type's fingerprint, for reasons that section 6 explains. Records passed by value are copied by the caller, except when the argument is a fresh value, such as the result of a call or a constructor, which nobody else can see.</p>
+
+<p>Fixed arrays are flat and row-major in an array of the element's storage type: <code>ARRAY [0..9] OF ARRAY [0..9] OF INTEGER</code> is one <code>long[100]</code>, not an array of arrays, and an array of <code>CHAR</code> is a <code>byte[]</code>. A row such as <code>a[i]</code> is not an object but a pair of the storage and an offset, with a shape known at compile time. Array assignment is <code>System.arraycopy</code>, and <code>=</code> uses <code>Arrays.equals</code> and <code>Arrays.mismatch</code> on ranges; both are intrinsics. CM3 compares such arrays as their bits, so 0.0 and -0.0 differ and a NaN equals itself, which happens to be exactly what <code>Arrays.equals</code> does for <code>double[]</code>.</p>
+
+<h2>3. Open arrays and SUBARRAY without copies</h2>
+
+<p>A procedure can take an array of any length, and <code>SUBARRAY</code> passes a slice of another array without copying it:</p>
+
+<pre class="code" data-lang="m3"><code><span class="k">PROCEDURE</span> Sum (<span class="k">READONLY</span> v: <span class="k">ARRAY</span> <span class="k">OF</span> <span class="t">INTEGER</span>): <span class="t">INTEGER</span>;
+
+Sum (<span class="t">SUBARRAY</span> (a, <span class="n">1</span>, <span class="n">3</span>))     <span class="c">(* a[1], a[2], a[3] *)</span></code></pre>
+
+<p>Since a fixed array is already storage plus offset, an open array parameter is passed as three JVM values: the storage, the offset and the length, with one more <code>int</code> for each further open dimension. The signature in the class file is</p>
+
+<pre class="code" data-lang="java"><code><span class="k">public</span> <span class="k">static</span> <span class="k">long</span> Sum(<span class="k">long</span>[] v, <span class="k">int</span> offset, <span class="k">int</span> length)</code></pre>
+
+<p>and <code>SUBARRAY (a, 1, 3)</code> is just the arguments <code>a, 1, 3</code>, after a check that the slice lies inside <code>a</code>. The rows of a multi-dimensional array are passed the same way. A heap-allocated <code>REF ARRAY OF T</code> is a small object that holds the storage and the dimensions; inside a loop its storage, offset and length are copied into locals, so that the JIT can hoist the bounds checks out of the loop.</p>
+
+<h2>4. VAR parameters: references to anything</h2>
+
+<p>A <code>VAR</code> parameter is passed by reference, and the actual argument can be any variable: a local, a global, a field, an array element.</p>
+
+<pre class="code" data-lang="m3"><code><span class="k">PROCEDURE</span> Swap (<span class="k">VAR</span> a, b: <span class="t">INTEGER</span>) =
+  <span class="k">VAR</span> t := a;
+  <span class="k">BEGIN</span>
+    a := b; b := t;
+  <span class="k">END</span> Swap;
+
+Swap (i, j);
+Swap (arr[k], point.x);</code></pre>
+
+<p>The JVM cannot point at a local variable, a field or an array element. For records, fixed arrays and large sets the problem does not arise: the callee gets the object, or the storage and offset, and writes into it. For scalars m3j uses typed reference objects: one abstract class per JVM type (<code>LongRef</code>, <code>IntRef</code>, <code>DoubleRef</code>, <code>FloatRef</code>, <code>ObjRef</code>) with small final subclasses for the kinds of places:</p>
+
+<ul>
+<li>a <em>cell</em> for a local variable that is passed <code>VAR</code> somewhere; the variable lives in its cell for its whole life, so a call allocates nothing;</li>
+<li>an <em>element reference</em> per storage kind, holding an array and an index;</li>
+<li>a class generated per field of a record or object, per frame field and per global variable.</li>
+</ul>
+
+<p>Swap itself is then ordinary code against the abstract class. From the class file:</p>
+
+<pre class="code" data-lang="java"><code><span class="k">public</span> <span class="k">static</span> <span class="k">void</span> Swap(LongRef a, LongRef b) {
+    <span class="k">long</span> t = a.get();
+    a.set(b.get());
+    b.set(t);
+}
+
+<span class="c">// Swap (i, j) for the module variables i and j:</span>
+Swap(<span class="k">new</span> m3_m_Main$$i(), <span class="k">new</span> m3_m_Main$$j());</code></pre>
+
+<p>Each call site sees only a few concrete classes, so the calls of <code>get</code> and <code>set</code> inline, and once <code>Swap</code> is inlined into its caller, escape analysis removes the allocation of the reference objects as well. <code>INC</code>, <code>DEC</code> and assignment never create references.</p>
+
+<p>A <code>READONLY</code> parameter is a subtle case: the language requires that the callee see a change made to the actual variable through an alias during the call, so it is passed by reference when the argument is a variable of the same type, and as a copy otherwise.</p>
+
+<h2>5. Nested procedures and their frames</h2>
+
+<p>Procedures can be declared inside procedures and use their variables:</p>
+
+<pre class="code" data-lang="m3"><code><span class="k">PROCEDURE</span> Sum (<span class="k">READONLY</span> v: <span class="k">ARRAY</span> <span class="k">OF</span> <span class="t">INTEGER</span>): <span class="t">INTEGER</span> =
+  <span class="k">VAR</span> total := <span class="n">0</span>;
+  <span class="k">PROCEDURE</span> Add (x: <span class="t">INTEGER</span>) =
+    <span class="k">BEGIN</span> <span class="t">INC</span> (total, x) <span class="k">END</span> Add;
+  <span class="k">BEGIN</span>
+    <span class="k">FOR</span> i := <span class="t">FIRST</span> (v) <span class="k">TO</span> <span class="t">LAST</span> (v) <span class="k">DO</span> Add (v[i]) <span class="k">END</span>;
+    <span class="k">RETURN</span> total;
+  <span class="k">END</span> Sum;</code></pre>
+
+<p>Java has nothing comparable: a lambda can only capture effectively final values. m3j finds the variables that nested procedures use and moves just those into a <em>frame</em> object generated for the procedure; all others stay JVM locals. A nested procedure is a static method that takes the frame as its first parameter, the static link of classic compilers:</p>
+
+<pre class="code" data-lang="java"><code><span class="k">final</span> <span class="k">class</span> Main$F$Sum { <span class="k">long</span> total; }
+
+<span class="k">static</span> <span class="k">long</span> Sum(<span class="k">long</span>[] v, <span class="k">int</span> offset, <span class="k">int</span> length) {
+    <span class="k">var</span> f = <span class="k">new</span> Main$F$Sum();
+    f.total = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">long</span> i = <span class="n">0</span>; i &lt;= length - <span class="n">1</span>; i++)
+        Sum$Add(f, v[offset + Rt.index(i, length)]);   <span class="c">// with the subscript check</span>
+    <span class="k">return</span> f.total;
+}
+
+<span class="k">static</span> <span class="k">void</span> Sum$Add(Main$F$Sum f, <span class="k">long</span> x) { f.total += x; }</code></pre>
+
+<p>A nested procedure receives a frame only if it, or a procedure it calls, needs a variable of an enclosing procedure; otherwise it is an ordinary static method. Frames of deeper nesting levels are chained through a field.</p>
+
+<p>Procedures are also values. For each JVM signature m3j generates one functional interface. A top-level procedure used as a value is created with <code>LambdaMetafactory</code> in an accessor method of its module, so the same procedure is always the same object; that matters, because Modula-3 compares procedure values with <code>=</code>. A nested procedure used as a value is a closure object that holds the procedure and its frame. Modula-3 allows passing such a value as an argument but not storing it in a variable; m3j enforces this at compile time where it can and at run time otherwise.</p>
+
+<h2>6. Structural types in a nominal VM</h2>
+
+<p>In Java, two classes with the same fields are different types. In Modula-3, type identity is structural: two declarations of <code>REF RECORD head: INTEGER; tail: List END</code> in different modules denote the same type, and only the keyword <code>BRANDED</code> makes a type unique. The JVM, however, identifies a class by its name.</p>
+
+<p>m3j names the class of a record, reference or object type after a fingerprint of its structure, the same in every compilation unit. Every unit that needs the type generates the class; the copies are identical, and the linker keeps one. As a result, <code>TYPECASE</code>, <code>NARROW</code> and <code>ISTYPE</code> are plain <code>instanceof</code> and <code>checkcast</code> instructions, with no registry of types at run time:</p>
+
+<pre class="code" data-lang="java"><code><span class="c">// List = REF RECORD head: INTEGER; tail: List END</span>
+<span class="k">public</span> <span class="k">class</span> T51c44b24 <span class="k">implements</span> Rec {            <span class="c">// the record</span>
+    <span class="k">public</span> <span class="k">long</span> head;
+    <span class="k">public</span> T51c44b27 tail;
+}
+<span class="k">public</span> <span class="k">final</span> <span class="k">class</span> T51c44b27 <span class="k">extends</span> T51c44b24 { } <span class="c">// REF of it: List</span></code></pre>
+
+<p>The class of <code>REF R</code> is a subclass of the class of <code>R</code>, so <code>l.head</code> through a reference is a single <code>getfield</code> instead of two. The default values of record fields are not part of the class: types that differ only in their defaults are the same type, so defaults are set where a variable is created, from its declared type.</p>
+
+<p><code>NIL</code> belongs to every reference type, while <code>instanceof</code> is false for <code>null</code>; so a <code>TYPECASE</code> tests for <code>NIL</code> before anything else. One with many arms uses <code>SwitchBootstraps.typeSwitch</code>, the bootstrap behind Java's pattern-matching <code>switch</code>.</p>
+
+<h2>7. Methods that must not override</h2>
+
+<p>A subtype in Modula-3 can declare a new method with the same name as a method of its supertype. That method hides the old one; it does not override it:</p>
+
+<pre class="code" data-lang="m3"><code><span class="k">TYPE</span>
+  A = <span class="k">OBJECT</span> <span class="k">METHODS</span> m (): <span class="t">TEXT</span> := MA <span class="k">END</span>;
+  B = A <span class="k">OBJECT</span> <span class="k">METHODS</span> m (): <span class="t">TEXT</span> := MB <span class="k">END</span>;  <span class="c">(* a second method m *)</span>
+
+<span class="k">VAR</span> b := <span class="t">NEW</span> (B);  a: A := b;
+
+a.m ()     <span class="c">(* "A.m": the method of A, although a is a B *)</span>
+b.m ()     <span class="c">(* "B.m" *)</span></code></pre>
+
+<p>On the JVM, a method with the same name and descriptor in a subclass always overrides. So the JVM name of a method carries the fingerprint of the type that declares it:</p>
+
+<pre class="code" data-lang="javap"><code>public class m3.t.T0d8bc911 extends m3j.rt.M3Object {      <span class="c">// A</span>
+  public java.lang.String m_0d8bc911();
+}
+public class m3.t.Tef9bf88f extends m3.t.T0d8bc911 {       <span class="c">// B</span>
+  public java.lang.String m_ef9bf88f();
+}</code></pre>
+
+<p>An <code>OVERRIDES</code> clause overrides the JVM method of the declaring type, so dispatch is an ordinary <code>invokevirtual</code>. The body of a JVM method calls the procedure bound to the method statically, and a method left <code>NIL</code> raises the runtime error of the reference. <code>NEW (T, m := P)</code>, which binds a method for one object, creates an instance of a subclass generated for that expression.</p>
+
+<p>Opaque types, like <code>Stack.T</code> above, show where the JVM is actually easier than native code. A client of <code>Stack</code> knows nothing about the fields of <code>T</code>; a native compiler must therefore compute their offsets when the program is linked or started. In a class file, fields and methods are referenced by name and resolved lazily at first use, so no offsets are needed at all. Only the module that holds the full revelation generates the class, named after the opaque type.</p>
+
+<h2>8. Exceptions, RAISES and FINALLY</h2>
+
+<p>Each <code>EXCEPTION</code> declaration becomes a class that carries its argument and the source position of the <code>RAISE</code>, created without a Java stack trace, so raising costs little more than an allocation. <code>TRY EXCEPT</code> becomes entries of the exception table, and <code>TRY FINALLY</code> is generated the way javac does it, with the <code>FINALLY</code> part on every exit, including <code>RETURN</code> and <code>EXIT</code>. A jump out of several nested <code>TRY</code> statements runs their <code>FINALLY</code> parts from the inside out. The language defines <code>EXIT</code> and <code>RETURN</code> in terms of exceptions, so the <code>ELSE</code> arm of a <code>TRY EXCEPT</code> sees them, as with the native compiler.</p>
+
+<p>A <code>RAISES</code> clause is the opposite of a Java <code>throws</code> clause: it is checked at run time, not at compile time. A procedure without one may raise nothing, and an exception that escapes and is not listed becomes a checked runtime error at the place of the <code>RAISE</code>. m3j wraps the body of a procedure in a handler for that, but leaves it out when every <code>RAISE</code> and every call in the body can only raise listed exceptions (a procedure that is called checks its own clause). <code>Pop</code> above, whose only <code>RAISE</code> is <code>Empty</code>, gets no handler.</p>
+
+<p>Checked runtime errors, such as a subscript out of range or a dereference of <code>NIL</code>, end the program with the message of the native compiler, with the line taken from the class file's line number table:</p>
+
+<pre class="code" data-lang="out"><code>***
+*** runtime error:
+***    An array subscript was out of range.
+***    file "Main.m3", line 19
+***</code></pre>
+
+<p>Where the JVM detects such an error itself (<code>ArithmeticException</code>, <code>IndexOutOfBoundsException</code>, <code>NullPointerException</code>, <code>ClassCastException</code>, <code>StackOverflowError</code>), it is translated into Modula-3's runtime error wherever Modula-3 code can observe it: in an <code>EXCEPT ELSE</code>, a <code>FINALLY</code>, a <code>LOCK</code> and at the top of the program.</p>
+
+<h2>9. Modules: initialization order and late binding</h2>
+
+<p>A module becomes a class with static fields for its variables and static methods for its procedures. Its body, however, is an explicit initialization method and not the class initializer <code>&lt;clinit&gt;</code>. Modula-3 defines the order in which module bodies run from the import graph, cycles included, whereas the JVM initializes a class whenever it is first touched. The linker of m3j computes the order as CM3's runtime does and writes a main class that calls the initialization methods in that order, then runs the program in a thread with a large stack.</p>
+
+<p>An interface in Modula-3 does not say which module implements it. Any module can export it, and several modules can each implement part of it. That is known only when the program is linked, after the clients were compiled. Calls into an interface therefore use <code>invokedynamic</code>: on the first call the bootstrap method looks the procedure up in the link table and returns a <code>ConstantCallSite</code> for the static method of the exporting module, which the JIT then treats like a direct <code>invokestatic</code>. This is <code>IO.Put (text)</code>, whose second parameter, a writer, has the default <code>NIL</code>:</p>
+
+<pre class="code" data-lang="javap"><code>170: aconst_null
+171: checkcast     #99      <span class="c">// class m3/t/T62761487</span>
+174: invokedynamic #112, 0  <span class="c">// InvokeDynamic #1:Put:(Ljava/lang/String;Lm3/t/T62761487;)V</span></code></pre>
+
+<p>Calls within a unit, and calls from the exporting module itself, are plain <code>invokestatic</code>.</p>
+
+<h2>10. Code the JIT compiles well</h2>
+
+<ul>
+<li><strong>Method size.</strong> HotSpot does not compile methods larger than 8000 bytes of bytecode at all; they run in the interpreter forever. Generated code, such as a <code>CASE</code> with hundreds of arms, can easily exceed that. m3j measures instead of estimating: it generates a procedure, parses the result back with the Class-File API, and if a method is too large, it moves runs of statements into separate <em>chunk</em> methods that share the procedure's frame. A chunk returns a code that tells its caller whether its statements completed, executed a <code>RETURN</code> or left a loop with <code>EXIT</code>. This is tested by lowering the limit to a few hundred bytes and compiling large real programs, which then consist of thousands of chunks and must give the same results.</li>
+<li><strong>Module bodies.</strong> A module body runs once, so the JIT could compile a loop in it only by on-stack replacement and without a profile for the code that follows. Each loop in an initialization method therefore becomes a method of its own.</li>
+<li><strong>Loops and switches.</strong> A <code>FOR</code> loop gets an <code>int</code> counter when the counter, the limit and the step fit in <code>int</code> and the last increment cannot overflow, which makes it a counted loop for C2. A <code>CASE</code> with dense labels becomes a <code>tableswitch</code> or <code>lookupswitch</code>.</li>
+<li><strong>Constant tables.</strong> An array constant of numbers, characters or small sets is a dynamic constant (<code>ldc</code> of a <code>CONSTANT_Dynamic</code>), built once from a string that holds its elements. Large tables need no code, unlike in javac's output, where an array initializer is one store per element in the class initializer.</li>
+<li><strong>Exact types.</strong> Every parameter has its precise JVM type in the descriptor, never <code>Object</code> plus a cast.</li>
+</ul>
+
+<h2>11. Threads and locks</h2>
+
+<p>A Modula-3 <code>MUTEX</code> is not re-entrant: locking a mutex that the thread already holds is an error, not a second hold count, so a Java monitor will not do. m3j's mutex knows its holder. Readers and writers lock their mutex for every character, so the lock has to be cheap: as long as a program has not forked a thread or handed a procedure to Java, which might call it from any thread, the holder is set and cleared with plain writes; after that, with a compare-and-set. <code>Thread.Alert</code>, Modula-3's cooperative cancellation, is a per-thread flag combined with <code>Thread.interrupt</code>, so that blocked waits wake up.</p>
+
+<h2>12. Calling Java</h2>
+
+<p>An interface can stand for a Java class. The compiler checks the declarations against the class when the interface is compiled, and a call is the JVM instruction itself, not reflection:</p>
+
+<pre class="code" data-lang="m3"><code><span class="p">&lt;*EXTERNAL "java.util.ArrayList":JAVA*&gt;</span> <span class="k">INTERFACE</span> ArrayList;
+
+<span class="k">IMPORT</span> Java, JavaObject;
+
+<span class="k">TYPE</span> T &lt;: JavaObject.T;                      <span class="c">(* the class java.util.ArrayList *)</span>
+
+<span class="k">PROCEDURE</span> New (): T;                         <span class="c">(* the constructor *)</span>
+<span class="k">PROCEDURE</span> add (self: T; e: <span class="t">REFANY</span>): <span class="t">BOOLEAN</span>;
+<span class="k">PROCEDURE</span> size (self: T): Java.Int;
+
+<span class="k">END</span> ArrayList.</code></pre>
+
+<p>Modula-3 object types can extend Java classes or implement Java interfaces, and Modula-3 procedures can be passed where Java expects a functional interface. A Java exception that reaches Modula-3 code becomes the Modula-3 exception <code>Java.Exception</code>, which carries the throwable.</p>
+
+<h2>How it is checked</h2>
+
+<ul>
+<li>The test programs of CM3's own suite are compiled and run, and their output is compared with the expected output of the suite. Every generated class must pass the verifier of the Class-File API.</li>
+<li>Further programs are compared with their output when built natively by CM3, among them edge cases of number formatting, floating point, pickles and pathnames, and threads under load.</li>
+<li>Two random program generators compare m3j with CM3. The first produces expressions and computes every expected value itself, so it can tell which compiler is wrong. The second produces statements, procedures and data: nested procedures that use their parents' variables, <code>VAR</code> parameters bound to overlapping places, objects, exceptions, several modules with cycles of imports. Each of its programs is compiled twice, once normally and once with a tiny method size limit, so that split methods are compared too, and a failing program is reduced automatically.</li>
+<li>Large programs: CM3's own front end, about 600 units, compiled by m3j and run on the JVM, must produce the same intermediate code, byte for byte, and the same diagnostics as the front end of m3j; CM3's stub generator for network objects, compiled by m3j, must write the same stubs as the native one; and network object programs built by m3j and by CM3 must talk to each other and send the same bytes.</li>
+</ul>
+
+<h2>The rest of the toolchain</h2>
+
+<ul>
+<li><strong>m3build</strong>, CM3's build system with its interpreter for the m3makefile language, compiled by m3j: packages are built from the same <code>m3makefile</code>s as with CM3.</li>
+<li><strong>Network objects</strong>, Modula-3's distributed objects with distributed garbage collection, with CM3's runtime and stub generator; programs built by m3j interoperate with programs built natively.</li>
+<li><strong>A language server</strong>, CM3's, on the Modula-3 toolkit m3tk, also compiled by m3j: errors while typing, hover, go to definition, the outline of a file and completion, with an extension for Visual Studio Code and settings for Neovim, Emacs, Helix and Kate.</li>
+<li><strong>Libraries for current needs</strong>, mostly thin layers over the JDK: an HTTP server and client, TLS, JSON, XML, SQL through JDBC, SSH and SFTP, regular expressions, compression and cryptography.</li>
+</ul>
+
+<p>What is not supported: <code>UNSAFE</code> modules, since a safe language on a safe VM leaves no room for them, and CM3's GUI libraries.</p>
+
+<h2>Trying it</h2>
+
+<pre class="code" data-lang="m3"><code><span class="k">MODULE</span> Main;
+
+<span class="k">IMPORT</span> IO;
+
+<span class="k">BEGIN</span>
+  IO.Put (<span class="s">"Hello, world\n"</span>);
+<span class="k">END</span> Main.</code></pre>
+
+<pre class="code" data-lang="out"><code>java -cp m3j.jar m3j.jvm.Compile Main.m3 -run</code></pre>
+
+<p>The sources, the documentation and the design notes of the back end, which explain every decision in this article in more detail, are at <a href="https://github.com/stefan-zobel/m3j">github.com/stefan-zobel/m3j</a>.</p>
+</article>
+
+<footer>
+<p>m3j is distributed under the MIT license; the parts taken from CM3 keep their original licenses.</p>
+</footer>
+</main>
+</body>
+</html>
