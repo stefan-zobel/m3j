@@ -296,8 +296,9 @@ program imports; an option may contain neither a quote nor a line end.
 `m3_lang_server.jar` is cm3's language server for Modula-3, compiled by
 m3j: through the Language Server Protocol, an editor gets the errors and
 warnings of a file while it is edited, the type of an identifier (hover),
-the place of its declaration and of the definition of its type, and the
-outline of the file, from
+the place of its declaration and of the definition of its type, the
+outline of the file, and the identifiers that can be typed at a place
+(completion), from
 m3tk, cm3's toolkit for Modula-3. It is started as
 `java -jar m3_lang_server.jar` (with `m3j.jar` and `m3build.jar` next to
 it) and checks the files of packages (below a directory `src` with an

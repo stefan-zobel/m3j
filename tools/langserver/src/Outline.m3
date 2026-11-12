@@ -694,18 +694,22 @@ PROCEDURE FindUnit (           cl  : UnitClosure;
     END;
   END FindUnit;
 
-PROCEDURE Get (c: M3Context.T; file, text: TEXT): Symbols =
+PROCEDURE Unit (c: M3Context.T; file: TEXT): M3AST_AS.Compilation_Unit =
   <* FATAL ANY *>
-  VAR
-    cl  := NEW(UnitClosure, file := file);
-    s   : Src;
-    l   : List;
-    res : Symbols;
+  VAR cl := NEW(UnitClosure, file := file);
   BEGIN
     M3Context.Apply(c, cl, findStandard := FALSE);
-    IF cl.cu = NIL THEN RETURN NIL; END;
+    RETURN cl.cu;
+  END Unit;
+
+PROCEDURE OfUnit (cu: M3AST_AS.Compilation_Unit; text: TEXT): Symbols =
+  VAR
+    s  : Src;
+    l  : List;
+    res: Symbols;
+  BEGIN
     s := NewSrc(text);
-    TYPECASE cl.cu.as_root OF
+    TYPECASE cu.as_root OF
     | NULL =>
     | M3AST_AS.UNIT_WITH_BODY (u) =>
         IF u.as_block # NIL THEN Decls(s, u.as_block.as_decl_s, FALSE, l); END;
@@ -714,7 +718,70 @@ PROCEDURE Get (c: M3Context.T; file, text: TEXT): Symbols =
     res := Children(l);
     IF res = NIL THEN res := NEW(Symbols, 0); END;
     RETURN res;
+  END OfUnit;
+
+PROCEDURE Get (c: M3Context.T; file, text: TEXT): Symbols =
+  VAR cu := Unit(c, file);
+  BEGIN
+    IF cu = NIL THEN RETURN NIL; END;
+    RETURN OfUnit(cu, text);
   END Get;
+
+(* Code *)
+
+(* the comment or pragma that begins at i and ends before j is closed by
+   the characters x and y *)
+PROCEDURE Closed (READONLY a: ARRAY OF CHAR; i, j: INTEGER; x, y: CHAR):
+  BOOLEAN =
+  BEGIN
+    RETURN j - 2 >= i + 2 AND a[j - 2] = x AND a[j - 1] = y;
+  END Closed;
+
+PROCEDURE InCode (text: TEXT; offset: INTEGER): BOOLEAN =
+  VAR
+    n             := Text.Length(text);
+    a             := NEW(REF ARRAY OF CHAR, n);
+    i             := 0;
+    j   : INTEGER;
+    c   : CHAR;
+    closed: BOOLEAN;
+  BEGIN
+    Text.SetChars(a^, text);
+    WHILE i < offset AND i < n DO
+      c := a[i];
+      IF c = '(' AND i + 1 < n AND a[i + 1] = '*' THEN
+        j := SkipComment(a^, i);
+        IF offset < j OR NOT Closed(a^, i, j, '*', ')') THEN RETURN FALSE; END;
+        i := j;
+      ELSIF c = '<' AND i + 1 < n AND a[i + 1] = '*' THEN
+        j := SkipPragma(a^, i);
+        IF offset < j OR NOT Closed(a^, i, j, '*', '>') THEN RETURN FALSE; END;
+        i := j;
+      ELSIF c = '"' OR c = '\'' THEN
+        (* a text or a character ends at its quote or at the end of the
+           line; the cursor at the end of one that is not closed is in it *)
+        j := i + 1;
+        closed := FALSE;
+        WHILE NOT closed AND j < n AND a[j] # '\n' DO
+          IF a[j] = '\\' AND j + 1 < n THEN
+            INC(j, 2);
+          ELSE
+            closed := a[j] = c;
+            INC(j);
+          END;
+        END;
+        IF offset < j OR NOT closed AND offset = j THEN RETURN FALSE; END;
+        i := j;
+      ELSIF IsLetter(c) OR IsDigit(c) THEN
+        WHILE i < n AND (IsLetter(a[i]) OR IsDigit(a[i]) OR a[i] = '_') DO
+          INC(i);
+        END;
+      ELSE
+        INC(i);
+      END;
+    END;
+    RETURN TRUE;
+  END InCode;
 
 BEGIN
 END Outline.

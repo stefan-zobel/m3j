@@ -7,7 +7,7 @@
 
 INTERFACE Outline;
 
-IMPORT M3Context;
+IMPORT M3Context, M3AST_AS;
 
 CONST
   (* the kinds of symbols of the protocol (SymbolKind) that are used *)
@@ -45,5 +45,17 @@ PROCEDURE Get (c: M3Context.T; file, text: TEXT): Symbols;
    the order of the text, or NIL if c has no unit of file. text is the
    text that m3tk compiled; the ends of the declarations, which m3tk
    does not keep, are found in it. *)
+
+PROCEDURE Unit (c: M3Context.T; file: TEXT): M3AST_AS.Compilation_Unit;
+(* The unit of file in the context c, or NIL. *)
+
+PROCEDURE OfUnit (cu: M3AST_AS.Compilation_Unit; text: TEXT): Symbols;
+(* The symbols of the unit cu, whose text is text (as for Get); an empty
+   array if it has none. *)
+
+PROCEDURE InCode (text: TEXT; offset: INTEGER): BOOLEAN;
+(* FALSE if the place before the character at offset of text is in a
+   comment, a pragma, a text or a character literal (also one that is
+   not closed), else TRUE. *)
 
 END Outline.

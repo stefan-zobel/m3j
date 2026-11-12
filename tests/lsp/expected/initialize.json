@@ -6,7 +6,11 @@
    "capabilities": {
     "codeActionProvider": false,
     "codeLensProvider": false,
-    "completionProvider": false,
+    "completionProvider": {
+     "triggerCharacters": [
+      "."
+     ]
+    },
     "declarationProvider": true,
     "definitionProvider": true,
     "documentFormattingProvider": false,

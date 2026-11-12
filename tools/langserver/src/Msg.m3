@@ -12,13 +12,14 @@
    characters that their bytes of UTF-8 stand for, instead of having
    their quotes changed to apostrophes; the file of a declaration is a
    file URI of any system (Uri), and a declaration that was not found is
-   null; the outline of a file (BuildDocumentSymbolReply). *)
+   null; the outline of a file (BuildDocumentSymbolReply); the
+   completion of identifiers (BuildCompletionReply), after a "." too. *)
 
 MODULE Msg;
 
 IMPORT JsonWriter,RefSeq,Utils,Text,TextUtils,TextWr,Thread,Utf8,Wr;
 IMPORT M3Error;
-IMPORT Uri, Outline;
+IMPORT Uri, Outline, Complete;
 
 <*FATAL JsonWriter.Error, Wr.Failure, Thread.Alerted*>
 
@@ -98,7 +99,11 @@ PROCEDURE BuildInitReply(id : Id) : TEXT =
     (* only what the server does *)
     m.w.object("capabilities");
     m.w.int(TextDocumentSync, "textDocumentSync");
-    m.w.bool(FALSE, "completionProvider");
+    m.w.object("completionProvider");
+    m.w.array("triggerCharacters");
+    m.w.text(".");
+    m.w.end();
+    m.w.end();
     m.w.bool(TRUE, "hoverProvider");
     m.w.bool(TRUE, "definitionProvider");
     m.w.bool(TRUE, "declarationProvider");
@@ -303,6 +308,26 @@ PROCEDURE BuildDocumentSymbolReply(id : Id; syms : Outline.Symbols) : TEXT =
     m.w.end();
     RETURN Finish(m);
   END BuildDocumentSymbolReply;
+
+PROCEDURE BuildCompletionReply(id : Id; items : Complete.Items) : TEXT =
+  VAR m : Writer;
+  BEGIN
+    IF items = NIL THEN RETURN NullReply(id); END;
+    StartReply(m, id);
+    m.w.array("result");
+    FOR i := 0 TO LAST(items^) DO
+      WITH item = items[i] DO
+        m.w.object();
+        m.w.text(Chars(item.label), "label");
+        m.w.int(item.kind, "kind");
+        IF item.detail # NIL THEN m.w.text(Chars(item.detail), "detail"); END;
+        m.w.text(item.sort, "sortText");
+        m.w.end();
+      END;
+    END;
+    m.w.end();
+    RETURN Finish(m);
+  END BuildCompletionReply;
 
 PROCEDURE BuildErrorReply(id : Id; error : INTEGER; message : TEXT) : TEXT =
   VAR m : Writer;

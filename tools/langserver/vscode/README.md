@@ -17,7 +17,12 @@ language server of m3j (`m3_lang_server.jar`):
 - the outline of a file (Outline, breadcrumbs, Go to Symbol in Editor):
   its constants, types, variables, exceptions, revelations and
   procedures, with the fields and methods of records and objects and the
-  nested procedures.
+  nested procedures;
+- completion (while typing, after a `.` and with Ctrl+Space): after
+  `I.` the declarations of the imported interface `I`, else the
+  identifiers of the file and of the interfaces it exports and imports,
+  the predeclared identifiers and the reserved words (not yet the fields
+  and methods after a variable, nor local variables and parameters).
 
 It needs no other packages: `extension.js` talks to the server with
 `lsp.js`, a client of the Language Server Protocol of its own.

@@ -22,6 +22,8 @@
      last, or if it changed since.
    - textDocument/definition is answered as textDocument/declaration.
    - textDocument/documentSymbol: the outline of a file (Outline).
+   - textDocument/completion: the identifiers that can be used at a place
+     of a file, after "I." those of the interface I (Complete).
    - A request whose fields are missing or of the wrong kind gets an
      error reply (InvalidParams), a request without a method one with
      InvalidRequest, a request that the server knows but does not handle
@@ -60,8 +62,8 @@ MODULE LSP;
 
 IMPORT Fmt, Wr, Stdio, Thread, Text, TextSeq, TextUtils, Process, File;
 IMPORT FS, OSError, Pathname, RuntimeError, Rd, TextRd, Utf8;
-IMPORT JsonReader, Msg, AstCompile, Feature, Outline, Utils, Debug, Uri,
-       M3jCompile;
+IMPORT JsonReader, Msg, AstCompile, Feature, Outline, Complete, Utils,
+       Debug, Uri, M3jCompile;
 IMPORT IO, Buf, RefSeq, TextRefTbl;
 
 CONST
@@ -87,7 +89,7 @@ CONST
 
 TYPE
   MsgType = {Initialize, Shutdown, Hover, FoldingRange, CodeLens,
-             Declaration, TypeDefinition, DocumentSymbol,
+             Declaration, TypeDefinition, DocumentSymbol, Completion,
              (* notifications *)
              Initialized, Exit, Open, Close, Save, Change,
              (* not part of protocol *)
@@ -255,6 +257,15 @@ PROCEDURE Package (uri: TEXT; again := FALSE): BOOLEAN =
     RETURN TRUE;
   END Package;
 
+(* with m3tkMu, after m3tk compiled text, the text of uri: its
+   declarations for Complete *)
+PROCEDURE Parsed (uri, text: TEXT) =
+  BEGIN
+    IF wc.getContext() # NIL THEN
+      Complete.Parsed(wc.getContext(), Uri.ToPath(uri), text);
+    END;
+  END Parsed;
+
 (* with m3tkMu: TRUE if the AST of m3tk is that of the text of uri,
    which is compiled if it is not; FALSE if the file is not open or not
    in a package *)
@@ -278,6 +289,7 @@ PROCEDURE Compiled (uri: TEXT): BOOLEAN =
     compiled := NIL;
     EVAL wc.compile(uri, text);
     compiled := uri;
+    Parsed(uri, text);
     RETURN wc.getContext() # NIL;
   END Compiled;
 
@@ -293,6 +305,7 @@ PROCEDURE CheckText (uri, text: TEXT) =
         compiled := NIL;
         errors := wc.compile(uri, text);
         compiled := uri;
+        Parsed(uri, text);
         (* even if no errors still send reply *)
         msg := Msg.BuildChangeReply(wc.fileName(), uri, errors);
       END;
@@ -600,6 +613,8 @@ PROCEDURE Classify (vs: VS): MsgType =
       ret := MsgType.TypeDefinition;
     ELSIF Text.Equal(vs.method, "textDocument/documentSymbol") THEN
       ret := MsgType.DocumentSymbol;
+    ELSIF Text.Equal(vs.method, "textDocument/completion") THEN
+      ret := MsgType.Completion;
 
       (* Notifications *)
 
@@ -809,6 +824,51 @@ PROCEDURE DocumentSymbolResponse (vs: VS) =
     SendResult(Msg.BuildDocumentSymbolReply(vs.id, syms));
   END DocumentSymbolResponse;
 
+TYPE
+  (* the texts of the open files, for Complete *)
+  OpenTexts = Complete.Texts OBJECT OVERRIDES get := OpenText; END;
+
+(* the text of the open file whose pathname is file, or NIL *)
+PROCEDURE OpenText (<*UNUSED*> self: OpenTexts; file: TEXT): TEXT =
+  VAR
+    iter := compilerClosure.textSeqTbl.iterate();
+    uri : TEXT;
+    ref : REFANY;
+  BEGIN
+    WHILE iter.next(uri, ref) DO
+      IF Feature.SameFile(Uri.ToPath(uri), file) THEN
+        RETURN TextUtils.TextSeqToText(NARROW(ref, TextSeq.T), sep := "\n");
+      END;
+    END;
+    RETURN NIL;
+  END OpenText;
+
+PROCEDURE CompletionResponse (vs: VS) =
+  VAR
+    uri      : TEXT;
+    line, col: INTEGER;
+    items    : Complete.Items := NIL;
+    ref      : REFANY;
+  BEGIN
+    IF NOT GetPosition(vs, uri, line, col) THEN
+      ErrorResponse(vs);
+      RETURN;
+    END;
+
+    (* the items at the place in the text that m3tk compiled *)
+    LOCK m3tkMu DO
+      IF Compiled(uri) AND compilerClosure.textSeqTbl.get(uri, ref) THEN
+        items := Complete.Get(
+                   wc.getContext(), Uri.ToPath(uri),
+                   TextUtils.TextSeqToText(NARROW(ref, TextSeq.T),
+                                           sep := "\n"),
+                   line, col, NEW(OpenTexts));
+      END;
+    END;
+
+    SendResult(Msg.BuildCompletionReply(vs.id, items));
+  END CompletionResponse;
+
 PROCEDURE DidOpen (vs: VS) =
   VAR
     uri, text: TEXT;
@@ -998,6 +1058,7 @@ PROCEDURE HandleMsg (msg: TEXT): BOOLEAN =
       | MsgType.TypeDefinition => TypeDefinitionResponse(vs);
       | MsgType.Hover => HoverResponse(vs);
       | MsgType.DocumentSymbol => DocumentSymbolResponse(vs);
+      | MsgType.Completion => CompletionResponse(vs);
       | MsgType.Shutdown => ShutdownResponse(vs);
       | MsgType.Error =>
           (* not sending errors for notifications *)

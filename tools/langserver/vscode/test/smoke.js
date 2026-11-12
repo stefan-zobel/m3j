@@ -107,7 +107,8 @@ async function testExtension() {
   const extension = require('../extension');
   const context = { subscriptions: [] };
   extension.activate(context);
-  check('extension.js: providers', ['hover', 'definition', 'declaration', 'typeDefinition', 'documentSymbol']
+  check('extension.js: providers', ['hover', 'definition', 'declaration', 'typeDefinition', 'documentSymbol',
+    'completion']
     .every((k) => vscode.mock.providers[k]), Object.keys(vscode.mock.providers).join(' '));
   const doc = {
     uri: vscode.Uri.file(main), languageId: 'modula3', version: 1, getText: () => text
@@ -137,6 +138,18 @@ async function testExtension() {
     show.selectionRange.start.line === position('Show (w').line &&
     syms[0].kind === vscode.SymbolKind.Constant && syms[1].kind === vscode.SymbolKind.Variable,
     JSON.stringify(syms));
+  const util = position('Util.Add', 5);
+  const items = await vscode.mock.providers.completion.provideCompletionItems(doc,
+    new vscode.Position(util.line, util.character));
+  const addItem = items && items.find((i) => i.label === 'Add');
+  check('extension.js: completion after Util.', addItem && addItem.kind === vscode.CompletionItemKind.Function &&
+    items.every((i) => i.label !== 'INTEGER'), JSON.stringify(items));
+  const word = position('Show (Stdio');
+  const words = await vscode.mock.providers.completion.provideCompletionItems(doc,
+    new vscode.Position(word.line, word.character));
+  check('extension.js: completion of identifiers', words &&
+    ['Show', 'total', 'Util', 'INTEGER', 'BEGIN'].every((l) => words.some((i) => i.label === l)),
+    JSON.stringify(words));
   const sets = coll.sets;
   const t = position('total := Util');
   doc.version = 2;

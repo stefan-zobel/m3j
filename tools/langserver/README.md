@@ -19,7 +19,18 @@ input and output, so any editor with a client of the protocol can use it:
   and the nested procedures (`src/Outline.m3`). m3tk keeps where a
   declaration begins but not where it ends, so the end is found in the
   text (the `;` or the `END` of the procedure); after a syntax error, the
-  outline has what m3tk parsed before it.
+  outline has what m3tk parsed before it;
+- the completion of identifiers (`textDocument/completion`, also after a
+  `.`, `src/Complete.m3`): after `I.` the declarations of the interface
+  that the unit imports as `I` (with `IMPORT X AS I` too, and of a
+  generic instance such as `TextSeq`); else the declarations of the unit
+  and of the interfaces that a module exports, the interfaces it imports
+  and the names of its `FROM` imports, the predeclared identifiers and
+  the reserved words, each group sorted after the one before. While a
+  file has a syntax error, the declarations that m3tk drops after it are
+  those of the last text of the file without one. Not yet: the fields
+  and methods after a variable (`v.`), and the local variables and
+  parameters of procedures.
 
 It checks a file with m3tk, CM3's toolkit for Modula-3 (in `tests/stubgen`),
 not with the compiler of m3j: a message is that of m3tk. A file is checked

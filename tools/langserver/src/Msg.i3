@@ -7,11 +7,12 @@
 (* Changed for m3j: the id of a request is an Id, a number or a string
    (or null, if the request could not be read); an error reply has a
    message; no ReadMessages, as there is no msg.json; the outline of a
-   file (BuildDocumentSymbolReply). *)
+   file (BuildDocumentSymbolReply); the completion of identifiers
+   (BuildCompletionReply). *)
 
 INTERFACE Msg;
 
-IMPORT RefSeq, Outline;
+IMPORT RefSeq, Outline, Complete;
 
 TYPE
   Id = RECORD
@@ -31,6 +32,8 @@ PROCEDURE BuildDeclarationReply(id : Id; uri : TEXT;
                                 line, col, len : INTEGER) : TEXT;
 PROCEDURE BuildDocumentSymbolReply(id : Id; syms : Outline.Symbols) : TEXT;
 (* the symbols, or null if syms is NIL *)
+PROCEDURE BuildCompletionReply(id : Id; items : Complete.Items) : TEXT;
+(* the items, or null if items is NIL *)
 PROCEDURE BuildTypeDefinitionReply(id : Id; uri : TEXT;
                                    line, col, len : INTEGER) : TEXT;
 (* server initiates *)

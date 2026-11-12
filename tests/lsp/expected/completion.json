@@ -1,0 +1,2064 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/complete/src/Main.m3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+   {
+    "label": "Max",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "Color",
+    "kind": 13,
+    "sortText": "0"
+   },
+   {
+    "label": "T",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "Public",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Empty",
+    "kind": 23,
+    "sortText": "0"
+   },
+   {
+    "label": "New",
+    "kind": 3,
+    "detail": "(): T",
+    "sortText": "0"
+   },
+   {
+    "label": "Top",
+    "kind": 3,
+    "detail": "(s: T): INTEGER RAISES {Empty}",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": [
+   {
+    "label": "Brand",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "T",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "Public",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "Cat",
+    "kind": 3,
+    "detail": "(s, t: T): T",
+    "sortText": "0"
+   },
+   {
+    "label": "Sub",
+    "kind": 3,
+    "detail": "(s: T; start: CARDINAL; length: CARDINAL := LAST(CARDINAL)): T",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": [
+   {
+    "label": "Limit",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "s",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "names",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Fill",
+    "kind": 3,
+    "detail": "(n: INTEGER)",
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "()",
+    "sortText": "0"
+   },
+   {
+    "label": "S",
+    "kind": 9,
+    "detail": "Stack",
+    "sortText": "1"
+   },
+   {
+    "label": "TextSeq",
+    "kind": 9,
+    "sortText": "1"
+   },
+   {
+    "label": "IO",
+    "kind": 9,
+    "sortText": "1"
+   },
+   {
+    "label": "Max",
+    "kind": 21,
+    "sortText": "1"
+   },
+   {
+    "label": "Top",
+    "kind": 3,
+    "detail": "(s: T): INTEGER RAISES {Empty}",
+    "sortText": "1"
+   },
+   {
+    "label": "ADDRESS",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "BOOLEAN",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "CARDINAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "CHAR",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "EXTENDED",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "INTEGER",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGCARD",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGINT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGREAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "MUTEX",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "NULL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "REAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "REFANY",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "ROOT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "TEXT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "WIDECHAR",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "FALSE",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "NIL",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "TRUE",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "ABS",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ADRSIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "BITSIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "BYTESIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "CEILING",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "DEC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FIRST",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FLOAT",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FLOOR",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "INC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ISTYPE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "LAST",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "MAX",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "MIN",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NARROW",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NEW",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NUMBER",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ORD",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ROUND",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "SUBARRAY",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "TRUNC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "TYPECODE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "VAL",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "AND",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ANY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ARRAY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "AS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BEGIN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BITS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BRANDED",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "CASE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "CONST",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "DIV",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "DO",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ELSE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ELSIF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "END",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EVAL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXCEPT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXCEPTION",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXIT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXPORTS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FINALLY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FOR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FROM",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "GENERIC",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IMPORT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "INTERFACE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "LOCK",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "LOOP",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "METHODS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "MOD",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "MODULE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "NOT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OBJECT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OVERRIDES",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "PROCEDURE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RAISE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RAISES",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "READONLY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RECORD",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REPEAT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RETURN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REVEAL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "SET",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "THEN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TO",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TRY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TYPE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TYPECASE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "UNTIL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "UNTRACED",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "VALUE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "VAR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "WHILE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "WITH",
+    "kind": 14,
+    "sortText": "3"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": []
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": []
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": []
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/complete/src/Main.m3",
+   "diagnostics": [
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 32,
+       "character": 4
+      },
+      "end": {
+       "line": 32,
+       "character": 8
+      }
+     },
+     "message": "Identifier 'Main' not declared",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 18,
+       "character": 6
+      },
+      "end": {
+       "line": 18,
+       "character": 10
+      }
+     },
+     "message": "lhs of assignment is not a writeable designator",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 16,
+       "character": 7
+      },
+      "end": {
+       "line": 16,
+       "character": 10
+      }
+     },
+     "message": "Identifier 'Rep' not declared",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 33,
+       "character": 0
+      },
+      "end": {
+       "line": 33,
+       "character": 13
+      }
+     },
+     "message": "identifier expected, end of stream found",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 32,
+       "character": 4
+      },
+      "end": {
+       "line": 32,
+       "character": 8
+      }
+     },
+     "message": "';' expected, identifier 'Main' found",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 18,
+       "character": 10
+      },
+      "end": {
+       "line": 18,
+       "character": 13
+      }
+     },
+     "message": "':=' expected, ';' found",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 18,
+       "character": 6
+      },
+      "end": {
+       "line": 18,
+       "character": 10
+      }
+     },
+     "message": "';' expected, identifier 'Fill' found",
+     "source": "m3tk"
+    },
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 17,
+       "character": 4
+      },
+      "end": {
+       "line": 17,
+       "character": 9
+      }
+     },
+     "message": "THEN expected, identifier 'names' found",
+     "source": "m3tk"
+    }
+   ]
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": [
+   {
+    "label": "Limit",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "s",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "names",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Fill",
+    "kind": 3,
+    "detail": "(n: INTEGER)",
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "()",
+    "sortText": "0"
+   },
+   {
+    "label": "S",
+    "kind": 9,
+    "detail": "Stack",
+    "sortText": "1"
+   },
+   {
+    "label": "TextSeq",
+    "kind": 9,
+    "sortText": "1"
+   },
+   {
+    "label": "IO",
+    "kind": 9,
+    "sortText": "1"
+   },
+   {
+    "label": "Max",
+    "kind": 21,
+    "sortText": "1"
+   },
+   {
+    "label": "Top",
+    "kind": 3,
+    "detail": "(s: T): INTEGER RAISES {Empty}",
+    "sortText": "1"
+   },
+   {
+    "label": "ADDRESS",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "BOOLEAN",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "CARDINAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "CHAR",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "EXTENDED",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "INTEGER",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGCARD",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGINT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGREAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "MUTEX",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "NULL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "REAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "REFANY",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "ROOT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "TEXT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "WIDECHAR",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "FALSE",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "NIL",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "TRUE",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "ABS",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ADRSIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "BITSIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "BYTESIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "CEILING",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "DEC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FIRST",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FLOAT",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FLOOR",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "INC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ISTYPE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "LAST",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "MAX",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "MIN",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NARROW",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NEW",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NUMBER",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ORD",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ROUND",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "SUBARRAY",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "TRUNC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "TYPECODE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "VAL",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "AND",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ANY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ARRAY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "AS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BEGIN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BITS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BRANDED",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "CASE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "CONST",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "DIV",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "DO",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ELSE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ELSIF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "END",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EVAL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXCEPT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXCEPTION",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXIT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXPORTS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FINALLY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FOR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FROM",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "GENERIC",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IMPORT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "INTERFACE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "LOCK",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "LOOP",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "METHODS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "MOD",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "MODULE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "NOT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OBJECT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OVERRIDES",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "PROCEDURE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RAISE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RAISES",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "READONLY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RECORD",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REPEAT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RETURN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REVEAL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "SET",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "THEN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TO",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TRY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TYPE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TYPECASE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "UNTIL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "UNTRACED",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "VALUE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "VAR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "WHILE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "WITH",
+    "kind": 14,
+    "sortText": "3"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 11,
+  "result": [
+   {
+    "name": "Limit",
+    "kind": 14,
+    "range": {
+     "start": {
+      "line": 5,
+      "character": 6
+     },
+     "end": {
+      "line": 5,
+      "character": 18
+     }
+    },
+    "selectionRange": {
+     "start": {
+      "line": 5,
+      "character": 6
+     },
+     "end": {
+      "line": 5,
+      "character": 11
+     }
+    }
+   },
+   {
+    "name": "s",
+    "kind": 13,
+    "range": {
+     "start": {
+      "line": 8,
+      "character": 2
+     },
+     "end": {
+      "line": 8,
+      "character": 15
+     }
+    },
+    "selectionRange": {
+     "start": {
+      "line": 8,
+      "character": 2
+     },
+     "end": {
+      "line": 8,
+      "character": 3
+     }
+    }
+   },
+   {
+    "name": "names",
+    "kind": 13,
+    "range": {
+     "start": {
+      "line": 9,
+      "character": 2
+     },
+     "end": {
+      "line": 9,
+      "character": 33
+     }
+    },
+    "selectionRange": {
+     "start": {
+      "line": 9,
+      "character": 2
+     },
+     "end": {
+      "line": 9,
+      "character": 7
+     }
+    }
+   },
+   {
+    "name": "Fill",
+    "detail": "(n: INTEGER)",
+    "kind": 12,
+    "range": {
+     "start": {
+      "line": 13,
+      "character": 0
+     },
+     "end": {
+      "line": 18,
+      "character": 11
+     }
+    },
+    "selectionRange": {
+     "start": {
+      "line": 13,
+      "character": 10
+     },
+     "end": {
+      "line": 13,
+      "character": 14
+     }
+    }
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/complete/src/Stack.m3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 8,
+  "result": [
+   {
+    "label": "Push",
+    "kind": 3,
+    "detail": "(s: T; x: INTEGER)",
+    "sortText": "0"
+   },
+   {
+    "label": "Pop",
+    "kind": 3,
+    "detail": "(s: T): INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "New",
+    "kind": 3,
+    "detail": "(): T",
+    "sortText": "0"
+   },
+   {
+    "label": "Top",
+    "kind": 3,
+    "detail": "(s: T): INTEGER RAISES {Empty}",
+    "sortText": "0"
+   },
+   {
+    "label": "Max",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "Color",
+    "kind": 13,
+    "sortText": "0"
+   },
+   {
+    "label": "T",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "Public",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Empty",
+    "kind": 23,
+    "sortText": "0"
+   },
+   {
+    "label": "ADDRESS",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "BOOLEAN",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "CARDINAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "CHAR",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "EXTENDED",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "INTEGER",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGCARD",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGINT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "LONGREAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "MUTEX",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "NULL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "REAL",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "REFANY",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "ROOT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "TEXT",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "WIDECHAR",
+    "kind": 25,
+    "sortText": "2"
+   },
+   {
+    "label": "FALSE",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "NIL",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "TRUE",
+    "kind": 21,
+    "sortText": "2"
+   },
+   {
+    "label": "ABS",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ADRSIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "BITSIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "BYTESIZE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "CEILING",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "DEC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FIRST",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FLOAT",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "FLOOR",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "INC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ISTYPE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "LAST",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "MAX",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "MIN",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NARROW",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NEW",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "NUMBER",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ORD",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "ROUND",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "SUBARRAY",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "TRUNC",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "TYPECODE",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "VAL",
+    "kind": 3,
+    "sortText": "2"
+   },
+   {
+    "label": "AND",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ANY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ARRAY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "AS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BEGIN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BITS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BRANDED",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "BY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "CASE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "CONST",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "DIV",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "DO",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ELSE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "ELSIF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "END",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EVAL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXCEPT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXCEPTION",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXIT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "EXPORTS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FINALLY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FOR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "FROM",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "GENERIC",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IMPORT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "IN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "INTERFACE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "LOCK",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "LOOP",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "METHODS",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "MOD",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "MODULE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "NOT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OBJECT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "OVERRIDES",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "PROCEDURE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RAISE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RAISES",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "READONLY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RECORD",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REF",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REPEAT",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "RETURN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "REVEAL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "SET",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "THEN",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TO",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TRY",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TYPE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "TYPECASE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "UNTIL",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "UNTRACED",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "VALUE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "VAR",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "WHILE",
+    "kind": 14,
+    "sortText": "3"
+   },
+   {
+    "label": "WITH",
+    "kind": 14,
+    "sortText": "3"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 9,
+  "result": null
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 10,
+  "error": {
+   "code": -32602,
+   "message": "textDocument/uri and position are needed"
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 9999,
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

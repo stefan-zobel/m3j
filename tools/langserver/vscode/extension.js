@@ -5,7 +5,8 @@
 // The extension for Visual Studio Code: the language Modula-3 (in
 // package.json, with its grammar), and the language server of m3j
 // (java -jar m3_lang_server.jar) for errors and warnings, hovers,
-// declarations, type definitions and the outline.
+// declarations, type definitions, the outline and the completion of
+// identifiers.
 
 const vscode = require('vscode');
 const fs = require('fs');
@@ -187,6 +188,20 @@ function toSymbols(result) {
   });
 }
 
+// The items of a completion, from those of the protocol (whose kinds
+// count from 1, those of Visual Studio Code from 0).
+function toItems(result) {
+  const list = Array.isArray(result) ? result : result && Array.isArray(result.items) ? result.items : null;
+  if (!list) return null;
+  return list.filter((i) => i && i.label).map((i) => {
+    const kind = i.kind >= 1 && i.kind <= 25 ? i.kind - 1 : vscode.CompletionItemKind.Text;
+    const item = new vscode.CompletionItem(i.label, kind);
+    if (i.detail) item.detail = i.detail;
+    if (i.sortText) item.sortText = i.sortText;
+    return item;
+  });
+}
+
 function toHover(result) {
   if (!result || !result.contents) return null;
   const items = Array.isArray(result.contents) ? result.contents : [result.contents];
@@ -234,7 +249,11 @@ function activate(context) {
     vscode.languages.registerDocumentSymbolProvider(selector, {
       provideDocumentSymbols: async (doc) =>
         toSymbols(await request('textDocument/documentSymbol', doc, {}))
-    }));
+    }),
+    vscode.languages.registerCompletionItemProvider(selector, {
+      provideCompletionItems: async (doc, position) =>
+        toItems(await ask('textDocument/completion', doc, position))
+    }, '.'));
   if (vscode.workspace.getConfiguration('m3j').get('server', true)) start();
 }
 

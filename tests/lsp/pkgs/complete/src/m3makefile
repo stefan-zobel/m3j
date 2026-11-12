@@ -1,0 +1,6 @@
+% Imports of all kinds, for the completion of identifiers
+% (textDocument/completion).
+import ("libm3")
+module ("Stack")
+implementation ("Main")
+program ("complete")
