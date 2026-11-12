@@ -12,7 +12,14 @@ input and output, so any editor with a client of the protocol can use it:
   (`textDocument/declaration`, `textDocument/definition`,
   `textDocument/typeDefinition`), in the same file, in the interfaces of
   the package, in the library of m3j (`lib`) and in the packages that the
-  package imports, also from a file of the library itself.
+  package imports, also from a file of the library itself;
+- the outline of a file (`textDocument/documentSymbol`): its constants,
+  types, variables, exceptions, revelations and procedures, with the
+  fields and methods of records and objects, the values of enumerations
+  and the nested procedures (`src/Outline.m3`). m3tk keeps where a
+  declaration begins but not where it ends, so the end is found in the
+  text (the `;` or the `END` of the procedure); after a syntax error, the
+  outline has what m3tk parsed before it.
 
 It checks a file with m3tk, CM3's toolkit for Modula-3 (in `tests/stubgen`),
 not with the compiler of m3j: a message is that of m3tk. A file is checked

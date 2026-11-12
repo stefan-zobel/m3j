@@ -21,6 +21,7 @@
      compile the file first if it is not the one that m3tk compiled
      last, or if it changed since.
    - textDocument/definition is answered as textDocument/declaration.
+   - textDocument/documentSymbol: the outline of a file (Outline).
    - A request whose fields are missing or of the wrong kind gets an
      error reply (InvalidParams), a request without a method one with
      InvalidRequest, a request that the server knows but does not handle
@@ -59,7 +60,8 @@ MODULE LSP;
 
 IMPORT Fmt, Wr, Stdio, Thread, Text, TextSeq, TextUtils, Process, File;
 IMPORT FS, OSError, Pathname, RuntimeError, Rd, TextRd, Utf8;
-IMPORT JsonReader, Msg, AstCompile, Feature, Utils, Debug, Uri, M3jCompile;
+IMPORT JsonReader, Msg, AstCompile, Feature, Outline, Utils, Debug, Uri,
+       M3jCompile;
 IMPORT IO, Buf, RefSeq, TextRefTbl;
 
 CONST
@@ -85,7 +87,7 @@ CONST
 
 TYPE
   MsgType = {Initialize, Shutdown, Hover, FoldingRange, CodeLens,
-             Declaration, TypeDefinition,
+             Declaration, TypeDefinition, DocumentSymbol,
              (* notifications *)
              Initialized, Exit, Open, Close, Save, Change,
              (* not part of protocol *)
@@ -596,6 +598,8 @@ PROCEDURE Classify (vs: VS): MsgType =
       ret := MsgType.Declaration;
     ELSIF Text.Equal(vs.method, "textDocument/typeDefinition") THEN
       ret := MsgType.TypeDefinition;
+    ELSIF Text.Equal(vs.method, "textDocument/documentSymbol") THEN
+      ret := MsgType.DocumentSymbol;
 
       (* Notifications *)
 
@@ -779,6 +783,31 @@ PROCEDURE HoverResponse (vs: VS) =
     SendResult(msg);
 
   END HoverResponse;
+
+PROCEDURE DocumentSymbolResponse (vs: VS) =
+  VAR
+    syms: Outline.Symbols := NIL;
+    ref : REFANY;
+  BEGIN
+    IF vs.uri = NIL THEN
+      vs.errorCode := InvalidParams;
+      vs.errorText := "textDocument/uri is needed";
+      ErrorResponse(vs);
+      RETURN;
+    END;
+
+    (* the outline of the text that m3tk compiled *)
+    LOCK m3tkMu DO
+      IF Compiled(vs.uri)
+           AND compilerClosure.textSeqTbl.get(vs.uri, ref) THEN
+        syms := Outline.Get(
+                  wc.getContext(), Uri.ToPath(vs.uri),
+                  TextUtils.TextSeqToText(NARROW(ref, TextSeq.T), sep := "\n"));
+      END;
+    END;
+
+    SendResult(Msg.BuildDocumentSymbolReply(vs.id, syms));
+  END DocumentSymbolResponse;
 
 PROCEDURE DidOpen (vs: VS) =
   VAR
@@ -968,6 +997,7 @@ PROCEDURE HandleMsg (msg: TEXT): BOOLEAN =
       | MsgType.Declaration => DeclarationResponse(vs);
       | MsgType.TypeDefinition => TypeDefinitionResponse(vs);
       | MsgType.Hover => HoverResponse(vs);
+      | MsgType.DocumentSymbol => DocumentSymbolResponse(vs);
       | MsgType.Shutdown => ShutdownResponse(vs);
       | MsgType.Error =>
           (* not sending errors for notifications *)

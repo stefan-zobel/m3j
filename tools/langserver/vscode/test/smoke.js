@@ -107,7 +107,7 @@ async function testExtension() {
   const extension = require('../extension');
   const context = { subscriptions: [] };
   extension.activate(context);
-  check('extension.js: providers', ['hover', 'definition', 'declaration', 'typeDefinition']
+  check('extension.js: providers', ['hover', 'definition', 'declaration', 'typeDefinition', 'documentSymbol']
     .every((k) => vscode.mock.providers[k]), Object.keys(vscode.mock.providers).join(' '));
   const doc = {
     uri: vscode.Uri.file(main), languageId: 'modula3', version: 1, getText: () => text
@@ -130,6 +130,13 @@ async function testExtension() {
   const types = await vscode.mock.providers.typeDefinition.provideTypeDefinition(doc, new vscode.Position(p.line, p.character));
   check('extension.js: type definition', types && types.length === 1 &&
     sameFile(types[0].uri.fsPath, path.join(work, 'shapes', 'src', 'Shapes.i3')), JSON.stringify(types));
+  const syms = await vscode.mock.providers.documentSymbol.provideDocumentSymbols(doc);
+  const show = syms && syms.find((s) => s.name === 'Show');
+  check('extension.js: outline', syms && syms.map((s) => s.name).join(' ') === 'Greeting p total table circle Show' &&
+    show.kind === vscode.SymbolKind.Function && show.detail === '(w: Wr.T; n: INTEGER)' &&
+    show.selectionRange.start.line === position('Show (w').line &&
+    syms[0].kind === vscode.SymbolKind.Constant && syms[1].kind === vscode.SymbolKind.Variable,
+    JSON.stringify(syms));
   const sets = coll.sets;
   const t = position('total := Util');
   doc.version = 2;

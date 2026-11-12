@@ -8,7 +8,8 @@
    interfaces of the context are named too, not only those of the unit,
    so that a type of another interface is shown by its name (Wr.T)
    instead of an error for an opaque type; the unit that is searched is
-   that of the file (an interface and a module have the same name). *)
+   that of the file (an interface and a module have the same name);
+   SameFile is in the interface, for Outline. *)
 
 MODULE Feature;
 

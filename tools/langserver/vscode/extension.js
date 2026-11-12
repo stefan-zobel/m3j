@@ -5,7 +5,7 @@
 // The extension for Visual Studio Code: the language Modula-3 (in
 // package.json, with its grammar), and the language server of m3j
 // (java -jar m3_lang_server.jar) for errors and warnings, hovers,
-// declarations and type definitions.
+// declarations, type definitions and the outline.
 
 const vscode = require('vscode');
 const fs = require('fs');
@@ -154,22 +154,37 @@ function start() {
   });
 }
 
-// A request about a position in a document, once the server is ready:
-// its result, or null.
-async function ask(method, doc, position) {
+// A request about a document, once the server is ready: its result, or
+// null.
+async function request(method, doc, params) {
   if (!conn || !ready) return null;
   await ready;
   if (!conn) return null;
   didOpen(doc);
   try {
-    return await conn.request(method, {
-      textDocument: { uri: doc.uri.toString() },
-      position: fromPosition(position)
-    });
+    return await conn.request(method, Object.assign({ textDocument: { uri: doc.uri.toString() } }, params));
   } catch (err) {
     output.appendLine(method + ': ' + err.message);
     return null;
   }
+}
+
+// A request about a position in a document.
+function ask(method, doc, position) {
+  return request(method, doc, { position: fromPosition(position) });
+}
+
+// The symbols of the outline, from those of the protocol (whose kinds
+// count from 1, those of Visual Studio Code from 0).
+function toSymbols(result) {
+  if (!Array.isArray(result)) return null;
+  return result.filter((s) => s && s.name && s.range && s.selectionRange).map((s) => {
+    const kind = s.kind >= 1 && s.kind <= 26 ? s.kind - 1 : vscode.SymbolKind.Variable;
+    const sym = new vscode.DocumentSymbol(s.name, s.detail || '', kind,
+      toRange(s.range), toRange(s.selectionRange));
+    sym.children = toSymbols(s.children) || [];
+    return sym;
+  });
 }
 
 function toHover(result) {
@@ -215,6 +230,10 @@ function activate(context) {
     vscode.languages.registerTypeDefinitionProvider(selector, {
       provideTypeDefinition: async (doc, position) =>
         toLocations(await ask('textDocument/typeDefinition', doc, position))
+    }),
+    vscode.languages.registerDocumentSymbolProvider(selector, {
+      provideDocumentSymbols: async (doc) =>
+        toSymbols(await request('textDocument/documentSymbol', doc, {}))
     }));
   if (vscode.workspace.getConfiguration('m3j').get('server', true)) start();
 }

@@ -12,13 +12,13 @@
    characters that their bytes of UTF-8 stand for, instead of having
    their quotes changed to apostrophes; the file of a declaration is a
    file URI of any system (Uri), and a declaration that was not found is
-   null. *)
+   null; the outline of a file (BuildDocumentSymbolReply). *)
 
 MODULE Msg;
 
 IMPORT JsonWriter,RefSeq,Utils,Text,TextUtils,TextWr,Thread,Utf8,Wr;
 IMPORT M3Error;
-IMPORT Uri;
+IMPORT Uri, Outline;
 
 <*FATAL JsonWriter.Error, Wr.Failure, Thread.Alerted*>
 
@@ -104,7 +104,7 @@ PROCEDURE BuildInitReply(id : Id) : TEXT =
     m.w.bool(TRUE, "declarationProvider");
     m.w.bool(TRUE, "typeDefinitionProvider");
     m.w.bool(FALSE, "implementationProvider");
-    m.w.bool(FALSE, "documentSymbolProvider");
+    m.w.bool(TRUE, "documentSymbolProvider");
     m.w.bool(FALSE, "workspaceSymbolProvider");
     m.w.bool(FALSE, "foldingRangeProvider");
     m.w.bool(FALSE, "codeActionProvider");
@@ -258,6 +258,51 @@ PROCEDURE BuildTypeDefinitionReply(id : Id; uri : TEXT;
   BEGIN
     RETURN BuildDeclarationReply(id,uri,line,col,len);
   END BuildTypeDefinitionReply;
+
+PROCEDURE Span(w : JsonWriter.T; name : TEXT; READONLY s : Outline.Span) =
+  BEGIN
+    w.object(name);
+    w.object("start");
+    w.int(s.start.line, "line");
+    w.int(s.start.col, "character");
+    w.end();
+    w.object("end");
+    w.int(s.end.line, "line");
+    w.int(s.end.col, "character");
+    w.end();
+    w.end();
+  END Span;
+
+PROCEDURE Symbols(w : JsonWriter.T; syms : Outline.Symbols) =
+  BEGIN
+    FOR i := 0 TO LAST(syms^) DO
+      WITH sym = syms[i] DO
+        w.object();
+        w.text(Chars(sym.name), "name");
+        IF sym.detail # NIL THEN w.text(Chars(sym.detail), "detail"); END;
+        w.int(sym.kind, "kind");
+        Span(w, "range", sym.range);
+        Span(w, "selectionRange", sym.selection);
+        IF sym.children # NIL THEN
+          w.array("children");
+          Symbols(w, sym.children);
+          w.end();
+        END;
+        w.end();
+      END;
+    END;
+  END Symbols;
+
+PROCEDURE BuildDocumentSymbolReply(id : Id; syms : Outline.Symbols) : TEXT =
+  VAR m : Writer;
+  BEGIN
+    IF syms = NIL THEN RETURN NullReply(id); END;
+    StartReply(m, id);
+    m.w.array("result");
+    Symbols(m.w, syms);
+    m.w.end();
+    RETURN Finish(m);
+  END BuildDocumentSymbolReply;
 
 PROCEDURE BuildErrorReply(id : Id; error : INTEGER; message : TEXT) : TEXT =
   VAR m : Writer;

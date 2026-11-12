@@ -11,7 +11,7 @@
     "definitionProvider": true,
     "documentFormattingProvider": false,
     "documentRangeFormattingProvider": false,
-    "documentSymbolProvider": false,
+    "documentSymbolProvider": true,
     "foldingRangeProvider": false,
     "hoverProvider": true,
     "implementationProvider": false,

@@ -94,6 +94,33 @@ class Hover {
 
 const DiagnosticSeverity = { Error: 0, Warning: 1, Information: 2, Hint: 3 };
 
+const SymbolKind = {
+  File: 0, Module: 1, Namespace: 2, Package: 3, Class: 4, Method: 5, Property: 6, Field: 7,
+  Constructor: 8, Enum: 9, Interface: 10, Function: 11, Variable: 12, Constant: 13, String: 14,
+  Number: 15, Boolean: 16, Array: 17, Object: 18, Key: 19, Null: 20, EnumMember: 21, Struct: 22,
+  Event: 23, Operator: 24, TypeParameter: 25
+};
+
+function before(a, b) {
+  return a.line < b.line || a.line === b.line && a.character < b.character;
+}
+
+class DocumentSymbol {
+  // as in Visual Studio Code: the range must hold the selection range
+  constructor(name, detail, kind, range, selectionRange) {
+    if (!name) throw new Error('name must not be falsy');
+    if (before(selectionRange.start, range.start) || before(range.end, selectionRange.end)) {
+      throw new Error('selectionRange must be contained in fullRange');
+    }
+    this.name = name;
+    this.detail = detail;
+    this.kind = kind;
+    this.range = range;
+    this.selectionRange = selectionRange;
+    this.children = [];
+  }
+}
+
 class Diagnostic {
   constructor(range, message, severity) {
     this.range = range;
@@ -111,6 +138,7 @@ function register(kind) {
 
 module.exports = {
   Uri, Position, Range, Location, MarkdownString, Hover, Diagnostic, DiagnosticSeverity,
+  SymbolKind, DocumentSymbol,
   workspace: {
     workspaceFolders: [],
     textDocuments: [],
@@ -146,7 +174,8 @@ module.exports = {
     registerHoverProvider: register('hover'),
     registerDefinitionProvider: register('definition'),
     registerDeclarationProvider: register('declaration'),
-    registerTypeDefinitionProvider: register('typeDefinition')
+    registerTypeDefinitionProvider: register('typeDefinition'),
+    registerDocumentSymbolProvider: register('documentSymbol')
   },
   // for the test
   mock: { events, providers, shown, collections, setSettings: (s) => { settings = s; } }

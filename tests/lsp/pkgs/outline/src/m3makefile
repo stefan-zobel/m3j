@@ -1,0 +1,5 @@
+% Declarations of all kinds, for the outline (textDocument/documentSymbol).
+import ("libm3")
+module ("Decls")
+implementation ("Main")
+program ("outline")

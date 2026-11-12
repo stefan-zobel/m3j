@@ -25,6 +25,7 @@ module("Msg")
 module("Utils")
 module("Debug")
 module("Feature")
+module("Outline")
 module("Uri")
 interface("M3jCompile")
 

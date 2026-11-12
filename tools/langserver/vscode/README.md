@@ -13,7 +13,11 @@ language server of m3j (`m3_lang_server.jar`):
   Problems;
 - Hover: the name and type of an identifier;
 - Go to Definition (F12) and Go to Declaration: the declaration of an
-  identifier; Go to Type Definition: the definition of its type.
+  identifier; Go to Type Definition: the definition of its type;
+- the outline of a file (Outline, breadcrumbs, Go to Symbol in Editor):
+  its constants, types, variables, exceptions, revelations and
+  procedures, with the fields and methods of records and objects and the
+  nested procedures.
 
 It needs no other packages: `extension.js` talks to the server with
 `lsp.js`, a client of the Language Server Protocol of its own.
