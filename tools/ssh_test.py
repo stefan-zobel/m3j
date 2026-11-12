@@ -78,6 +78,18 @@ CIPHERS = ["aes128-gcm@openssh.com", "aes256-gcm@openssh.com", "aes128-ctr", "ae
 MACS = ["hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com", "hmac-sha1-etm@openssh.com",
         "hmac-sha2-256", "hmac-sha2-512", "hmac-sha1"]
 
+
+def default_kex():
+    """What JSch and a server of asyncssh with its defaults agree on: JSch
+    offers mlkem768x25519-sha256 first, which newer versions of asyncssh
+    know, then curve25519-sha256."""
+    try:
+        if b"mlkem768x25519-sha256" in asyncssh.kex.get_default_kex_algs():
+            return "mlkem768x25519-sha256"
+    except AttributeError:
+        pass
+    return "curve25519-sha256"
+
 # servers that offer only what was left out: a key exchange, a cipher, a MAC
 LEFT_OUT = [{"kex_algs": ["diffie-hellman-group1-sha1"]},
             {"kex_algs": ["diffie-hellman-group14-sha1"]},
@@ -488,9 +500,9 @@ def case_jsch(env):
     for m in MACS:
         lines.append("- - aes128-ctr %s" % m)
         wants.append((None, None, "aes128-ctr", m))
-    # the defaults: ML-KEM is offered first, asyncssh does not know it
+    # the defaults (see default_kex)
     lines.append("- - - -")
-    wants.append(("curve25519-sha256", "ssh-ed25519", "aes128-gcm@openssh.com", None))
+    wants.append((default_kex(), "ssh-ed25519", "aes128-gcm@openssh.com", None))
     for line, want, got in zip(lines, wants, env.probe(port, lines)):
         f = got.split(" ")
         if f[0] != "ok":
