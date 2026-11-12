@@ -21,7 +21,9 @@ libraries of CM3 are not supported.
   current platform;
 - those who want to see how a language with value records, nested
   procedures, structural type equivalence and exceptions maps onto the
-  JVM: [`docs/BACKEND.md`](docs/BACKEND.md) explains every decision;
+  JVM: the article [Modula-3 on the JVM](https://stefan-zobel.github.io/m3j/)
+  gives an overview, [`docs/BACKEND.md`](docs/BACKEND.md) explains every
+  decision;
 - those who look for a small, clean language with modules, objects and
   threads to teach or to learn from.
 
