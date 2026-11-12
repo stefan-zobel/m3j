@@ -20,9 +20,12 @@ units that are here; m3core imports the package `m3j`.
 Copied from the packages m3core and libm3 of CM3 5.12.0 (the sources of
 commit `20a295f`, as installed for the target AMD64_NT, which lists the
 units of the target in `pkg/NAME/AMD64_NT/.M3EXPORTS`), with their
-copyright notices (`COPYRIGHT-CMASS`, `src/COPYRIGHT`): the units that
-the programs and tests of m3j use (the interfaces, generic units, generic
-instances and safe modules that their compilation reads), and the safe
+copyright notices (`COPYRIGHT-CMASS`, `src/COPYRIGHT`; `TextExtras`,
+`FloatExtras`, `MD5` and `SHA256` have notices of other authors, in
+`licenses/COPYRIGHT-OLIVETTI`, `COPYRIGHT-XEROX` and `COPYRIGHT-BSD`):
+the units that the programs and tests of m3j use (the interfaces, generic
+units, generic instances and safe modules that their compilation reads),
+and the safe
 units that programs may want (`Boolean`, `Int32`, `Int64`, `WideChar`,
 `Unicode`, `FmtTime`; the geometry of `Point`, `Rect`, `Interval`,
 `Region`, `Transform` and others; `Sx`, `PQueue`, `MProperty`, `NullRd`,
@@ -75,9 +78,10 @@ These modules are changed for m3j (each says so and why at its top):
 The package tcp of CM3 5.12.0 (the sources of the same commit): TCP
 connections, their readers and writers (`ConnRW`) and messages
 (`ConnMsgRW`), and the addresses of IP. Its interfaces and safe modules
-are copied with their copyright notices (`TCPMisc.i3` has the notice of
-John D. Polstra in it). In place of cm3's UNSAFE modules, which call
-Windows Sockets or the sockets of POSIX and C, the package has safe
+are copied with their copyright notices (`StreamRd`, `StreamWr`, their
+class interfaces and `TCPMisc.i3` have the notice of John D. Polstra in
+them, see `licenses/BSD-POLSTRA`). In place of cm3's UNSAFE modules, which
+call Windows Sockets or the sockets of POSIX and C, the package has safe
 modules on the sockets and the lookup of names of the Java platform
 (`M3jNet`):
 
@@ -244,9 +248,11 @@ generic instance `TextTextSeqTbl`): procedures on texts (`TextUtils`,
 files and directories (`FSUtils`, `DirStack`), pathnames (`PathRepr`),
 messages (`SMsg`, `MsgX`, `MsgIF`), child processes with redirections and
 pipes (`System`), and others. The copyright notice of elego Software
-Solutions is in each file. The modules of cm3 for one system are merged
-into modules for both, which follow the system that the program runs on
-(`M3jOS`), and the UNSAFE ones are replaced:
+Solutions is in its files and in `licenses/BSD-ELEGO`; `ConnectRdWr.m3` is
+adapted from `StreamRd` of tcp (`licenses/BSD-POLSTRA`). The modules of
+cm3 for one system are merged into modules for both, which follow the
+system that the program runs on (`M3jOS`), and the UNSAFE ones are
+replaced:
 
 | Module | Change |
 |---|---|

@@ -32,7 +32,8 @@ trees.
 
 The units keep their copyright notices (`m3tk/src/COPYRIGHT`,
 `m3tk-misc/src/COPYRIGHT`, `stubgen/src/COPYRIGHT`); see also `licenses/`
-(`COPYRIGHT-DEC`, `COPYRIGHT-CMASS`, `COPYRIGHT-COLUMBIA`).
+(`COPYRIGHT-DEC`, `COPYRIGHT-CMASS`, `COPYRIGHT-COLUMBIA`, and for m3tk
+`COPYRIGHT-OLIVETTI` and `COPYRIGHT-SUN`).
 
 These units are changed for m3j (each says so and why at its top):
 

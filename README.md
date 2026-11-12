@@ -144,13 +144,25 @@ changed one, a line in its head says that the changes are distributed
 under the MIT license in [`LICENSE`](LICENSE).
 
 The ported CM3 sources are distributed under their original licenses, in
-[`licenses/`](licenses) ([`COPYRIGHT-DEC`](licenses/COPYRIGHT-DEC) for the code from Digital Equipment
-Corporation, [`COPYRIGHT-CMASS`](licenses/COPYRIGHT-CMASS) for the code from Critical Mass,
-[`COPYRIGHT-COLUMBIA`](licenses/COPYRIGHT-COLUMBIA) for the code from Columbia University,
-[`COPYRIGHT-LUCENT`](licenses/COPYRIGHT-LUCENT) for the notice of David Gay's conversion code,
-[`MIT-BATES`](licenses/MIT-BATES) for `ArrayExpr`, [`MIT-MCKINNA`](licenses/MIT-MCKINNA) for the language server,
-[`COPYRIGHT-XEROX`](licenses/COPYRIGHT-XEROX) for `RegEx`, [`BSD-POLSTRA`](licenses/BSD-POLSTRA) for `Glob` and
-`GlobTree`, and [`BSD-UCB`](licenses/BSD-UCB) for the function fnmatch of FreeBSD, after which `Glob` is written).
+[`licenses/`](licenses); each file there names the sources it covers:
+
+| File | Code |
+|---|---|
+| [`COPYRIGHT-DEC`](licenses/COPYRIGHT-DEC) | the code from Digital Equipment Corporation |
+| [`COPYRIGHT-CMASS`](licenses/COPYRIGHT-CMASS) | the code from Critical Mass |
+| [`COPYRIGHT-COLUMBIA`](licenses/COPYRIGHT-COLUMBIA) | the code from Columbia University |
+| [`COPYRIGHT-LUCENT`](licenses/COPYRIGHT-LUCENT) | the notice of David Gay's conversion code |
+| [`MIT-BATES`](licenses/MIT-BATES) | `ArrayExpr` of the front end |
+| [`MIT-MCKINNA`](licenses/MIT-MCKINNA) | the language server |
+| [`COPYRIGHT-BSD`](licenses/COPYRIGHT-BSD) | the interfaces `MD5` and `SHA256` of libm3, and two examples in the tests |
+| [`COPYRIGHT-OLIVETTI`](licenses/COPYRIGHT-OLIVETTI) | the toolkit m3tk (in stubgen and the language server) and `TextExtras` |
+| [`COPYRIGHT-SUN`](licenses/COPYRIGHT-SUN) | parts of m3tk |
+| [`COPYRIGHT-XEROX`](licenses/COPYRIGHT-XEROX) | `RegEx` and `FloatExtras` |
+| [`COPYRIGHT-GENCAP`](licenses/COPYRIGHT-GENCAP) | `QPromise` of m3quake (in m3build) |
+| [`BSD-ELEGO`](licenses/BSD-ELEGO) | the package sysutils |
+| [`BSD-POLSTRA`](licenses/BSD-POLSTRA) | `Glob` and `GlobTree`, and the stream readers and writers of tcp |
+| [`BSD-UCB`](licenses/BSD-UCB) | the function fnmatch of FreeBSD, after which `Glob` is written |
+
 The sources copied from CM3 keep their notices: `lib` (m3core, libm3, tcp,
 netobj, sysutils, libbuf and patternmatching, see [`lib/README.md`](lib/README.md)), `tools/langserver/src`
 (CM3's language server), `tests/m3tests`,
@@ -164,3 +176,22 @@ under its license in [`BSD-JSCH`](licenses/BSD-JSCH), its bcrypt under [`ISC-JBC
 in `m3j-ssh.jar` and `m3j.jar`.
 Every file keeps its notice; the changes, the package name and a few fixes, are distributed
 under the MIT license in [`LICENSE`](LICENSE). `src/vendor/jsch/ORIGIN` names the release.
+
+A program built with m3j contains, compiled, the units of `lib` that it
+uses, and so do the jars of the tools. Whoever passes on such a program
+passes on the notices of those units with it: the ones in their heads,
+which are also in [`licenses/`](licenses).
+
+`tests/rosetta` holds solutions from Rosetta Code, which are available under
+the GNU Free Documentation License 1.3, in [`GFDL-1.3`](licenses/GFDL-1.3) (see
+[`tests/rosetta/README.md`](tests/rosetta/README.md)).
+
+## Acknowledgments
+
+As the licenses in [`BSD-POLSTRA`](licenses/BSD-POLSTRA) and [`COPYRIGHT-BSD`](licenses/COPYRIGHT-BSD) ask of
+material that mentions features or use of the software they cover:
+
+This product includes software developed by John D. Polstra.
+
+This product includes software developed by the University of California,
+Berkeley and its contributors.

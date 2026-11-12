@@ -1,5 +1,8 @@
 The regular expressions of the package patternmatching of CM3
-(lib/patternmatching/src/RegEx.i3 and RegEx.m3) carry this notice:
+(lib/patternmatching/src/RegEx.i3 and RegEx.m3) carry this notice. The
+floating-point routines of the package libm3 of CM3
+(lib/libm3/src/sqrt/FloatExtras.ig and FloatExtras.mg) carry it with
+"Copyright (c) 1993 Xerox Corporation."
 
   Copyright (c) 1991, 1992 Xerox Corporation.  All rights reserved.
 

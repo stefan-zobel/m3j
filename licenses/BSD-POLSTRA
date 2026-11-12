@@ -1,6 +1,11 @@
 The shell-style patterns of the package patternmatching of CM3
 (lib/patternmatching/src/Glob.i3, Glob.m3, GlobTree.i3 and GlobTree.m3)
-carry this notice:
+carry this notice. The stream readers and writers of the package tcp of
+CM3 (in lib/tcp/src/common: StreamRd.i3, StreamRdClass.i3,
+StreamRdClass.m3, StreamWr.i3, StreamWrClass.i3 and StreamWrClass.m3)
+carry it with "Copyright 1999-2003", and TCPMisc.i3 of the same package
+with "Copyright 1996-2003". lib/sysutils/src/ConnectRdWr.m3 of CM3 is
+adapted from StreamRd.
 
   Copyright 1996-1998 John D. Polstra.
   All rights reserved.
