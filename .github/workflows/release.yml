@@ -1,0 +1,121 @@
+# Copyright (c) 2026 the m3j authors.
+# SPDX-License-Identifier: MIT
+#
+# Builds a release of m3j on Linux (build.sh, dist.sh), with SHA256SUMS, and
+# tests the archive with tools/release_test.py on Linux, Windows and macOS.
+#
+# Runs only when started by hand (Actions, Release, "Run workflow"), which
+# leaves the archive as an artifact of the run, or when a tag v* is pushed,
+# which also makes a draft release of that tag with the archive; the tag
+# must be "v" and the contents of VERSION. It never makes a tag itself.
+
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: The tag and VERSION
+        if: github.ref_type == 'tag'
+        run: |
+          v=$(tr -d ' \r\n' < VERSION)
+          if [ "$GITHUB_REF_NAME" != "v$v" ]; then
+            echo "::error::the tag $GITHUB_REF_NAME is not v$v of the file VERSION"
+            exit 1
+          fi
+
+      - name: Build
+        run: M3J_AOT=no JDK25="$JAVA_HOME" sh build.sh
+
+      - name: Pack
+        run: |
+          JDK25="$JAVA_HOME" sh dist.sh
+          v=$(tr -d ' \r\n' < VERSION)
+          cd dist
+          sha256sum "m3j-$v.tar.gz" > SHA256SUMS
+          cat SHA256SUMS
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: |
+            dist/m3j-*.tar.gz
+            dist/SHA256SUMS
+          if-no-files-found: error
+
+  test:
+    needs: build
+    name: test ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: release
+
+      - name: SHA256SUMS
+        working-directory: release
+        run: |
+          if command -v sha256sum > /dev/null; then sha256sum -c SHA256SUMS
+          else shasum -a 256 -c SHA256SUMS; fi
+
+      - name: Test
+        run: |
+          if command -v cygpath > /dev/null; then export JDK25=$(cygpath -m "$JAVA_HOME")
+          else export JDK25=$JAVA_HOME; fi
+          python tools/release_test.py release/m3j-*.tar.gz
+
+  publish:
+    needs: test
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: release
+
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "m3j ${GITHUB_REF_NAME#v}" --notes "" release/m3j-*.tar.gz release/SHA256SUMS

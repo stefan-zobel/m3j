@@ -7,3 +7,5 @@ tools/dist/m3j text eol=lf
 tools/dist/m3build text eol=lf
 # cmd.exe needs CR LF
 *.cmd text eol=crlf
+# workflows of GitHub Actions
+*.yml text eol=lf

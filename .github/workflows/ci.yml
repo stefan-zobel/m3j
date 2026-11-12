@@ -1,0 +1,117 @@
+# Copyright (c) 2026 the m3j authors.
+# SPDX-License-Identifier: MIT
+#
+# The tests of m3j that need only the tree (tools/suite.py), on Linux,
+# Windows and macOS. Runs only when started by hand (Actions, CI, "Run
+# workflow") and once a week; never on a push or a pull request.
+
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Systems
+        type: choice
+        options: [all, linux, windows, macos]
+        default: all
+      group:
+        description: Groups of tools/suite.py
+        type: choice
+        options: [all, backend, programs, tools, libs, apps]
+        default: all
+  schedule:
+    # Mondays at 03:00 UTC
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} ${{ matrix.group }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # a scheduled run has no inputs: all systems, all groups
+        os: ${{ fromJSON(inputs.os == 'linux' && '["ubuntu-latest"]'
+                || inputs.os == 'windows' && '["windows-latest"]'
+                || inputs.os == 'macos' && '["macos-latest"]'
+                || '["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+        group: ${{ fromJSON((inputs.group == '' || inputs.group == 'all' || inputs.group == null)
+                   && '["backend", "programs", "tools", "libs", "apps"]'
+                   || format('["{0}"]', inputs.group)) }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: JDK25
+        run: |
+          if command -v cygpath > /dev/null; then
+            echo "JDK25=$(cygpath -m "$JAVA_HOME")" >> "$GITHUB_ENV"
+          else
+            echo "JDK25=$JAVA_HOME" >> "$GITHUB_ENV"
+          fi
+
+      - name: Python packages
+        run: python -m pip install asyncssh cryptography pynacl python-multipart requests requests-toolbelt
+
+      - name: Programs (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends openssh-sftp-server
+
+      - name: Programs (macOS)
+        if: runner.os == 'macOS'
+        # the openssl of macOS is LibreSSL; the tests of crypto compare with OpenSSL
+        run: |
+          brew list openssl@3 > /dev/null 2>&1 || brew install openssl@3
+          echo "$(brew --prefix openssl@3)/bin" >> "$GITHUB_PATH"
+
+      - name: Drivers of JDBC (cache)
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.m2/repository/com/h2database/h2/2.4.240
+            ~/.m2/repository/org/xerial/sqlite-jdbc/3.53.4.0
+          key: jdbc-h2-2.4.240-sqlite-jdbc-3.53.4.0
+
+      - name: Drivers of JDBC
+        # tools/sql_test.py and tools/feedreader_test.py check their SHA-256
+        run: |
+          get() {
+            dir="$HOME/.m2/repository/$1"
+            [ -f "$dir/$2" ] && return 0
+            mkdir -p "$dir"
+            curl -fsSL -o "$dir/$2" "https://repo1.maven.org/maven2/$1/$2"
+          }
+          get com/h2database/h2/2.4.240 h2-2.4.240.jar
+          get org/xerial/sqlite-jdbc/3.53.4.0 sqlite-jdbc-3.53.4.0.jar
+
+      - name: Build
+        run: M3J_AOT=no sh build.sh
+
+      - name: Tests
+        run: python tools/suite.py --logs suite-logs ${{ matrix.group }}
+
+      - name: Logs of the tests
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.group }}
+          path: suite-logs
+          retention-days: 7

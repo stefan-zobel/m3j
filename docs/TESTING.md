@@ -58,6 +58,18 @@ by `python3 tools/release_test.py dist/m3j-VERSION.tar.gz`, which unpacks
 it in a new directory and uses its start scripts. The tests of the SQL library need the drivers of H2 and SQLite in
 the local repository of Maven (`~/.m2`), see `tools/sql_test.py`.
 
+`tools/suite.py` runs all of these in groups (`backend`, `programs`,
+`tools`, `libs`, `apps`, or `all`) and reports each test with its time:
+
+```sh
+JDK25=/path/to/jdk-25 python3 tools/suite.py all
+```
+
+The workflow CI of GitHub (`.github/workflows/ci.yml`) runs it on Linux,
+Windows and macOS, once a week and when started by hand; the workflow
+Release (`.github/workflows/release.yml`) tests each release on the three
+systems.
+
 These need a cm3 installation or cm3 sources outside the tree:
 
 ```sh

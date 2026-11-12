@@ -4,8 +4,8 @@
 #
 # Packs a release of m3j, after build.sh, from the files of the git
 # repository and the jars that build.sh made: dist/m3j-VERSION.tar.gz, for
-# every system. Build and pack on Linux, which keeps the executable bits of
-# the scripts; the jars of m3j run on every system.
+# every system. Build and pack on Linux (with GNU tar), which keeps the
+# executable bits of the scripts; the jars of m3j run on every system.
 #
 # A release has the jars, m3j.cfg, bin with the start scripts m3j and
 # m3build (tools/dist), and of the repository lib, docs, examples, licenses
@@ -13,8 +13,18 @@
 # same paths. It has no AOT cache (m3j.aot), which belongs to one JDK and
 # one path of the jar. Uses java of $JDK25 if set, else of $JAVA_HOME, else
 # from the PATH, as build.sh.
+#
+#   sh dist.sh [DIR]
+#
+# packs into DIR instead of dist (tools/suite.py packs into a new directory).
 
 set -e
+# DIR as given relative to the working directory, dist relative to this script
+case "${1:-}" in
+  "") OUT=dist ;;
+  /*) OUT=$1 ;;
+  *) OUT=$(pwd)/$1 ;;
+esac
 cd "$(dirname "$0")"
 
 if [ -z "$JDK25" ] && [ -n "$JAVA_HOME" ]; then JDK25=$JAVA_HOME; fi
@@ -33,8 +43,8 @@ if [ "$got" != "m3j version $V" ]; then
   exit 1
 fi
 
-D=dist/$NAME
-rm -rf "$D" "dist/$NAME.tar.gz"
+D=$OUT/$NAME
+rm -rf "$D" "$OUT/$NAME.tar.gz"
 mkdir -p "$D/bin"
 cp $JARS m3j.cfg VERSION LICENSE README.md "$D"
 cp tools/dist/m3j tools/dist/m3build tools/dist/m3j.cmd tools/dist/m3build.cmd "$D/bin"
@@ -46,5 +56,5 @@ git ls-files -z lib docs examples licenses tools/langserver/vscode \
 find "$D/examples" -name '*.sh' -exec chmod 755 {} +
 
 # without the name of the user who packs
-(cd dist && tar --owner=0 --group=0 --numeric-owner -czf "$NAME.tar.gz" "$NAME")
-echo "packed dist/$NAME.tar.gz"
+(cd "$OUT" && tar --owner=0 --group=0 --numeric-owner -czf "$NAME.tar.gz" "$NAME")
+echo "packed $OUT/$NAME.tar.gz"

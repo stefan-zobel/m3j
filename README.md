@@ -125,6 +125,16 @@ m3build like any package and uses most of the libraries above.
 | [`tools/README.md`](tools/README.md) | the tools and tests |
 | [`examples/feedreader/README.md`](examples/feedreader/README.md) | the example: how to run it, a tour of its sources |
 
+## Continuous integration
+
+The workflow CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the tests that need
+only the tree (`tools/suite.py`) on Linux, Windows and macOS, once a week
+and when started by hand in the Actions tab of GitHub. The workflow Release
+([`.github/workflows/release.yml`](.github/workflows/release.yml)) builds and packs a release on Linux and
+tests the archive on the three systems; started by hand it keeps the
+archive as an artifact of the run, and for a pushed tag `vVERSION` it makes
+a draft release with the archive and its `SHA256SUMS`.
+
 ## License
 
 The sources written for m3j are distributed under the MIT license in
