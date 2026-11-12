@@ -454,6 +454,8 @@ public class m3.t.Tef9bf88f extends m3.t.T0d8bc911 {       <span class="c">// B<
 
 <h2>Trying it</h2>
 
+<p>m3j needs a JDK 25 or later. The <a href="https://github.com/stefan-zobel/m3j/releases/latest">release</a>, one archive for Windows, Linux and macOS, holds the jars, the libraries and the start scripts. Once its directory <code>bin</code> is on the PATH, a program is compiled in memory and run at once:</p>
+
 <pre class="code" data-lang="m3"><code><span class="k">MODULE</span> Main;
 
 <span class="k">IMPORT</span> IO;
@@ -462,7 +464,7 @@ public class m3.t.Tef9bf88f extends m3.t.T0d8bc911 {       <span class="c">// B<
   IO.Put (<span class="s">"Hello, world\n"</span>);
 <span class="k">END</span> Main.</code></pre>
 
-<pre class="code" data-lang="out"><code>java -cp m3j.jar m3j.jvm.Compile Main.m3 -run</code></pre>
+<pre class="code" data-lang="out"><code>m3j Main.m3 -run</code></pre>
 
 <p>The sources, the documentation and the design notes of the back end, which explain every decision in this article in more detail, are at <a href="https://github.com/stefan-zobel/m3j">github.com/stefan-zobel/m3j</a>.</p>
 </article>

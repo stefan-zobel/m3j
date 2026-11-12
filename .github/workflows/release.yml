@@ -5,16 +5,17 @@
 # tests the archive with tools/release_test.py on Linux, Windows and macOS.
 #
 # Runs only when started by hand (Actions, Release, "Run workflow"), which
-# leaves the archive as an artifact of the run, or when a tag v* is pushed,
-# which also makes a draft release of that tag with the archive; the tag
-# must be "v" and the contents of VERSION. It never makes a tag itself.
+# leaves the archive as an artifact of the run, or when a tag x.y.z of
+# numbers is pushed, which also makes a draft release of that tag with the
+# archive; the tag must be the contents of VERSION. It never makes a tag
+# itself.
 
 name: Release
 
 on:
   workflow_dispatch:
   push:
-    tags: ["v*"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
 
 permissions:
   contents: read
@@ -35,8 +36,8 @@ jobs:
         if: github.ref_type == 'tag'
         run: |
           v=$(tr -d ' \r\n' < VERSION)
-          if [ "$GITHUB_REF_NAME" != "v$v" ]; then
-            echo "::error::the tag $GITHUB_REF_NAME is not v$v of the file VERSION"
+          if [ "$GITHUB_REF_NAME" != "$v" ]; then
+            echo "::error::the tag $GITHUB_REF_NAME is not $v of the file VERSION"
             exit 1
           fi
 
@@ -118,4 +119,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
-            --title "m3j ${GITHUB_REF_NAME#v}" --notes "" release/m3j-*.tar.gz release/SHA256SUMS
+            --title "m3j $GITHUB_REF_NAME" --notes "" release/m3j-*.tar.gz release/SHA256SUMS

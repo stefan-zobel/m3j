@@ -32,9 +32,10 @@ libraries of CM3 are not supported.
 m3j needs JDK 25 or later. Its tests run on Windows, Linux and macOS
 (arm64).
 
-A release (`m3j-VERSION.tar.gz`, one for every system; `tar -xzf` unpacks
-it on Windows too) is built: unpack it and put its directory `bin` on the PATH,
-with the start scripts `m3j` (the compiler: `m3j Main.m3 -run`) and
+A [release](https://github.com/stefan-zobel/m3j/releases/latest)
+(`m3j-VERSION.tar.gz`, one for every system; `tar -xzf` unpacks it on
+Windows too) is ready to download: unpack it and put its directory `bin` on
+the PATH, with the start scripts `m3j` (the compiler: `m3j Main.m3 -run`) and
 `m3build`. From the sources, m3j is built with a POSIX shell (Linux, macOS,
 or Git Bash on Windows), in the directory of m3j:
 
@@ -134,7 +135,7 @@ only the tree (`tools/suite.py`) on Linux, Windows and macOS, once a week
 and when started by hand in the Actions tab of GitHub. The workflow Release
 ([`.github/workflows/release.yml`](.github/workflows/release.yml)) builds and packs a release on Linux and
 tests the archive on the three systems; started by hand it keeps the
-archive as an artifact of the run, and for a pushed tag `vVERSION` it makes
+archive as an artifact of the run, and for a pushed tag `VERSION` (such as `0.1.0`) it makes
 a draft release with the archive and its `SHA256SUMS`.
 
 ## License
