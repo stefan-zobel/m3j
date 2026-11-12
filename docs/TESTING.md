@@ -41,7 +41,7 @@ JDK25=/path/to/jdk-25 python3 tools/dump_test.py fingerprint
 JDK25=/path/to/jdk-25 python3 tools/dump_test.py middle
 ```
 
-The tests run on Windows and on Linux; [`tools/README.md`](../tools/README.md)
+The tests run on Windows, Linux and macOS; [`tools/README.md`](../tools/README.md)
 lists all of them and what each needs. Some compare with packages of
 Python or with OpenSSH; on Ubuntu they come with
 

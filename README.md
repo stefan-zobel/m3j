@@ -27,8 +27,8 @@ libraries of CM3 are not supported.
 
 ## Quick start
 
-m3j needs JDK 25 or later. Its tests run on Windows and on Linux; macOS is
-untested.
+m3j needs JDK 25 or later. Its tests run on Windows, Linux and macOS
+(arm64).
 
 A release (`m3j-VERSION.tar.gz`, one for every system; `tar -xzf` unpacks
 it on Windows too) is built: unpack it and put its directory `bin` on the PATH,

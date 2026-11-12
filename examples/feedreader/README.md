@@ -114,4 +114,5 @@ server by Ctrl+C.
 - Entries are kept until their feed is unsubscribed.
 - Ctrl+C ends the server in order (the database is closed); a second
   Ctrl+C ends it at once, and SQLite keeps its data whole then too.
-- Tested on Windows; the scripts for POSIX are those that m3build writes.
+- Its test (`tools/feedreader_test.py`) runs on Windows, Linux and macOS;
+  the scripts for POSIX are those that m3build writes.
