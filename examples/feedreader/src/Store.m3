@@ -445,18 +445,19 @@ PROCEDURE AddSession (t: T; hash: TEXT; user: INTEGER; csrf: TEXT; expires: Time
     END;
   END AddSession;
 
-PROCEDURE Session (t: T; hash: TEXT; now: Time.T; VAR user: INTEGER; VAR csrf: TEXT): BOOLEAN
-  RAISES {Error, Thread.Alerted} =
+PROCEDURE Session (t: T; hash: TEXT; now: Time.T; VAR user: INTEGER; VAR csrf: TEXT; VAR expired: BOOLEAN)
+  : BOOLEAN RAISES {Error, Thread.Alerted} =
   VAR s: SQL.Stmt;  r: SQL.Rows;
   BEGIN
+    expired := FALSE;
     LOCK t.mu DO
       TRY
-        s := t.db.prepare ("SELECT user_id, csrf FROM session WHERE hash = ? AND expires > ?");
+        s := t.db.prepare ("SELECT user_id, csrf, expires FROM session WHERE hash = ?");
         TRY
           s.bindBytes (1, hash);
-          s.bindInt (2, Secs (now));
           r := s.query ();
           IF NOT r.next () THEN RETURN FALSE END;
+          IF r.int (3) <= Secs (now) THEN expired := TRUE; RETURN FALSE END;
           user := r.int (1);
           csrf := r.text (2);
           RETURN TRUE;

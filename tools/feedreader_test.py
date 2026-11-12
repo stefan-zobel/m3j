@@ -31,6 +31,13 @@ The cases:
            version refused
   threads  60 feeds fetched by 8 threads: each fetched once, each entry kept
            once
+  stop     the log of "serve": the database and its users, a login refused
+           for a wrong password and for no such user, a session cookie
+           refused that names no session and one that has expired; Ctrl+C
+           ends "serve" in order (exit 0, the database closed and its WAL
+           file gone), and a second Ctrl+C while a page waits for news ends
+           it at once (exit 130); on Windows Ctrl+C is sent to a console of
+           the program's own
 
 The program needs the driver of SQLite: examples/feedreader/lib, where
 fetch-driver.sh puts it, or the local repository of Maven.
@@ -44,6 +51,7 @@ JAVA defaults to $JDK25/bin/java, else java from the PATH.
 import argparse
 import collections
 import gzip
+import hashlib
 import http.client
 import http.cookiejar
 import http.server
@@ -51,6 +59,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import socket
 import sqlite3
 import subprocess
@@ -733,8 +742,158 @@ def case_threads(env):
         srv.shutdown()
 
 
+# Ctrl+C for a program on Windows, which has no signal for it: runs the
+# command in the console of this program, with Ctrl+C enabled (the console
+# of the test may have it disabled, which children inherit), sends Ctrl+C
+# to the console each time a file STOP.1, STOP.2 ... appears, and writes
+# the exit code of the command to STOP.exit.
+CTRL_C = """import ctypes, subprocess, sys, time
+from pathlib import Path
+stop, k = sys.argv[1], ctypes.windll.kernel32
+k.SetConsoleCtrlHandler(None, 0)
+handler = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_uint)(lambda event: 1)
+k.SetConsoleCtrlHandler(handler, 1)
+p = subprocess.Popen(sys.argv[2:], stdin=subprocess.DEVNULL)
+n = 1
+while p.poll() is None:
+    if Path("%s.%d" % (stop, n)).exists():
+        k.GenerateConsoleCtrlEvent(0, 0)
+        n += 1
+    time.sleep(0.05)
+Path(stop + ".exit").write_text(str(p.returncode))
+"""
+
+
+class Interruptible:
+    """The program serving, to be ended by Ctrl+C as in a terminal."""
+
+    def __init__(self, env, db, name):
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", 0))
+            self.port = s.getsockname()[1]
+        self.base = "http://127.0.0.1:%d" % self.port
+        self.log = env.work / (name + ".log")
+        self.stop = env.work / name
+        self.sent = 0
+        cmd = env.command() + ["-db", db, "serve", "-listen", "127.0.0.1:%d" % self.port]
+        with open(self.log, "wb") as log:
+            if os.name == "nt":
+                wrapper = env.work / "ctrl_c.py"
+                wrapper.write_text(CTRL_C, encoding="utf-8")
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                si.wShowWindow = 0  # hidden
+                self.p = subprocess.Popen([sys.executable, "-I", str(wrapper), str(self.stop)] + cmd, cwd=env.work,
+                                          stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                          creationflags=subprocess.CREATE_NEW_CONSOLE, startupinfo=si)
+            else:
+                # a group of its own, to which Ctrl+C in a terminal goes
+                self.p = subprocess.Popen(cmd, cwd=env.work, stdout=log, stderr=subprocess.STDOUT,
+                                          stdin=subprocess.DEVNULL, start_new_session=True)
+        end = time.time() + 30
+        while time.time() < end:
+            try:
+                socket.create_connection(("127.0.0.1", self.port), timeout=1).close()
+                return
+            except OSError:
+                time.sleep(0.2)
+        self.kill()
+        raise Failed("the server did not start")
+
+    def interrupt(self):
+        self.sent += 1
+        if os.name == "nt":
+            Path("%s.%d" % (self.stop, self.sent)).write_text("")
+        else:
+            os.killpg(self.p.pid, signal.SIGINT)
+
+    def kill(self):
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(self.p.pid)], capture_output=True)
+        else:
+            os.killpg(self.p.pid, signal.SIGKILL)
+        self.p.wait()
+
+    def wait(self):
+        """(exit code of the program, its log)"""
+        try:
+            self.p.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            self.kill()
+            raise Failed("the program did not end after Ctrl+C")
+        code = int(Path(str(self.stop) + ".exit").read_text()) if os.name == "nt" else self.p.returncode
+        return code, self.log.read_bytes().decode("utf-8", "replace").replace("\r\n", "\n")
+
+
+def case_stop(env):
+    db = env.fresh("stop.db")
+    s = Interruptible(env, db, "stop")
+    try:
+        b = Browser(s.base)
+        st, _, _ = b.post("/login", {"name": "alice", "password": "not-" + PASSWORD})
+        check(st == 401, "a wrong password: %d" % st)
+        st, _, _ = b.post("/login", {"name": "nobody\x01", "password": PASSWORD})
+        check(st == 401, "no such user: %d" % st)
+        st, h, _ = b.request("/", headers={"Cookie": "session=no-such-token"})
+        check(st == 303 and h["Location"].endswith("/login"), "a cookie of no session: %d" % st)
+        # a session that expired a minute ago; the database keeps the hash
+        # of its token
+        token = "an-old-token"
+        c = sqlite3.connect(db)
+        user = c.execute("SELECT id FROM user WHERE name = 'alice'").fetchone()[0]
+        c.execute("INSERT INTO session (hash, user_id, csrf, expires) VALUES (?, ?, 'x', ?)",
+                  (hashlib.sha256(token.encode()).digest(), user, int(time.time()) - 60))
+        c.commit()
+        c.close()
+        st, h, _ = b.request("/", headers={"Cookie": "session=" + token})
+        check(st == 303 and h["Location"].endswith("/login"), "an expired session: %d" % st)
+        st, _, _ = b.post("/login", {"name": "alice", "password": PASSWORD})
+        check(st == 303, "login: %d" % st)
+        st, _, _ = b.get("/")
+        check(st == 200, "home: %d" % st)
+        s.interrupt()
+        code, log = s.wait()
+    except BaseException:
+        s.kill()
+        raise
+    for want in (r"database \S.*stop\.db, 1 user$", r'a login as "alice" refused: wrong password$',
+                 r'a login as "nobody\?" refused: no such user$', r"a session cookie refused: no such session$",
+                 r"a session cookie refused: the session has expired$",
+                 r"interrupted: shutting down \(Ctrl\+C again ends at once\)$",
+                 r"stopped; the database is closed$"):
+        check(re.search(want, log, re.M), "not in the log: %s\n%s" % (want, log))
+    check(code == 0, "exit %d after Ctrl+C\n%s" % (code, log))
+    check(not Path(db + "-wal").exists(), "the WAL file is left")
+    env.ok("-db", db, "list")
+
+    # Ctrl+C twice, while a page waits for news, which the server would
+    # give 2 seconds
+    s = Interruptible(env, db, "stop2")
+    try:
+        b = Browser(s.base)
+        st, _, _ = b.post("/login", {"name": "alice", "password": PASSWORD})
+        check(st == 303, "login: %d" % st)
+        cookie = "; ".join("%s=%s" % (c.name, c.value) for c in b.jar)
+        conn = http.client.HTTPConnection("127.0.0.1", s.port, timeout=30)
+        conn.request("GET", "/events", headers={"Cookie": cookie})
+        r = conn.getresponse()
+        check(r.status == 200, "events: %d" % r.status)
+        s.interrupt()
+        time.sleep(0.5)
+        s.interrupt()
+        code, log = s.wait()
+        conn.close()
+    except BaseException:
+        s.kill()
+        raise
+    check("interrupted again: ending now" in log, "not in the log: ending now\n" + log)
+    check("the database is closed" not in log, "closed in order\n" + log)
+    check(code == 130, "exit %d after Ctrl+C twice\n%s" % (code, log))
+    env.ok("-db", db, "list")
+
+
 CASES = {"parse": case_parse, "fetch": case_fetch, "web": case_web, "api": case_api, "events": case_events,
-         "migrate": case_migrate, "threads": case_threads}
+         "migrate": case_migrate, "threads": case_threads, "stop": case_stop}
 
 
 def main():

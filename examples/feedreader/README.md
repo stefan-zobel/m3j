@@ -104,12 +104,14 @@ choose.
 the internet: the parser on the feeds in `tests/feedreader/feeds`, the
 fetching against a server of the test (304, redirects, gzip, errors,
 limits, a slow server, a feed that changes), the web interface, the API,
-the live updates and 60 feeds fetched by 8 threads.
+the live updates, 60 feeds fetched by 8 threads, and the end of the
+server by Ctrl+C.
 
 ## Limits
 
 - No sanitizer of HTML: the sandbox stands in for it.
 - No JSON Feed, no WebSub, no podcasts beyond a link to the episode.
 - Entries are kept until their feed is unsubscribed.
-- Ctrl-C ends the server at once; SQLite keeps its data whole.
+- Ctrl+C ends the server in order (the database is closed); a second
+  Ctrl+C ends it at once, and SQLite keeps its data whole then too.
 - Tested on Windows; the scripts for POSIX are those that m3build writes.

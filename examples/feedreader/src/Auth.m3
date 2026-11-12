@@ -55,14 +55,17 @@ PROCEDURE AddUser (s: Store.T; name, password: TEXT): INTEGER RAISES {Error, Sto
     RETURN s.addUser (name, salt, Pbkdf2 (password, salt, Iterations), Iterations);
   END AddUser;
 
-PROCEDURE Login (s: Store.T; name, password: TEXT): INTEGER RAISES {Store.Error, Thread.Alerted} =
+PROCEDURE Login (s: Store.T; name, password: TEXT; VAR why: TEXT): INTEGER RAISES {Store.Error, Thread.Alerted} =
   VAR id, iterations: INTEGER;  salt, hash: TEXT;
   BEGIN
+    why := NIL;
     IF NOT s.user (name, id, salt, hash, iterations) THEN
       EVAL Pbkdf2 (password, "no such user", Iterations);  (* as long as for a user *)
+      why := "no such user";
       RETURN -1;
     END;
     IF Crypto.Equal (Pbkdf2 (password, salt, iterations), hash) THEN RETURN id END;
+    why := "wrong password";
     RETURN -1;
   END Login;
 
@@ -75,10 +78,14 @@ PROCEDURE NewSession (s: Store.T; user: INTEGER; VAR csrf: TEXT): TEXT RAISES {S
     RETURN token;
   END NewSession;
 
-PROCEDURE Session (s: Store.T; token: TEXT; VAR user: INTEGER; VAR csrf: TEXT): BOOLEAN
+PROCEDURE Session (s: Store.T; token: TEXT; VAR user: INTEGER; VAR csrf: TEXT; VAR why: TEXT): BOOLEAN
   RAISES {Store.Error, Thread.Alerted} =
+  VAR expired: BOOLEAN;
   BEGIN
-    RETURN token # NIL AND s.session (Hash (token), Time.Now (), user, csrf);
+    why := NIL;
+    IF token # NIL AND s.session (Hash (token), Time.Now (), user, csrf, expired) THEN RETURN TRUE END;
+    IF expired THEN why := "the session has expired" ELSE why := "no such session" END;
+    RETURN FALSE;
   END Session;
 
 PROCEDURE EndSession (s: Store.T; token: TEXT) RAISES {Store.Error, Thread.Alerted} =

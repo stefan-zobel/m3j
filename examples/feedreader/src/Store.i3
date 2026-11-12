@@ -88,8 +88,10 @@ TYPE
 
     (* Sessions, by the hash of their token. *)
     addSession (hash: TEXT; user: INTEGER; csrf: TEXT; expires: Time.T) RAISES {Error, Thread.Alerted};
-    session (hash: TEXT; now: Time.T; VAR user: INTEGER; VAR csrf: TEXT): BOOLEAN
+    session (hash: TEXT; now: Time.T; VAR user: INTEGER; VAR csrf: TEXT; VAR expired: BOOLEAN): BOOLEAN
       RAISES {Error, Thread.Alerted};
+    (* FALSE if there is no session of "hash" or it has expired, which
+       "expired" tells. *)
     removeSession (hash: TEXT) RAISES {Error, Thread.Alerted};
     removeExpired (now: Time.T) RAISES {Error, Thread.Alerted};
 

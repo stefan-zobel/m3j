@@ -244,7 +244,7 @@ PROCEDURE Route (VAR c: Ctx) RAISES {Bad, Store.Error, Rd.Failure, Wr.Failure, T
     path := c.req.path;
     get := Is (c.req.method, "GET") OR Is (c.req.method, "HEAD");
     post := Is (c.req.method, "POST");
-    token: TEXT;
+    token, why: TEXT;
     s := c.t.store;
     parts: REF ARRAY OF TEXT;
   BEGIN
@@ -258,11 +258,14 @@ PROCEDURE Route (VAR c: Ctx) RAISES {Bad, Store.Error, Rd.Failure, Wr.Failure, T
     END;
 
     token := HTTPCookie.Get (c.req.headers, "session");
-    IF token # NIL AND Auth.Session (s, token, c.user, c.csrf) THEN
-      c.token := token;
-      c.name := s.userName (c.user);
-    ELSE
-      c.user := -1;
+    c.user := -1;
+    IF token # NIL AND NOT Text.Empty (token) THEN
+      IF Auth.Session (s, token, c.user, c.csrf, why) THEN
+        c.token := token;
+        c.name := s.userName (c.user);
+      ELSE
+        Log.Put ("a session cookie refused: " & why);
+      END;
     END;
 
     IF Text.Equal (path, "/setup") THEN
@@ -386,7 +389,7 @@ PROCEDURE StartSession (VAR c: Ctx; user: INTEGER) RAISES {Store.Error, Thread.A
   END StartSession;
 
 PROCEDURE Login (VAR c: Ctx; get: BOOLEAN) RAISES {Bad, Store.Error, Rd.Failure, Wr.Failure, Thread.Alerted} =
-  VAR s := c.t.store;  name: TEXT;  id: INTEGER;
+  VAR s := c.t.store;  name, why: TEXT;  id: INTEGER;
   BEGIN
     IF get THEN
       IF c.user >= 0 THEN Redirect (c, "/"); RETURN END;
@@ -397,8 +400,9 @@ PROCEDURE Login (VAR c: Ctx; get: BOOLEAN) RAISES {Bad, Store.Error, Rd.Failure,
     ReadForm (c);
     IF NOT SameOrigin (c) THEN RAISE Bad (403) END;
     name := Or (Field (c, "name"), "");
-    id := Auth.Login (s, name, Or (Field (c, "password"), ""));
+    id := Auth.Login (s, name, Or (Field (c, "password"), ""), why);
     IF id < 0 THEN
+      Log.Put ("a login as " & Shown (name) & " refused: " & why);
       LoginPage (c, name, 401, "The name or the password is wrong.");
       RETURN;
     END;
@@ -406,6 +410,18 @@ PROCEDURE Login (VAR c: Ctx; get: BOOLEAN) RAISES {Bad, Store.Error, Rd.Failure,
     StartSession (c, id);
     Redirect (c, "/");
   END Login;
+
+(* "t" for the log: in quotes, at most 64 characters, each one other than
+   printable ASCII as "?". *)
+PROCEDURE Shown (t: TEXT): TEXT =
+  VAR n := MIN (Text.Length (t), 64);  a := NEW (REF ARRAY OF CHAR, n);  w: WIDECHAR;
+  BEGIN
+    FOR i := 0 TO n - 1 DO
+      w := Text.GetWideChar (t, i);
+      IF ORD (w) < ORD (' ') OR ORD (w) > ORD ('~') THEN a[i] := '?' ELSE a[i] := VAL (ORD (w), CHAR) END;
+    END;
+    RETURN "\"" & Text.FromChars (a^) & "\"";
+  END Shown;
 
 PROCEDURE LoginPage (VAR c: Ctx; name: TEXT; status: INTEGER; message: TEXT) RAISES {Wr.Failure, Thread.Alerted} =
   VAR b := Page.Begin ("Log in");

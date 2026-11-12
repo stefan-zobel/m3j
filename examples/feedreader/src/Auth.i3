@@ -19,16 +19,19 @@ EXCEPTION Error (TEXT);
 PROCEDURE AddUser (s: Store.T; name, password: TEXT): INTEGER RAISES {Error, Store.Error, Thread.Alerted};
 (* A new user; "Error" if the name or the password will not do. *)
 
-PROCEDURE Login (s: Store.T; name, password: TEXT): INTEGER RAISES {Store.Error, Thread.Alerted};
-(* The id of the user, -1 if the name or the password is wrong. *)
+PROCEDURE Login (s: Store.T; name, password: TEXT; VAR why: TEXT): INTEGER RAISES {Store.Error, Thread.Alerted};
+(* The id of the user; -1 if the name or the password is wrong, and then
+   "why" is "no such user" or "wrong password", for the log (the page does
+   not tell which). *)
 
 PROCEDURE NewSession (s: Store.T; user: INTEGER; VAR csrf: TEXT): TEXT RAISES {Store.Error, Thread.Alerted};
 (* The token of a new session of "user", for a cookie, which lasts
    "SessionTime"; "csrf" is the token that its forms must carry. *)
 
-PROCEDURE Session (s: Store.T; token: TEXT; VAR user: INTEGER; VAR csrf: TEXT): BOOLEAN
+PROCEDURE Session (s: Store.T; token: TEXT; VAR user: INTEGER; VAR csrf: TEXT; VAR why: TEXT): BOOLEAN
   RAISES {Store.Error, Thread.Alerted};
-(* Whether "token" is that of a session that has not expired. *)
+(* Whether "token" is that of a session that has not expired; if not,
+   "why" is "no such session" or "the session has expired". *)
 
 PROCEDURE EndSession (s: Store.T; token: TEXT) RAISES {Store.Error, Thread.Alerted};
 

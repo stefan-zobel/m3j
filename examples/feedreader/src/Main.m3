@@ -22,6 +22,8 @@
                                         background; at 127.0.0.1:8080 unless "-listen" says otherwise
 
    "-workers" is the number of threads that fetch feeds, 4 by default.
+   Ctrl+C ends "serve" in order: the server stops, the fetching threads
+   end, and the database is closed; a second Ctrl+C ends it at once.
    "-timeout SECONDS" before the command limits the wait for a server that
    is asked for a feed, 30 seconds by default.
 
@@ -33,8 +35,9 @@
 
 MODULE Main;
 
-IMPORT Auth, Feed, FeedDate, Fetch, Fetcher, FileRd, FileWr, Fmt, HTTPClient, HTTPServer, HtmlText, IP, Log, Opml,
-       OSError, Params, Process, Rd, Scan, Stdio, Store, TCP, Text, TextRd, Thread, Time, Utf8, Web, Wr;
+IMPORT Auth, Feed, FeedDate, Fetch, Fetcher, FileRd, FileWr, Fmt, FS, HTTPClient, HTTPServer, HtmlText, IP, Log,
+       Opml, OSError, Params, Process, Rd, RTProcess, Scan, Stdio, Store, TCP, Text, TextRd, Thread, Time, Utf8, Web,
+       Wr;
 
 IMPORT Lex, FloatMode;
 
@@ -50,6 +53,8 @@ VAR
   userName: TEXT := NIL;
   client: HTTPClient.T := NIL;
   store: Store.T := NIL;
+  server: HTTPServer.T := NIL;   (* that of "serve", for Ctrl+C *)
+  interrupts := 0;
 
 (* Output *)
 
@@ -502,8 +507,30 @@ PROCEDURE LogServer (<*UNUSED*> l: ServerLog; msg: TEXT) =
     Log.Put ("server: " & msg);
   END LogServer;
 
+(* Ctrl+C while "serve" runs: the first shuts the server down, in a thread
+   of its own, so that "serve" returns and ends in order; a second, if that
+   hangs, ends the program at once. *)
+PROCEDURE Interrupted () =
+  BEGIN
+    INC (interrupts);
+    IF interrupts = 1 AND server # NIL THEN
+      Log.Put ("interrupted: shutting down (Ctrl+C again ends at once)");
+      EVAL Thread.Fork (NEW (Thread.Closure, apply := ShutDown));
+    ELSE
+      Log.Put ("interrupted again: ending now");
+      Process.Exit (130);
+    END;
+  END Interrupted;
+
+PROCEDURE ShutDown (<*UNUSED*> self: Thread.Closure): REFANY =
+  BEGIN
+    server.shutdown (2.0D0);
+    RETURN NIL;
+  END ShutDown;
+
 PROCEDURE DoServe () RAISES {Failed, Usage, Store.Error} =
   VAR
+    path := dbPath;
     listen := Or (Option ("-listen"), "127.0.0.1:8080");
     w := Option ("-workers");
     workers := 4;
@@ -513,7 +540,6 @@ PROCEDURE DoServe () RAISES {Failed, Usage, Store.Error} =
     addr: IP.Address;
     s: Store.T;
     f: Fetcher.T;
-    server: HTTPServer.T;
     c: TCP.Connector;
   BEGIN
     IF w # NIL THEN workers := MAX (Number (w), 1) END;
@@ -536,16 +562,28 @@ PROCEDURE DoServe () RAISES {Failed, Usage, Store.Error} =
     f := Fetcher.Start (s, workers, NEW (Logger));
     server := HTTPServer.New (HTTPServer.Options {log := NEW (ServerLog)});
     server.register (Web.New (s, f));
+    TRY path := FS.GetAbsolutePathname (dbPath) EXCEPT OSError.E => END;
+    Log.Put ("database " & path & ", " & Plural (s.userCount (), "user"));
     Out ("feedreader: open http://" & host & ":" & Fmt.Int (port) & "/ in a browser");
     IF s.userCount () = 0 THEN Out ("feedreader: there is no user yet; the page makes the first one") END;
     TRY Wr.Flush (Stdio.stdout) EXCEPT Wr.Failure => END;
+    EVAL RTProcess.OnInterrupt (Interrupted);
     TRY
       server.serve (c);
     EXCEPT
     | IP.Error => RAISE Failed ("the server failed");
     END;
     Fetcher.Stop (f);
+    store := NIL;
+    s.close ();
+    Log.Put ("stopped; the database is closed");
   END DoServe;
+
+PROCEDURE Plural (n: INTEGER; what: TEXT): TEXT =
+  BEGIN
+    IF n = 1 THEN RETURN "1 " & what END;
+    RETURN Fmt.Int (n) & " " & what & "s";
+  END Plural;
 
 (* The command line *)
 
