@@ -20,7 +20,12 @@
 (* Copyright (C) 1993, Digital Equipment Corporation           *)
 (* All rights reserved.                                        *)
 (* See the file COPYRIGHT for a full description.              *)
+(* Changes for m3j: Copyright (c) 2026 the m3j authors, distributed
+   under the MIT license in the file LICENSE. *)
 
+(* Changed for m3j: a carriage return does not end a line, so that the
+   CR LF of a file of Windows counts as one line end (as in the scanner
+   of the compiler), not two. *)
 
 MODULE M3CLex EXPORTS M3CLex, M3CLexF;
 
@@ -680,7 +685,9 @@ PROCEDURE ReadCommentOrPragma(t: T; isComment: BOOLEAN) RAISES {Rd.Failure}=
           VAR
             next: CHAR;
           BEGIN
-            IF ch # startChar AND ch # '*' THEN
+            IF ch = '\r' THEN
+              (* the LF of CR LF ends the line *)
+            ELSIF ch # startChar AND ch # '*' THEN
               (* must be newline *)
               INC(t.linesInToken);
               startOfLine := pos;
@@ -726,7 +733,9 @@ PROCEDURE GetNext(t: T) RAISES {Rd.Failure}=
         ch := Get(t); INC(t.offset);
         CASE ch OF
         | '\t', ' ', '\013', '\f' =>
-        | '\n', '\r' =>
+        | '\r' =>
+            t.offset := 0;
+        | '\n' =>
             INC(t.line);
             t.offset := 0;
         | 'A'..'Z', 'a'..'z' =>

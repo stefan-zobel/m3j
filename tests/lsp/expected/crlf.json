@@ -1,0 +1,101 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/app/src/Main.m3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "uri": "file:<work>/app/src/Util.i3",
+   "range": {
+    "start": {
+     "line": 7,
+     "character": 10
+    },
+    "end": {
+     "line": 7,
+     "character": 13
+    }
+   }
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+   "uri": "file:<work>/app/src/Main.m3",
+   "range": {
+    "start": {
+     "line": 12,
+     "character": 10
+    },
+    "end": {
+     "line": 12,
+     "character": 14
+    }
+   }
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/app/src/Main.m3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/app/src/Main.m3",
+   "diagnostics": [
+    {
+     "severity": 1,
+     "range": {
+      "start": {
+       "line": 22,
+       "character": 2
+      },
+      "end": {
+       "line": 22,
+       "character": 6
+      }
+     },
+     "message": "Identifier 'totl' not declared",
+     "source": "m3tk"
+    }
+   ]
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+   "uri": "file:<work>/app/src/Main.m3",
+   "range": {
+    "start": {
+     "line": 15,
+     "character": 10
+    },
+    "end": {
+     "line": 15,
+     "character": 14
+    }
+   }
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 9999,
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

@@ -1,3 +1,6 @@
+# Every file is checked out with the bytes of the repository, whatever
+# core.autocrlf says: tests read their data and compare outputs byte for byte.
+* -text
 # Scripts keep LF line endings on every system, so that their first line
 # (#!/bin/sh, #!/usr/bin/env python3) works on Linux and macOS.
 *.py text eol=lf

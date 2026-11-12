@@ -1,2 +1,3 @@
 # Known differences of the differential tests: NAME, a tab, the reason.
+rosetta/Create-a-file	it creates /output.txt and /docs in the root of the drive: cm3's record is of a user without the rights there, an administrator (a runner of GitHub Actions) has them
 rosetta/File-modification-time-2	an unhandled OSError.E: cm3 names the place in its OSErrorWin32.m3, m3j in its M3jFile.m3

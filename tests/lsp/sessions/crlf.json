@@ -1,0 +1,30 @@
+{
+ "comment": "files with CR LF line ends, on disk and in the editor: a declaration in another file (Util.i3), a definition in the same file, then a comment of three lines inserted at the top and an identifier that is not declared (line 22 from 0), and the definition again three lines further down",
+ "crlf": ["app/src/Main.m3", "app/src/Util.i3"],
+ "steps": [
+  {"send": {"method": "textDocument/didOpen",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Main.m3"}, "languageId": "modula3",
+                                        "version": 1, "text": {"$crlf": "app/src/Main.m3"}}}}},
+  {"send": {"id": 1, "method": "textDocument/declaration",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Main.m3"}},
+                       "position": {"$pos": ["app/src/Main.m3", "Util.Add", 1, 6]}}}},
+  {"send": {"id": 2, "method": "textDocument/definition",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Main.m3"}},
+                       "position": {"$pos": ["app/src/Main.m3", "Show (Stdio", 1, 0]}}}},
+  {"comment": "a comment of three lines before MODULE",
+   "send": {"method": "textDocument/didChange",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Main.m3"}, "version": 2},
+                       "contentChanges": [{"range": {"start": {"line": 0, "character": 0},
+                                                     "end": {"line": 0, "character": 0}},
+                                           "text": "(* a comment\r\n   of three\r\n   lines *)\r\n"}]}}},
+  {"comment": "an identifier that is not declared: total -> totl",
+   "send": {"method": "textDocument/didChange",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Main.m3"}, "version": 3},
+                       "contentChanges": [{"range": {"start": {"line": 22, "character": 2},
+                                                     "end": {"line": 22, "character": 7}},
+                                           "text": "totl"}]}}},
+  {"send": {"id": 3, "method": "textDocument/definition",
+            "params": {"textDocument": {"uri": {"$uri": "app/src/Main.m3"}},
+                       "position": {"line": 24, "character": 2}}}}
+ ]
+}

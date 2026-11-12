@@ -37,14 +37,17 @@ A session is an object with the list "steps"; a step is one of
   {"eof": true}       closes the input of the server and waits for its end
                       (the session then ends there)
 
-and "init": false leaves out initialize, "end": false shutdown and exit.
+and "init": false leaves out initialize, "end": false shutdown and exit;
+"crlf": [FILE...] gives these files of the copy CR LF line ends before the
+library is built and the server starts.
 The messages of the steps with the same "group" are recorded sorted, for
 what may come in any order (the diagnostics of the thread that compiles
 and the reply to a request).
 In a message, {"$uri": FILE} stands for the URI of FILE (relative to the
 work directory) as Visual Studio Code writes it on Windows
 ("file:///c%3A/...", a drive letter in lower case and its colon escaped),
-{"$text": FILE} for the contents of FILE, and {"$pos": [FILE, TEXT, N,
+{"$text": FILE} for the contents of FILE (with LF line ends), {"$crlf":
+FILE} for them with CR LF line ends, and {"$pos": [FILE, TEXT, N,
 OFFSET]} for the position (line and character, from 0) of the OFFSET-th
 character (0 if left out) of the N-th occurrence (1 if left out) of TEXT
 in FILE (the file as in the package, not as changed by the session).
@@ -111,6 +114,9 @@ def expand(x, work):
             return file_uri(source(work, x["$uri"]))
         if set(x) == {"$text"}:
             return source(work, x["$text"]).read_text(encoding="latin-1").replace("\r\n", "\n")
+        if set(x) == {"$crlf"}:
+            return source(work, x["$crlf"]).read_text(encoding="latin-1").replace("\r\n", "\n").replace(
+                "\n", "\r\n")
         if set(x) == {"$pos"}:
             return position(work, x["$pos"])
         return {k: expand(v, work) for k, v in x.items()}
@@ -402,6 +408,10 @@ def main():
             if w.exists():
                 shutil.rmtree(w)
             shutil.copytree(LSP / "pkgs", w)
+            session = json.loads((SESSIONS / (name + ".json")).read_text(encoding="utf-8"))
+            for f in session.get("crlf", []):
+                data = (w / f).read_bytes().replace(b"\r\n", b"\n")
+                (w / f).write_bytes(data.replace(b"\n", b"\r\n"))
             code, out = m3build(args, w / "shapes")
             if code != 0:
                 report("FAIL", name, "m3build of shapes: " + out.strip().splitlines()[-1])

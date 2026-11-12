@@ -911,9 +911,11 @@ def case_sftp(env):
     # symbolic links against OpenSSH only: JSch sends the target of
     # SYMLINK first, as OpenSSH reads it, and asyncssh takes that order only
     # from a client that calls itself OpenSSH or paramiko
+    # (on Windows sftp-server of Git for Windows makes a copy of the target
+    # instead of a link, unless MSYS asks for links of Windows)
     try:
         os.symlink("a.txt", root / "probe-link")
-        links = True
+        links = sys.platform != "win32"
         os.remove(root / "probe-link")
     except OSError:
         links = False
