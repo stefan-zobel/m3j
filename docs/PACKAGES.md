@@ -59,15 +59,15 @@ Every module is safe, and nothing they use is missing.
 
 ## Mostly usable
 
-The safe modules compile; what the last column names has no
-implementation on m3j (it is UNSAFE), so calling it fails at run time.
+Most of the package compiles and is there; one part is not, because it is
+UNSAFE or needs something that is.
 
-| Package | Kind | What does not work |
-|---|---|---|
-| arithmetic | library | the interface `Bits`; none of the other 294 modules uses it |
-| debug | library | `Debug.T.print`, which names the thread with `ThreadF.MyId` of CM3's thread implementation |
-| rdwr | library | `SimpleMsgRW`; `RdWrPipe` and `TeeWr` are complete |
-| realgeometry | library | `PathExtra`, which uses `Path` of libm3 (not in m3j); the other five modules are complete |
+| Package | Kind | Not available | Available |
+|---|---|---|---|
+| arithmetic | library | the interface `Bits` | all the rest (294 modules) |
+| debug | library | the method `print` of `Debug.T`: it names the thread with `ThreadF.MyId`, a part of CM3's thread implementation | all the rest |
+| rdwr | library | `SimpleMsgRW` | `RdWrPipe`, `TeeWr` |
+| realgeometry | library | `PathExtra`: it needs `Path` of libm3, which is UNSAFE | `RealInterval`, `RealPath`, `RealPoint`, `RealRect`, `RealTransform` |
 
 ## Compiles, but its core is missing
 
@@ -76,16 +76,16 @@ module that is UNSAFE, so the package is of little use on m3j.
 
 | Package | Kind | Why |
 |---|---|---|
-| binIO | library | `BinIO` works through `FastBinIO` |
-| db | library | `DB` reaches its databases through `ODBCDB` |
-| events | library | `EventWr`, `EventPort`, `EventStubLib` and others; `RdWrMutex` and `WorkerPool` use `ThreadF` of CM3's thread implementation |
-| m3markup | library | the interface `ID`, and the scanner of m3scan (below) |
-| m3scan | library | `M3Scanner` uses `m3scan_M3ID` |
-| m3scanner | library | `M3Scanner` uses `M3Keyword` |
-| smalldb | library | `SmallDB` uses `OSSupport` |
-| sgml | library | `FSM` uses `DeepCopy` (package deepcopy); it also builds on m3quake and m3middle (below) |
-| fix_nl | program | its main module uses `OS` |
-| sgship | program | `AstToType` uses its `FRefRefTbl`; it also needs `WiredStandard` of m3tk |
+| binIO | library | `BinIO` needs `FastBinIO`, which is UNSAFE. |
+| db | library | `DB` reaches its databases through `ODBCDB`, which is UNSAFE. |
+| events | library | `EventWr`, `EventPort`, `EventStubLib` and two more are UNSAFE; `RdWrMutex` and `WorkerPool` need `ThreadF`, a part of CM3's thread implementation. |
+| m3markup | library | The module of its interface `ID` is UNSAFE, and it needs the scanner of m3scan, which does not work (next row). |
+| m3scan | library | `M3Scanner` needs `m3scan_M3ID`, which is UNSAFE. |
+| m3scanner | library | `M3Scanner` needs `M3Keyword`, which is UNSAFE. |
+| smalldb | library | `SmallDB` needs `OSSupport`, which is UNSAFE. |
+| sgml | library | `FSM` needs `DeepCopy` of the package deepcopy, which is UNSAFE; sgml also builds on m3quake and m3middle (next section). |
+| fix_nl | program | Its main module needs `OS`, which is UNSAFE. |
+| sgship | program | `AstToType` needs `FRefRefTbl`, which is UNSAFE, and `WiredStandard` of m3tk, which is UNSAFE too. |
 
 ## CM3's compiler and its tools
 
