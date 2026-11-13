@@ -9,7 +9,7 @@ each test as PASS or FAIL with its time.
 GROUP is one of
 
   backend   m3tests (p0-p2, r0, the compile tests c0 and c1), split_test,
-            cli_test, dump_test fingerprint and middle
+            lvt_test, cli_test, dump_test fingerprint and middle
   programs  diff_test: test programs, examples and Rosetta Code against
             the results of cm3
   tools     programs compiled by m3j: m3front_test, stubgen_test,
@@ -58,6 +58,7 @@ GROUPS = {
         ("m3tests", tool("run_jvm.py", "p0", "p1", "p2", "r0")),
         ("m3tests-compile", tool("run_jvm.py", "--compile", "c0", "c1")),
         ("split", tool("split_test.py")),
+        ("lvt", tool("lvt_test.py")),
         ("cli", tool("cli_test.py")),
         ("fingerprint", tool("dump_test.py", "fingerprint")),
         ("middle", tool("dump_test.py", "middle")),

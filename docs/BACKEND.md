@@ -277,6 +277,21 @@ JVM type in the descriptor.
 evaluated once into locals; the body works on them directly. A `WITH` on
 a value that is not a designator is a local of the value's type.
 
+**Debug information.** Besides `LineNumberTable` and `SourceFile`, every
+method has a `LocalVariableTable`, so a Java debugger shows the variables
+by their names, from where they are initialized to the end of their scope
+(a block, a `FOR`, a `WITH`, an arm of `TYPECASE` or `TRY EXCEPT`). It
+shows them as the JVM holds them (sections 2 and 3): an array as its
+storage, with `NAME$off` for its offset and `NAME$n0`, `NAME$n1`, ... for
+its open dimensions where they are locals; a `VAR` parameter as its
+reference object; a variable that lives in a cell as the cell, whose field
+`v` is the value. The variables that inner procedures use are fields
+`vN_NAME` of the frame `$frame`; an inner procedure reaches those of its
+parents through `$up` (and their field `up`). The formals are named where
+they end up, a copy or a cell, not in the slots that they are passed in.
+Locals of the compiler (for a `FOR` limit, an exception, a temporary) have
+no name.
+
 ## 5. Procedures
 
 **Top-level procedures** are static methods of the unit's class.

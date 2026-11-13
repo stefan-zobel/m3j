@@ -65,6 +65,17 @@ when the program is compiled: they are those of the system that the
 compiler runs on (or that `-Dm3j.os` names for it); `Pathname` gives the
 conventions of the system that the program runs on.
 
+A Java debugger shows the variables of a compiled program by their names
+(as the JVM holds them: [`BACKEND.md`](BACKEND.md#4-variables-and-parameters),
+"Debug information"). The class of a module `M` is `m3.m.M`; with jdb:
+
+```sh
+jdb -classpath m3j-runtime.jar:out m3.Main
+stop at m3.m.Main:20
+run
+locals
+```
+
 # Java APIs
 
 An interface can stand for a Java class. The program then calls its

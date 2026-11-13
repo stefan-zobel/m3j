@@ -26,6 +26,7 @@ JDK25=/path/to/jdk-25 python3 tools/run_jvm.py --compile c0 c1
 JDK25=/path/to/jdk-25 python3 tools/diff_test.py                # against cm3: library tests, examples, Rosetta Code,
                                                                 # edge cases, random expressions
 JDK25=/path/to/jdk-25 python3 tools/split_test.py               # methods too large for the JIT
+JDK25=/path/to/jdk-25 python3 tools/lvt_test.py                 # the names of variables that a debugger sees
 JDK25=/path/to/jdk-25 python3 tools/m3front_test.py             # CM3's front end, compiled by m3j, against m3j's
 JDK25=/path/to/jdk-25 python3 tools/bundle_test.py              # m3bundle, compiled by m3j, against cm3's
 JDK25=/path/to/jdk-25 python3 tools/build_test.py quake cases   # m3build: cm3's quake tests, packages of tests/build

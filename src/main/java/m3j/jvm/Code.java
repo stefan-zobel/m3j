@@ -175,6 +175,7 @@ final class Code {
         cb.invokespecial(fc, "<init>", MT_V);
         cb.astore(slot);
         myFrame = new Loc.Local(slot, JType.ref(fc));
+        debugName("$frame", myFrame, here());
         if (staticLink != null && frames.linkOf(proc) != null) {
             cb.aload(slot);
             staticLink.load(cb);
@@ -227,10 +228,12 @@ final class Code {
     /** Generates the body of the procedure. */
     void procedure() {
         Scope.T zz = Scope.push(proc.syms);
+        openScope();
         try {
             int slot = 0;
             if (frames.linkOf(proc) != null) {
                 staticLink = new Loc.Local(slot, JType.ref(frames.frameClassOf(frames.linkOf(proc))));
+                debugName("$up", staticLink, cb.startLabel());
                 slot++;
             }
             // the formals, in the order of the signature
@@ -275,6 +278,12 @@ final class Code {
                     locals.put(var, p);
                 }
             }
+            // the formals are named where they have their final location (a
+            // copy, a cell), not in the slots they are passed in
+            Label formalsStart = here();
+            for (Variable.T var : formals) {
+                debugName(id(var.name), locals.get(var), formalsStart);
+            }
             // an exception that leaves the procedure must be in its RAISES clause
             List<ClassDesc> allowed = raisesGuard();
             Label guardStart = cb.newLabel(), guardEnd = cb.newLabel();
@@ -318,6 +327,7 @@ final class Code {
                 cb.athrow();
                 cb.exceptionCatch(guardStart, guardEnd, handler, CD_M3Exception);
             }
+            closeScope(cb.endLabel());
         } finally {
             Scope.pop(zz);
         }
@@ -385,6 +395,7 @@ final class Code {
 
     /** Generates the initialization of the unit: its variables, then its body. */
     void init(Module.T m) {
+        openScope();
         enterFrame();
         // as cm3: constant initial values first (they are static data), then
         // the others in order
@@ -404,6 +415,7 @@ final class Code {
             stmts(m.block);
         }
         cb.return_();
+        closeScope(cb.endLabel());
     }
 
     /** Moves a parameter into its frame location. */
@@ -523,6 +535,74 @@ final class Code {
         }
         for (Variable.T var : vars) {
             initVariable(var, locals.get(var));
+        }
+        Label start = here();
+        for (Variable.T var : vars) {
+            debugName(id(var.name), locals.get(var), start);
+        }
+    }
+
+    // ---------------------------------------------------- debug names
+
+    /** A slot named in the LocalVariableTable, from start to the end of its scope. */
+    private record DebugVar(int slot, String name, ClassDesc desc, Label start) {}
+
+    /** the slots named in the scopes that are open, innermost first */
+    private final Deque<List<DebugVar>> debugScopes = new ArrayDeque<>();
+
+    /** A label bound at the current position. */
+    Label here() {
+        return cb.newBoundLabel();
+    }
+
+    /** Opens a scope of variables for the LocalVariableTable. */
+    void openScope() {
+        debugScopes.push(new ArrayList<>());
+    }
+
+    /** Closes the innermost scope at end: the slots named in it go into the LocalVariableTable. */
+    void closeScope(Label end) {
+        for (DebugVar v : debugScopes.pop()) {
+            cb.localVariable(v.slot(), v.name(), v.desc(), v.start(), end);
+        }
+    }
+
+    /** Closes the innermost scope here. */
+    void closeScope() {
+        if (debugScopes.peek().isEmpty()) {
+            debugScopes.pop();
+        } else {
+            closeScope(here());
+        }
+    }
+
+    /**
+     * Names the slots of location l in the innermost scope, from start to
+     * its end: the slot of a local, the slot of the cell or the reference
+     * object of a scalar, the storage of an array, with its offset and its
+     * open dimensions as name$off and name$n0, name$n1, ... (as in a frame).
+     * A location that is not in a slot, such as the field of a frame, is not
+     * named; nor is anything outside of a scope, nor a variable of the front
+     * end whose name is no identifier (_result).
+     */
+    void debugName(String name, Loc l, Label start) {
+        List<DebugVar> scope = debugScopes.peek();
+        if (scope == null || name.startsWith("_")) {
+            return;
+        }
+        switch (l) {
+            case Loc.Local x -> scope.add(new DebugVar(x.slot(), name, x.type().desc, start));
+            case Loc.Cell c -> debugName(name, c.holder(), start);
+            case Loc.VarRef r -> debugName(name, r.ref(), start);
+            case Loc.Arr a -> {
+                debugName(name, a.storage(), start);
+                debugName(name + "$off", a.offset(), start);
+                for (int i = 0; i < a.dims().length; i++) {
+                    debugName(name + "$n" + i, a.dims()[i], start);
+                }
+            }
+            default -> {
+            }
         }
     }
 
@@ -811,10 +891,12 @@ final class Code {
     void chunkBody(Split.Chunk c) {
         chunk = c;
         Scope.T zz = proc == Frames.INIT ? null : Scope.push(proc.syms);
+        openScope();
         try {
             if (frames.framed(proc)) {
                 ClassDesc fc = frames.frameClassOf(proc);
                 myFrame = new Loc.Local(cb.parameterSlot(0), JType.ref(fc));
+                debugName("$frame", myFrame, cb.startLabel());
                 Procedure.T link = frames.linkOf(proc);
                 if (link != null) {
                     staticLink = new Loc.Field(myFrame, fc, "up", JType.ref(frames.frameClassOf(link)));
@@ -839,6 +921,7 @@ final class Code {
             }
             cb.iconst_0();
             cb.ireturn();
+            closeScope(cb.endLabel());
         } finally {
             if (zz != null) {
                 Scope.pop(zz);
@@ -1049,10 +1132,12 @@ final class Code {
             return;
         }
         Scope.T zz = Scope.push(p.scope);
+        openScope();
         try {
             declareLocals(p.scope, false);
             unit.nestedProcedures(p.scope, proc);
             stmts(p.body);
+            closeScope();
         } finally {
             Scope.pop(zz);
         }
@@ -1448,6 +1533,8 @@ final class Code {
             } else {
                 locals.put(var, counter);
             }
+            openScope();
+            debugName(id(var.name), locals.get(var), top);
             unwind.push(exit);
             stmts(p.body);
             unwind.pop();
@@ -1487,6 +1574,7 @@ final class Code {
                 compareJump(isLong, CmpOp.GE, top);
             }
             cb.labelBinding(exit);
+            closeScope(exit);
         } finally {
             Scope.pop(zz);
         }
@@ -1565,7 +1653,10 @@ final class Code {
                 l = fl;
             }
             locals.put(var, l);
+            openScope();
+            debugName(id(var.name), l, here());
             stmts(p.body);
+            closeScope();
         } finally {
             Scope.pop(zz);
         }

@@ -1,0 +1,86 @@
+line 20 in Inc
+  n: long = 7
+  r: m3.t.T530f9b91 = m3.t.T530f9b91 {a = 3, b = "three"}
+  x: m3j.rt.LongRef = m3j.rt.LongCell {v = 10}
+line 57 in Scalars
+  arr: long[] = [1, 2, 3]
+  b: boolean = true
+  c: char = x
+  cell: m3j.rt.LongCell = m3j.rt.LongCell {v = 20}
+  col: int = 1
+  i: long = 7
+  r: float = 1.5
+  rec: m3.t.T530f9b91 = m3.t.T530f9b91 {a = 3, b = "three"}
+  t: java.lang.String = "text"
+line 60 in Scalars
+  arr: long[] = [1, 2, 3]
+  b: boolean = true
+  c: char = x
+  cell: m3j.rt.LongCell = m3j.rt.LongCell {v = 20}
+  col: int = 1
+  i: long = 7
+  inner: long = 8
+  r: float = 1.5
+  rec: m3.t.T530f9b91 = m3.t.T530f9b91 {a = 3, b = "three"}
+  t: java.lang.String = "text"
+line 63 in Scalars
+  alias: long[] = [1, 2, 3]
+  arr: long[] = [1, 2, 3]
+  b: boolean = true
+  c: char = x
+  cell: m3j.rt.LongCell = m3j.rt.LongCell {v = 20}
+  col: int = 1
+  i: long = 7
+  j: long = 7
+  r: float = 1.5
+  rec: m3.t.T530f9b91 = m3.t.T530f9b91 {a = 3, b = "three"}
+  t: java.lang.String = "text"
+  w: long = 21
+line 65 in Scalars
+  arr: long[] = [1, 2, 3]
+  b: boolean = true
+  c: char = x
+  cell: m3j.rt.LongCell = m3j.rt.LongCell {v = 20}
+  col: int = 1
+  i: long = 7
+  r: float = 1.5
+  rec: m3.t.T530f9b91 = m3.t.T530f9b91 {a = 3, b = "three"}
+  t: java.lang.String = "text"
+line 27 in Sum
+  a: long[] = [2, 3]
+  a$n0: int = 2
+  a$off: int = 0
+  b: long[] = [2, 3]
+  b$n0: int = 2
+  i: long = 0
+  s: long = 0
+line 27 in Sum
+  a: long[] = [2, 3]
+  a$n0: int = 2
+  a$off: int = 0
+  b: long[] = [2, 3]
+  b$n0: int = 2
+  i: long = 1
+  s: long = 4
+line 29 in Sum
+  a: long[] = [2, 3]
+  a$n0: int = 2
+  a$off: int = 0
+  b: long[] = [2, 3]
+  b$n0: int = 2
+  s: long = 13
+line 41 in Outer
+  $frame: m3.m.Main$F$Outer = m3.m.Main$F$Outer {v0_captured = 10}
+  k: long = 5
+line 37 in Outer$Inner
+  $up: m3.m.Main$F$Outer = m3.m.Main$F$Outer {v0_captured = 10}
+  m: long = 1
+line 73 in Cases
+  n: m3.t.T23848456 = m3.t.T23848456 {val = 9, m3$keeper = null}
+  o: java.lang.Object = m3.t.T23848456 {val = 9, m3$keeper = null}
+line 80 in Cases
+  code: long = 42
+  o: java.lang.Object = m3.t.T23848456 {val = 9, m3$keeper = null}
+line 82 in Cases
+  o: java.lang.Object = m3.t.T23848456 {val = 9, m3$keeper = null}
+13 stops, exit status 0

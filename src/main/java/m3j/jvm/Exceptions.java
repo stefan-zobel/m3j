@@ -121,6 +121,7 @@ final class Exceptions {
             if (h.scope != null) {
                 outer = Scope.push(h.scope);
             }
+            c.openScope();
             try {
                 if (h.var_ != null) {
                     Loc v = c.declare(h.var_);
@@ -138,9 +139,11 @@ final class Exceptions {
                         c.unboxValue(vt);
                         v.storePost(cb);
                     }
+                    c.debugName(Code.id(h.var_.name), v, c.here());
                 }
                 c.line(h.origin);
                 c.stmts(h.body);
+                c.closeScope();
             } finally {
                 if (h.scope != null) {
                     Scope.pop(outer);
@@ -309,6 +312,7 @@ final class Exceptions {
             cb.labelBinding(body);
             c.line(k.origin);
             Scope.T zz = k.scope != null ? Scope.push(k.scope) : null;
+            c.openScope();
             try {
                 if (k.var_ != null) {
                     Loc v = c.declare(k.var_);
@@ -316,8 +320,10 @@ final class Exceptions {
                     x.load(cb);
                     c.checkcastIfNeeded(v.type().desc);
                     v.storePost(cb);
+                    c.debugName(Code.id(k.var_.name), v, c.here());
                 }
                 c.stmts(k.stmt);
+                c.closeScope();
             } finally {
                 if (zz != null) {
                     Scope.pop(zz);
