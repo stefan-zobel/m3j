@@ -5,7 +5,7 @@ MODULE Outline;
 
 IMPORT Text;
 IMPORT M3Context, M3CUnit, M3CId, M3CSrcPos;
-IMPORT M3AST_AS, M3AST_AS_F, M3AST_LX_F, M3AST_FE_F;
+IMPORT M3AST_AS, M3AST_AS_F, M3AST_LX_F, M3AST_FE_F, M3AST_SM_F;
 IMPORT SeqM3AST_AS_DECL_REVL, SeqM3AST_AS_Const_decl,
        SeqM3AST_AS_TYPE_DECL, SeqM3AST_AS_Var_decl, SeqM3AST_AS_Var_id,
        SeqM3AST_AS_Exc_decl, SeqM3AST_AS_REVELATION, SeqM3AST_AS_Enum_id,
@@ -19,10 +19,7 @@ CONST
 
 TYPE
   (* the text that m3tk compiled *)
-  Src = REF RECORD
-    a    : REF ARRAY OF CHAR;
-    lines: REF ARRAY OF INTEGER;        (* the offset of each line *)
-  END;
+  Src = Source;
 
   (* the tokens of Modula-3 that the ends of declarations depend on *)
   Tok = {Eof, Ident, Semi, Colon, Assign, Eq, Open, Close, Other};
@@ -45,6 +42,12 @@ TYPE
                 OVERRIDES
                   callback := FindUnit;
                 END;
+
+REVEAL
+  Source = BRANDED REF RECORD
+    a    : REF ARRAY OF CHAR;
+    lines: REF ARRAY OF INTEGER;        (* the offset of each line *)
+  END;
 
 (* The text *)
 
@@ -309,8 +312,9 @@ PROCEDURE ProcEnd (s: Src; off: INTEGER; name: TEXT): INTEGER =
 
 (* The text of a signature or a type, from the tokens that follow the
    identifier at off: all of them, or (afterColon) those after the first
-   ":"; up to a ";", ":=", END, a reserved word of StopWord or (atEq) an
-   "=" outside of brackets. NIL if there are none. *)
+   ":"; up to a ";", ":=", END, a reserved word of StopWord, (atEq) an
+   "=" outside of brackets, or a closing bracket that has no opening one
+   (after the last formal parameter). NIL if there are none. *)
 PROCEDURE Detail (s: Src; off: INTEGER; afterColon, atEq: BOOLEAN): TEXT =
   VAR
     sc            := Scanner{s := s, i := off};
@@ -327,7 +331,7 @@ PROCEDURE Detail (s: Src; off: INTEGER; afterColon, atEq: BOOLEAN): TEXT =
       IF depth = 0 THEN
         IF sc.kind = Tok.Semi OR sc.kind = Tok.Assign
              OR atEq AND sc.kind = Tok.Eq OR Is(sc, "END")
-             OR StopWord(sc) THEN
+             OR StopWord(sc) OR sc.kind = Tok.Close THEN
           EXIT;
         END;
       END;
@@ -782,6 +786,206 @@ PROCEDURE InCode (text: TEXT; offset: INTEGER): BOOLEAN =
     END;
     RETURN TRUE;
   END InCode;
+
+(* Completion *)
+
+PROCEDURE OfType (type: M3AST_AS.M3TYPE; text: TEXT): Symbols =
+  VAR
+    l  : List;
+    res: Symbols;
+  BEGIN
+    EVAL TypeKind(NewSrc(text), type, FALSE, l);
+    res := Children(l);
+    IF res = NIL THEN res := NEW(Symbols, 0); END;
+    RETURN res;
+  END OfType;
+
+PROCEDURE NewSource (text: TEXT): Source =
+  BEGIN
+    RETURN NewSrc(text);
+  END NewSource;
+
+PROCEDURE SourceOffset (s: Source; READONLY p: M3CSrcPos.T): INTEGER =
+  BEGIN
+    RETURN Offset(s, p);
+  END SourceOffset;
+
+(* the type construction that the type m3type denotes, or NIL *)
+PROCEDURE Spec (m3type: M3AST_AS.M3TYPE): M3AST_AS.M3TYPE =
+  BEGIN
+    TYPECASE m3type OF
+    | NULL => RETURN NIL;
+    | M3AST_AS.Named_type (n) => RETURN n.sm_type_spec;
+    ELSE
+      RETURN m3type;
+    END;
+  END Spec;
+
+(* the kind of symbol of a type with the construction ts *)
+PROCEDURE SpecKind (ts: M3AST_AS.M3TYPE): INTEGER =
+  BEGIN
+    TYPECASE ts OF
+    | NULL =>
+    | M3AST_AS.Object_type, M3AST_AS.Opaque_type => RETURN Class;
+    | M3AST_AS.Record_type => RETURN Struct;
+    | M3AST_AS.Enumeration_type => RETURN Enum;
+    | M3AST_AS.Ref_type (r) =>
+        IF ISTYPE(Spec(r.as_type), M3AST_AS.Record_type) THEN
+          RETURN Struct;
+        END;
+    ELSE
+    END;
+    RETURN TypeParam;
+  END SpecKind;
+
+PROCEDURE OfId (s: Source; id: M3AST_AS.DEF_ID): Symbol =
+  VAR
+    off       : INTEGER;
+    sym       : Symbol;
+    kind                := Variable;
+    afterColon          := TRUE;
+    atEq                := FALSE;
+    detail              := TRUE;
+  BEGIN
+    IF id = NIL THEN RETURN NIL; END;
+    off := Offset(s, id.lx_srcpos);
+    TYPECASE id OF
+    | M3AST_AS.Proc_id =>
+        kind := Function;
+        afterColon := FALSE;
+        atEq := TRUE;
+    | M3AST_AS.Const_id => kind := Constant; atEq := TRUE;
+    | M3AST_AS.Type_id (t) => kind := SpecKind(t.sm_type_spec); detail := FALSE;
+    | M3AST_AS.Exc_id => kind := Event; afterColon := FALSE;
+    | M3AST_AS.With_id, M3AST_AS.For_id, M3AST_AS.Tcase_id,
+      M3AST_AS.Handler_id =>
+        detail := FALSE;
+    ELSE
+    END;
+    sym := Make(s, Name(id), off, NIL, kind);
+    IF sym # NIL AND detail THEN
+      sym.detail := Detail(s, off, afterColon, atEq);
+    END;
+    RETURN sym;
+  END OfId;
+
+(* the token is one of the reserved words that begin something that ends
+   with END (or UNTIL), and is a statement or a body (stmt), or a type *)
+PROCEDURE Opens (READONLY sc: Scanner; VAR stmt: BOOLEAN): BOOLEAN =
+  BEGIN
+    IF sc.kind # Tok.Ident THEN RETURN FALSE; END;
+    stmt := TRUE;
+    IF Is(sc, "IF") OR Is(sc, "WHILE") OR Is(sc, "FOR") OR Is(sc, "WITH")
+         OR Is(sc, "LOOP") OR Is(sc, "LOCK") OR Is(sc, "CASE")
+         OR Is(sc, "TYPECASE") OR Is(sc, "TRY") OR Is(sc, "BEGIN")
+         OR Is(sc, "REPEAT") THEN
+      RETURN TRUE;
+    END;
+    stmt := FALSE;
+    RETURN Is(sc, "RECORD") OR Is(sc, "OBJECT");
+  END Opens;
+
+(* the token closes what Opens opened *)
+PROCEDURE Closes (READONLY sc: Scanner): BOOLEAN =
+  BEGIN
+    RETURN Is(sc, "END") OR Is(sc, "UNTIL");
+  END Closes;
+
+(* the token is the character c *)
+PROCEDURE IsChar (READONLY sc: Scanner; c: CHAR): BOOLEAN =
+  BEGIN
+    RETURN sc.end - sc.start = 1 AND sc.s.a[sc.start] = c;
+  END IsChar;
+
+(* after the END of the statement or block statement at off: the first
+   END (or UNTIL) that closes a statement or body opened at the depth of
+   the start; the RECORD and OBJECT types of declarations before it are
+   skipped *)
+PROCEDURE StmtEnd (s: Src; off: INTEGER): INTEGER =
+  CONST Max = 256;
+  VAR
+    sc    := Scanner{s := s, i := off};
+    depth := 0;
+    kinds : ARRAY [0 .. Max - 1] OF BOOLEAN;  (* stmt of each depth *)
+    stmt  : BOOLEAN;
+  BEGIN
+    LOOP
+      Next(sc);
+      IF sc.kind = Tok.Eof THEN RETURN NUMBER(s.a^); END;
+      IF Opens(sc, stmt) THEN
+        IF depth < Max THEN kinds[depth] := stmt; END;
+        INC(depth);
+      ELSIF Closes(sc) THEN
+        IF depth = 0 THEN RETURN sc.start; END;
+        DEC(depth);
+        IF depth = 0 AND kinds[0] THEN
+          RETURN sc.end;
+        END;
+      END;
+    END;
+  END StmtEnd;
+
+(* before the "|", ELSE or END after the arm at off of a TYPECASE or of
+   the EXCEPT of a TRY *)
+PROCEDURE ArmEnd (s: Src; off: INTEGER): INTEGER =
+  VAR
+    sc    := Scanner{s := s, i := off};
+    depth := 0;
+    stmt  : BOOLEAN;
+  BEGIN
+    LOOP
+      Next(sc);
+      IF sc.kind = Tok.Eof THEN RETURN NUMBER(s.a^); END;
+      IF depth = 0 AND (IsChar(sc, '|') OR Is(sc, "ELSE") OR Closes(sc)) THEN
+        RETURN sc.start;
+      END;
+      IF Opens(sc, stmt) OR sc.kind = Tok.Open THEN
+        INC(depth);
+      ELSIF (Closes(sc) OR sc.kind = Tok.Close) AND depth > 0 THEN
+        DEC(depth);
+      END;
+    END;
+  END ArmEnd;
+
+(* before the "," or DO after the binding of WITH at off *)
+PROCEDURE BindingEnd (s: Src; off: INTEGER): INTEGER =
+  VAR
+    sc    := Scanner{s := s, i := off};
+    depth := 0;
+    stmt  : BOOLEAN;
+  BEGIN
+    LOOP
+      Next(sc);
+      IF sc.kind = Tok.Eof THEN RETURN NUMBER(s.a^); END;
+      IF depth = 0 AND (IsChar(sc, ',') OR Is(sc, "DO")) THEN
+        RETURN sc.start;
+      END;
+      IF Opens(sc, stmt) OR sc.kind = Tok.Open THEN
+        INC(depth);
+      ELSIF (Closes(sc) OR sc.kind = Tok.Close) AND depth > 0 THEN
+        DEC(depth);
+      END;
+    END;
+  END BindingEnd;
+
+PROCEDURE ScopeEnd (s: Source; node: M3AST_AS.SRC_NODE): INTEGER =
+  VAR off: INTEGER;
+  BEGIN
+    IF node = NIL THEN RETURN -1; END;
+    off := Offset(s, node.lx_srcpos);
+    IF off < 0 THEN RETURN -1; END;
+    TYPECASE node OF
+    | M3AST_AS.Proc_decl (p) =>
+        IF p.as_id = NIL OR Name(p.as_id) = NIL THEN RETURN -1; END;
+        off := Offset(s, p.as_id.lx_srcpos);
+        IF off < 0 THEN RETURN -1; END;
+        RETURN ProcEnd(s, off, Name(p.as_id));
+    | M3AST_AS.Tcase, M3AST_AS.Handler => RETURN ArmEnd(s, off);
+    | M3AST_AS.Binding => RETURN BindingEnd(s, off);
+    ELSE
+      RETURN StmtEnd(s, off);
+    END;
+  END ScopeEnd;
 
 BEGIN
 END Outline.

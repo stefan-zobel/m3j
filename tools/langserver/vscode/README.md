@@ -19,10 +19,12 @@ language server of m3j (`m3_lang_server.jar`):
   procedures, with the fields and methods of records and objects and the
   nested procedures;
 - completion (while typing, after a `.` and with Ctrl+Space): after
-  `I.` the declarations of the imported interface `I`, else the
-  identifiers of the file and of the interfaces it exports and imports,
-  the predeclared identifiers and the reserved words (not yet the fields
-  and methods after a variable, nor local variables and parameters).
+  `I.` the declarations of the imported interface `I`; after `v.` the
+  fields and methods of the type of `v` (any expression, also `self.`),
+  after `T.` the values of an enumeration; else the parameters and local
+  names of the procedure, the identifiers of the file and of the
+  interfaces it exports and imports, the predeclared identifiers and the
+  reserved words; in an `IMPORT` list the names of the interfaces.
 
 It needs no other packages: `extension.js` talks to the server with
 `lsp.js`, a client of the Language Server Protocol of its own.

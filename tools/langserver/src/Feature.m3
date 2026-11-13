@@ -9,7 +9,7 @@
    so that a type of another interface is shown by its name (Wr.T)
    instead of an error for an opaque type; the unit that is searched is
    that of the file (an interface and a module have the same name);
-   SameFile is in the interface, for Outline. *)
+   SameFile is in the interface, for Outline; TypeText, for Complete. *)
 
 MODULE Feature;
 
@@ -143,6 +143,16 @@ PROCEDURE GetTypeDefinition (c: M3Context.T; unit: TEXT; line, col: INTEGER;
     defLen := cl.typeLoc.len;
     RETURN cl.typeDef;
   END GetTypeDefinition;
+
+PROCEDURE TypeText (c: M3Context.T; type: M3AST_AS.M3TYPE): TEXT =
+  <* FATAL ANY *>
+  VAR h: AstToType.Handle;
+  BEGIN
+    IF type = NIL THEN RETURN NIL; END;
+    h := AstToType.NewHandle(c);
+    M3Context.Apply(c, NEW(NameClosure), findStandard := FALSE);
+    RETURN Type.ToText(AstToType.ProcessM3Type(h, type), byName := TRUE);
+  END TypeText;
 
 PROCEDURE SameFile (a, b: TEXT): BOOLEAN =
   BEGIN

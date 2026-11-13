@@ -7,7 +7,7 @@
 
 INTERFACE Outline;
 
-IMPORT M3Context, M3AST_AS;
+IMPORT M3Context, M3AST_AS, M3CSrcPos;
 
 CONST
   (* the kinds of symbols of the protocol (SymbolKind) that are used *)
@@ -57,5 +57,35 @@ PROCEDURE InCode (text: TEXT; offset: INTEGER): BOOLEAN;
 (* FALSE if the place before the character at offset of text is in a
    comment, a pragma, a text or a character literal (also one that is
    not closed), else TRUE. *)
+
+PROCEDURE OfType (type: M3AST_AS.M3TYPE; text: TEXT): Symbols;
+(* The symbols inside the type construction type, as for the children of
+   a type declaration: the fields, methods and overrides of an object
+   type, the fields of a record type (also of REF RECORD) or the values
+   of an enumeration type; text is the text of the file that declares
+   it. An empty array if it has none. *)
+
+TYPE
+  (* a text that m3tk compiled, with the offsets of its lines *)
+  Source <: REFANY;
+
+PROCEDURE NewSource (text: TEXT): Source;
+
+PROCEDURE SourceOffset (s: Source; READONLY p: M3CSrcPos.T): INTEGER;
+(* The offset in s of the position p of m3tk, or -1 if p is none. *)
+
+PROCEDURE OfId (s: Source; id: M3AST_AS.DEF_ID): Symbol;
+(* The symbol of the defining identifier id, whose declaration is in s:
+   its kind, and as its detail the type or the signature that follows it
+   in the text (not for the names of WITH, FOR, TYPECASE and EXCEPT,
+   which have none there). NIL if id has no name or position. *)
+
+PROCEDURE ScopeEnd (s: Source; node: M3AST_AS.SRC_NODE): INTEGER;
+(* The offset in s of the end of node, a node that opens a scope: after
+   the END name of a procedure, after the END of a WITH, FOR, TYPECASE
+   or TRY statement or of a block statement, before the next "|", ELSE
+   or END of an arm of TYPECASE or EXCEPT, before the "," or DO after a
+   binding of WITH. Found from the tokens of the text, since m3tk keeps
+   only the start of a node; -1 if node has no position. *)
 
 END Outline.

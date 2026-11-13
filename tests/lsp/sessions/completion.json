@@ -1,5 +1,5 @@
 {
- "comment": "completion: after an interface imported with AS, after a generic instance, the identifiers of a module (its own, the imported, those of FROM, the predeclared, the reserved words) and of a module that exports its interface, nothing in a comment, in a text or after a variable, the declarations after a syntax error (which the outline of m3tk has not), a file that is not open, a request without a position",
+ "comment": "completion: after an interface imported with AS, after a generic instance, the identifiers of a module (its own, the imported, those of FROM, the predeclared, the reserved words) and of a module that exports its interface, nothing in a comment or in a text, the members of the type of a variable (session members has more of them), the declarations after a syntax error (which the outline of m3tk has not), with the parameter of the procedure there, a file that is not open, a request without a position",
  "steps": [
   {"send": {"method": "textDocument/didOpen",
             "params": {"textDocument": {"uri": {"$uri": "complete/src/Main.m3"}, "languageId": "modula3",

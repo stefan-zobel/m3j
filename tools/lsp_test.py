@@ -29,7 +29,10 @@ A session is an object with the list "steps"; a step is one of
                       for didOpen and didChange, for the diagnostics of the
                       file (unless "wait": false is in the step); with
                       "slash": true, each slash is written as the escape
-                      \/ of JSON
+                      \/ of JSON; with "labels": [LABEL...], only the
+                      items of the completion it gets back that have
+                      these labels are recorded, in this order (for a
+                      list that depends on what lib has)
   {"raw": TEXT}       sends TEXT as the content of a message, and waits
                       for a reply (an error for a message that is not JSON)
   {"quiet": SECONDS}  waits that long and records what comes (nothing,
@@ -235,6 +238,13 @@ class Server:
             return "TIMEOUT"
 
 
+def only(reply, labels):
+    """Keeps of the items of the completion reply those with the labels, in their order."""
+    if isinstance(reply, dict) and isinstance(reply.get("result"), list):
+        by_label = {i.get("label"): i for i in reply["result"]}
+        reply["result"] = [by_label[l] for l in labels if l in by_label]
+
+
 def run_session(name, args, work):
     session = json.loads((SESSIONS / (name + ".json")).read_text(encoding="utf-8"))
     norm = Normalizer(work)
@@ -293,6 +303,8 @@ def run_session(name, args, work):
                 msg = expand(step["send"], work)
                 if "id" in msg:
                     request(msg, args.timeout)
+                    if "labels" in step:
+                        only(record[-1], step["labels"])
                 else:
                     srv.send(msg, slash=step.get("slash", False))
                     method = msg.get("method", "")

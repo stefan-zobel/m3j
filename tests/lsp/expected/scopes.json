@@ -1,0 +1,709 @@
+[
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/members/src/Main.m3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+   {
+    "label": "s",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "label",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "Prefix",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "total",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Line",
+    "kind": 3,
+    "detail": "(t: TEXT)",
+    "sortText": "0"
+   },
+   {
+    "label": "t",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": [
+   {
+    "label": "s",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "label",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "Prefix",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "total",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Line",
+    "kind": 3,
+    "detail": "(t: TEXT)",
+    "sortText": "0"
+   },
+   {
+    "label": "o",
+    "kind": 6,
+    "detail": "Shape.Point",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": [
+   {
+    "label": "s",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "label",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "Prefix",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "total",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Line",
+    "kind": 3,
+    "detail": "(t: TEXT)",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": [
+   {
+    "label": "s",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "label",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "Prefix",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "total",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Line",
+    "kind": 3,
+    "detail": "(t: TEXT)",
+    "sortText": "0"
+   },
+   {
+    "label": "i",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": [
+   {
+    "label": "s",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "label",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "Prefix",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "total",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Line",
+    "kind": 3,
+    "detail": "(t: TEXT)",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": [
+   {
+    "label": "t",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "r",
+    "kind": 6,
+    "detail": "REFANY",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": [
+   {
+    "label": "r",
+    "kind": 6,
+    "detail": "REFANY",
+    "sortText": "0"
+   },
+   {
+    "label": "q",
+    "kind": 6,
+    "detail": "Shape.PointRef",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 8,
+  "result": [
+   {
+    "label": "r",
+    "kind": 6,
+    "detail": "REFANY",
+    "sortText": "0"
+   },
+   {
+    "label": "code",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 9,
+  "result": [
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 10,
+  "result": [
+   {
+    "label": "Base",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Shape",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "TextSeq",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "IO",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Fmt",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Main",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Text",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Wr",
+    "kind": 9,
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 11,
+  "result": [
+   {
+    "label": "Base",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Shape",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "TextSeq",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "IO",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Fmt",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Main",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Text",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Wr",
+    "kind": 9,
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": [
+   {
+    "label": "Kind",
+    "kind": 13,
+    "sortText": "0"
+   },
+   {
+    "label": "Point",
+    "kind": 22,
+    "sortText": "0"
+   },
+   {
+    "label": "PointRef",
+    "kind": 25,
+    "sortText": "0"
+   },
+   {
+    "label": "T",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "Public",
+    "kind": 7,
+    "sortText": "0"
+   },
+   {
+    "label": "Make",
+    "kind": 3,
+    "detail": "(k: Kind): T",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 13,
+  "result": []
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 14,
+  "result": [
+   {
+    "label": "Base",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Shape",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "TextSeq",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "IO",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Fmt",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Main",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Text",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Wr",
+    "kind": 9,
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/members/src/Main.m3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 15,
+  "result": [
+   {
+    "label": "s",
+    "kind": 6,
+    "detail": "Shape.T",
+    "sortText": "0"
+   },
+   {
+    "label": "label",
+    "kind": 6,
+    "detail": "TEXT",
+    "sortText": "0"
+   },
+   {
+    "label": "Prefix",
+    "kind": 21,
+    "sortText": "0"
+   },
+   {
+    "label": "total",
+    "kind": 6,
+    "detail": "INTEGER",
+    "sortText": "0"
+   },
+   {
+    "label": "Line",
+    "kind": 3,
+    "detail": "(t: TEXT)",
+    "sortText": "0"
+   },
+   {
+    "label": "o",
+    "kind": 6,
+    "detail": "Shape.Point",
+    "sortText": "0"
+   },
+   {
+    "label": "sh",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "count",
+    "kind": 6,
+    "sortText": "0"
+   },
+   {
+    "label": "Report",
+    "kind": 3,
+    "detail": "(s: Shape.T; label: TEXT)",
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "method": "textDocument/publishDiagnostics",
+  "params": {
+   "uri": "file:<work>/members/src/Shape.i3",
+   "diagnostics": []
+  }
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 16,
+  "result": [
+   {
+    "label": "Base",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "TextSeq",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "IO",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Fmt",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Main",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Text",
+    "kind": 9,
+    "sortText": "0"
+   },
+   {
+    "label": "Wr",
+    "kind": 9,
+    "sortText": "0"
+   }
+  ]
+ },
+ {
+  "jsonrpc": "2.0",
+  "id": 9999,
+  "result": null
+ },
+ {
+  "exit": 0
+ }
+]

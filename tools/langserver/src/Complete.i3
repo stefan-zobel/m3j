@@ -3,9 +3,16 @@
 
 (* The completion of an identifier (textDocument/completion): after
    "I." the declarations of the interface that the unit imports as I;
-   else the identifiers of the unit and of the interfaces it exports,
-   the interfaces it imports and the names of its FROM imports, the
-   predeclared identifiers and the reserved words. *)
+   after "e.", where e is another expression, the fields and methods of
+   its type (with the revelations that the unit sees), or the values of
+   the enumeration type or the methods of the object type that e names;
+   in the list of an IMPORT or of EXPORTS and after FROM the names of
+   the interfaces that can be imported, in that of FROM I IMPORT the
+   declarations of I; else the names declared in the procedures and
+   statements around the place (from m3tk's scopes), the identifiers of
+   the unit and of the interfaces it exports, the interfaces it imports
+   and the names of its FROM imports, the predeclared identifiers and
+   the reserved words. *)
 
 INTERFACE Complete;
 
@@ -51,9 +58,9 @@ PROCEDURE Get (c    : M3Context.T;
 (* The items at line and col (from 0, col in bytes) of text, the text of
    file (its pathname) that m3tk compiled in the context c; NIL if c has
    no unit of file, an empty array if there is nothing to complete there
-   (in a comment or a text, or after a "." that does not follow the name
-   of an imported interface). The client filters the items by what is
-   typed. The texts of other units are those of texts, else those of
+   (in a comment or a text, after AS in an import, or after a "." that
+   follows an expression whose type has no fields or methods). The
+   client filters the items by what is typed. The texts of other units are those of texts, else those of
    their files. Not for several threads at once: the caller holds the
    lock of m3tk. *)
 

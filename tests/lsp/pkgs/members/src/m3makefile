@@ -1,0 +1,7 @@
+% Objects, records and scopes, for the completion of fields, methods,
+% local names and names of interfaces (textDocument/completion).
+import ("libm3")
+interface ("Base")
+module ("Shape")
+implementation ("Main")
+program ("members")

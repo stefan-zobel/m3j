@@ -28,9 +28,27 @@ input and output, so any editor with a client of the protocol can use it:
   and the names of its `FROM` imports, the predeclared identifiers and
   the reserved words, each group sorted after the one before. While a
   file has a syntax error, the declarations that m3tk drops after it are
-  those of the last text of the file without one. Not yet: the fields
-  and methods after a variable (`v.`), and the local variables and
-  parameters of procedures.
+  those of the last text of the file without one. Inside a procedure
+  also its parameters and local declarations and those of the
+  procedures around it, and the names of `WITH`, `FOR`, `TYPECASE` and
+  `EXCEPT` where they are valid. After `v.`, where `v` is any
+  expression (`self.`, `a[i].`, `p^.`, `f().`, `x.y.`), the fields and
+  methods of its type, first those of the type itself, then those of its
+  supertypes, also through a `REF RECORD`. An opaque type shows the
+  fields and methods of the revelation that the unit sees (in an
+  interface, or in the module itself), else those of the type it is
+  declared with (`T <: Public`). After `T.`, the values of an
+  enumeration type `T` (also `I.T.`) or the methods of an object type.
+  In an `IMPORT` list, after `FROM` and after `EXPORTS`, the names of
+  the interfaces that the unit can import; in `FROM I IMPORT`, the
+  declarations of `I`.
+
+  Limits: m3tk does not analyze generic units (`.ig`, `.mg`), so there
+  the completion has only the declarations, not the local names nor the
+  fields and methods. Local names, fields and methods come from the
+  analysis of m3tk: after an error in the imports of a unit there is
+  none, and after a syntax error only for what the parser kept (an `IF`
+  that is not closed can make it drop the procedures after it).
 
 It checks a file with m3tk, CM3's toolkit for Modula-3 (in `tests/stubgen`),
 not with the compiler of m3j: a message is that of m3tk. A file is checked
