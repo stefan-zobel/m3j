@@ -45,6 +45,7 @@ Every module is safe, and nothing they use is missing.
 |---|---|
 | bitvector | library |
 | commandrw | library |
+| debug | library |
 | digraph | library |
 | libsio | library |
 | listfuncs | library |
@@ -68,7 +69,6 @@ UNSAFE or needs something that is.
 | Package | Kind | Not available | Available |
 |---|---|---|---|
 | arithmetic | library | the interface `Bits` | all the rest (294 modules) |
-| debug | library | the method `print` of `Debug.T`: it names the thread with `ThreadF.MyId`, a part of CM3's thread implementation | all the rest |
 | rdwr | library | `SimpleMsgRW` | `RdWrPipe`, `TeeWr` |
 | realgeometry | library | `PathExtra`: it needs `Path` of libm3, which is UNSAFE | `RealInterval`, `RealPath`, `RealPoint`, `RealRect`, `RealTransform` |
 
@@ -81,7 +81,7 @@ module that is UNSAFE, so the package is of little use on m3j.
 |---|---|---|
 | binIO | library | `BinIO` needs `FastBinIO`, which is UNSAFE. |
 | db | library | `DB` reaches its databases through `ODBCDB`, which is UNSAFE. |
-| events | library | `EventWr`, `EventPort`, `EventStubLib` and two more are UNSAFE; `RdWrMutex` and `WorkerPool` need `ThreadF`, a part of CM3's thread implementation. |
+| events | library | `EventWr`, `EventPort`, `EventStubLib` and two more are UNSAFE. What does not need them is complete: `EventCounter`, `RdWrMutex` and `WorkerPool`. |
 | m3markup | library | The module of its interface `ID` is UNSAFE, and it needs the scanner of m3scan, which does not work (next row). |
 | m3scan | library | `M3Scanner` needs `m3scan_M3ID`, which is UNSAFE. |
 | m3scanner | library | `M3Scanner` needs `M3Keyword`, which is UNSAFE. |

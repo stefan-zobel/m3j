@@ -1,0 +1,16 @@
+{
+ "units": [
+  "tests/diff/src/check/threadf/src/Main.m3"
+ ],
+ "generated": [],
+ "pkgs": [
+  "m3core",
+  "libm3"
+ ],
+ "result": {
+  "stdout": "thread 0 gets the same id twice: TRUE\nthread 0 has an id greater than 0: TRUE\nthread 1 gets the same id twice: TRUE\nthread 1 has an id greater than 0: TRUE\nthread 2 gets the same id twice: TRUE\nthread 2 has an id greater than 0: TRUE\nthe three ids differ: TRUE\nthe main thread keeps its id: TRUE\nstates: 7, the last is 6\ndead is the last state: TRUE\n",
+  "stderr": "",
+  "status": 0
+ },
+ "stable": true
+}

@@ -1,0 +1,4 @@
+% The identity of threads (ThreadF.MyId) and the states of ThreadF.
+import ("libm3")
+implementation ("Main")
+program ("threadf")

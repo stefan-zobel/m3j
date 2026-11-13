@@ -140,6 +140,8 @@ def main():
     if not args.java:
         jdk = os.environ.get("JDK25")
         args.java = str(Path(jdk) / "bin" / "java") if jdk else "java"
+    # absolute: the compiler runs in the work directory
+    args.cm3 = args.cm3.resolve()
     root = args.cm3 / "pkg"
     names = args.packages or sorted(p.name for p in root.iterdir()
                                     if (p / TARGET / ".M3EXPORTS").exists())

@@ -487,7 +487,8 @@ The library is hybrid:
   `ExtendedFloat`, `FloatMode`, `Math`, `RTType` (without `Get`),
   `RTTypeFP`, `Real`, `LongReal`, `Extended`, `IEEESpecial`, `Swap`,
   `Tick`, `OSConfig`, `OSError`, `M3jOS` (the operating system, below),
-  `M3jPickle` (for `Pickle`, below), `Scheduler`, `RTCollector` (the
+  `M3jPickle` (for `Pickle`, below), `Scheduler`, `ThreadF` (`MyId`,
+  the id of the Java thread), `RTCollector` (the
   collector of the Java platform runs on its own: disabling it or its
   motion has no effect; `Collect` asks it for a collection) and
   `RTTypeSRC` (`TypeName`, `TypecodeName`).

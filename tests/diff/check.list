@@ -12,6 +12,7 @@ check/pathname-posix tests/diff/src/check/pathname-posix
 check/pathname-on-posix tests/diff/src/check/pathname os=POSIX result=check/pathname-posix
 check/threads tests/diff/src/check/threads
 check/threads-10 tests/diff/src/check/threads 10
+check/threadf tests/diff/src/check/threadf
 check/rterrors tests/diff/src/check/rterrors
 check/rterrors-range tests/diff/src/check/rterrors 0
 check/rterrors-subscript tests/diff/src/check/rterrors 9
