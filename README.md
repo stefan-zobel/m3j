@@ -120,6 +120,7 @@ m3build like any package and uses most of the libraries above.
 |---|---|
 | [`docs/USING.md`](docs/USING.md) | building m3j, the compiler and its options, resources, Java classes, m3build, editors |
 | [`docs/LIBRARIES.md`](docs/LIBRARIES.md) | the libraries, with examples |
+| [`docs/PACKAGES.md`](docs/PACKAGES.md) | which packages of a CM3 installation compile with m3j |
 | [`docs/TESTING.md`](docs/TESTING.md) | what the tests show and how to run them |
 | [`docs/BACKEND.md`](docs/BACKEND.md) | the design of the JVM back end |
 | [`docs/PORTING.md`](docs/PORTING.md) | the rules for porting CM3 sources |

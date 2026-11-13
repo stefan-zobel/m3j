@@ -57,42 +57,52 @@ Every module is safe, and nothing they use is missing.
 | cmpfp | program |
 | m3cggen | program |
 
-## Partly
+## Mostly usable
 
-The safe modules compile; the units in the last two columns have no
-implementation on m3j, so a call of their procedures fails at run time.
+The safe modules compile; what the last column names has no
+implementation on m3j (it is UNSAFE), so calling it fails at run time.
 
-| Package | Kind | Safe modules | Its UNSAFE modules (left out) | Missing from other packages |
-|---|---|---:|---|---|
-| arithmetic | library | 294 | Bits | |
-| binIO | library | 1 | FastBinIO | |
-| db | library | 3 | ODBCDB | m3core: Text8, Text8Short |
-| debug | library | 1 | | m3core: ThreadF |
-| events | library | 15 | EventWireRep, EventSpaceID, EventWr, EventStubLib, EventPort | m3core: ThreadF |
-| m3markup | library | 6 | ID | m3scan: m3scan_M3ID |
-| m3scan | library | 2 | m3scan_M3ID | |
-| m3scanner | library | 1 | M3Keyword | |
-| rdwr | library | 3 | SimpleMsgRW | |
-| realgeometry | library | 6 | | libm3: Path, PathPrivate |
-| smalldb | library | 1 | OSSupportWIN32 | |
-| sgml | library | 6 | | deepcopy: DeepCopy; the parts of CM3 below |
-| fix_nl | program | 1 | OSWIN32 | |
-| sgship | program | 12 | FRefRefTbl | m3tk: WiredStandard; m3core: RT0 |
+| Package | Kind | What does not work |
+|---|---|---|
+| arithmetic | library | the interface `Bits`; none of the other 294 modules uses it |
+| debug | library | `Debug.T.print`, which names the thread with `ThreadF.MyId` of CM3's thread implementation |
+| rdwr | library | `SimpleMsgRW`; `RdWrPipe` and `TeeWr` are complete |
+| realgeometry | library | `PathExtra`, which uses `Path` of libm3 (not in m3j); the other five modules are complete |
 
-Text8 and Text8Short are CM3's representation of TEXT; on m3j a TEXT is a
-`java.lang.String`, and there are no such modules. ThreadF is part of
-CM3's thread implementation.
+## Compiles, but its core is missing
 
-## Parts of CM3 itself
+The safe modules compile, but the main interface of the package needs a
+module that is UNSAFE, so the package is of little use on m3j.
 
-These packages compile too, but they are the compiler, its tools and what
-those build on. They need m3middle's UNSAFE modules (M3ID, M3FP, TFloat,
-M3File, M3Process) and the internals of CM3's runtime (RT0, RTHeapInfo,
-RTCollectorSRC and other `RT` interfaces of m3core), which m3j has no use
-for: its own front end is in Java.
+| Package | Kind | Why |
+|---|---|---|
+| binIO | library | `BinIO` works through `FastBinIO` |
+| db | library | `DB` reaches its databases through `ODBCDB` |
+| events | library | `EventWr`, `EventPort`, `EventStubLib` and others; `RdWrMutex` and `WorkerPool` use `ThreadF` of CM3's thread implementation |
+| m3markup | library | the interface `ID`, and the scanner of m3scan (below) |
+| m3scan | library | `M3Scanner` uses `m3scan_M3ID` |
+| m3scanner | library | `M3Scanner` uses `M3Keyword` |
+| smalldb | library | `SmallDB` uses `OSSupport` |
+| sgml | library | `FSM` uses `DeepCopy` (package deepcopy); it also builds on m3quake and m3middle (below) |
+| fix_nl | program | its main module uses `OS` |
+| sgship | program | `AstToType` uses its `FRefRefTbl`; it also needs `WiredStandard` of m3tk |
 
-cm3, cm3ide, m3back, m3cgcat, m3front, m3linker, m3middle, m3objfile,
-m3quake (see above for m3build), m3staloneback, m3tools.
+## CM3's compiler and its tools
+
+These packages are CM3 itself. They compile with m3j, but they would not
+run on it: they rely on UNSAFE parts of m3middle and on the internals of
+CM3's runtime. They are not needed either, since m3j has a compiler of
+its own and m3build in place of cm3.
+
+| Package | What it is |
+|---|---|
+| cm3 | the compiler driver (m3build has its reading of m3makefiles) |
+| m3front | the front end (m3j has it ported to Java) |
+| m3middle | the layer between front end and back ends |
+| m3back, m3staloneback, m3objfile, m3linker | the native back end, object files, linking |
+| m3quake | the quake interpreter (m3build has a changed copy) |
+| m3cgcat | prints CM3's intermediate code |
+| cm3ide, m3tools | CM3's IDE (a web server) and its parser of Modula-3 |
 
 ## Not available
 

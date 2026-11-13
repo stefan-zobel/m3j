@@ -25,6 +25,10 @@ counted as one of
   TIMEOUT       the compiler did not finish
 
 The modules that are not OK are listed per package (at most N per status).
+A package compiles, but is not complete, if one of its modules uses an
+interface that no module implements (an UNSAFE one, which m3j does not
+bring either): the package is then listed with "no module of" and those
+interfaces.
 """
 
 import argparse
@@ -69,6 +73,7 @@ def closure(root, name, seen):
 ERR = re.compile(r'^"([^"]+)", line \d+: (.*)$', re.M)
 CRASH = re.compile(r"^\*\*\* (.+?): (.*)$", re.M)
 VERIFY = re.compile(r"class Lm3/[mi]/([A-Za-z0-9_]+); does not verify: (.*)$", re.M)
+NO_MODULE = re.compile(r"^m3j: warning: no module of interface ([A-Za-z0-9_]+) is compiled", re.M)
 
 
 def compile_units(args, pkgs, files, work):
@@ -153,6 +158,7 @@ def main():
             else:
                 safe.append(m)
         rest = list(safe)
+        missing = []
         while rest:
             rc, out = compile_units(args, pkgs, rest, work)
             if rc is None:
@@ -162,6 +168,7 @@ def main():
             if rc == 0:
                 for m in rest:
                     status[m] = ("OK", "")
+                missing = sorted(set(NO_MODULE.findall(out)))
                 break
             bad = failures(out, rest)
             if not bad:
@@ -179,6 +186,8 @@ def main():
         c = Counter(s for s, _ in status.values())
         total.update(c)
         print(f"{name:20} " + "  ".join(f"{k} {v}" for k, v in sorted(c.items())), flush=True)
+        if missing:
+            print("    no module of " + ", ".join(missing), flush=True)
         shown = Counter()
         for m, (s, why) in sorted(status.items()):
             if s not in ("OK", "UNSAFE") and shown[s] < args.show:
