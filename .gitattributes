@@ -12,3 +12,6 @@ tools/dist/m3build text eol=lf
 *.cmd text eol=crlf
 # workflows of GitHub Actions
 *.yml text eol=lf
+#
+*.html linguist-documentation
+

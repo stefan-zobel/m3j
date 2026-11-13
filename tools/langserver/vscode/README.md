@@ -37,8 +37,8 @@ It needs no other packages: `extension.js` talks to the server with
 Copy this directory (`tools/langserver/vscode`) to the extensions of
 Visual Studio Code, with the name that it would have there:
 
-    Windows:        %USERPROFILE%\.vscode\extensions\m3j.modula3-0.1.0
-    Linux, macOS:   ~/.vscode/extensions/m3j.modula3-0.1.0
+    Windows:        %USERPROFILE%\.vscode\extensions\m3j.modula3-0.2.0
+    Linux, macOS:   ~/.vscode/extensions/m3j.modula3-0.2.0
 
 and restart Visual Studio Code. Then set, in the settings (or with the
 environment variables named there):

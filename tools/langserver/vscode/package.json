@@ -2,7 +2,7 @@
   "name": "modula3",
   "displayName": "Modula-3 (m3j)",
   "description": "Modula-3: syntax highlighting, and errors, hovers and declarations from the language server of m3j",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "m3j",
   "license": "MIT",
   "engines": {
