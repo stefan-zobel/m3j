@@ -13,7 +13,8 @@ GROUP is one of
   programs  diff_test: test programs, examples and Rosetta Code against
             the results of cm3
   tools     programs compiled by m3j: m3front_test, stubgen_test,
-            bundle_test, build_test (quake, cases), bind_test, lsp_test
+            bundle_test, build_test (quake, cases), bind_test, lsp_test,
+            dap_test
   libs      the libraries: zip, regexp, encoding, crypto, json, xml, tls,
             http, net, ssh, sql
   apps      feedreader_test, and on Linux a release packed by dist.sh into
@@ -73,6 +74,7 @@ GROUPS = {
         ("build", tool("build_test.py", "quake", "cases")),
         ("bind", tool("bind_test.py")),
         ("lsp", tool("lsp_test.py")),
+        ("dap", tool("dap_test.py")),
     ],
     "libs": [(name, tool(name + "_test.py")) for name in
              ("zip", "regexp", "encoding", "crypto", "json", "xml", "tls", "http", "net", "ssh", "sql")],

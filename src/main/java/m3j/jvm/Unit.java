@@ -65,6 +65,8 @@ final class Unit {
     final String sourceFile;
     final List<String> unsupported = new ArrayList<>();
     final Frames frames;
+    /** the description of the unit for a debugger */
+    final DebugInfo debug;
 
     /** procedures still to generate, and the method names of all procedures */
     private final Deque<Procedure.T> todo = new ArrayDeque<>();
@@ -82,6 +84,7 @@ final class Unit {
         this.self = classDesc(module);
         this.sourceFile = sourceFile;
         this.frames = new Frames(module, self, methodNames);
+        this.debug = new DebugInfo(name);
     }
 
     // ----------------------------------------------------------------- names
@@ -132,6 +135,15 @@ final class Unit {
         m3j.front.Error.msg(message);
         m3j.front.Scanner.offset = save;
         errors++;
+    }
+
+    /** The name of procedure p for a debugger: Unit.P, nested Unit.P.Q; the body of the unit is Unit. */
+    String m3Name(Procedure.T p) {
+        if (p == Frames.INIT) {
+            return name;
+        }
+        Procedure.T parent = frames.parent.get(p);
+        return (parent == null ? name : m3Name(parent)) + "." + Code.id(p.name);
     }
 
     String methodName(Procedure.T p) {
@@ -216,6 +228,7 @@ final class Unit {
             Code c = new Code(this, cb, p);
             c.split = fs;
             body.accept(c);
+            debug.method(name, p == Frames.INIT ? 'B' : 'P', m3Name(p), null, c.debugVars.all);
         });
         if (fs != null) {
             for (Split.Chunk ch : fs.chunks.values()) {
@@ -224,6 +237,7 @@ final class Unit {
                         Code c = new Code(this, cb, p);
                         c.split = fs;
                         c.chunkBody(ch);
+                        debug.method(chunkName(p, ch), 'C', m3Name(p), name, c.debugVars.all);
                     });
             }
         }
@@ -316,6 +330,7 @@ final class Unit {
                         c.outlined = true;
                         c.stmt(e.getKey());
                         cb.return_();
+                        debug.method(e.getValue(), 'L', name, "$init", c.debugVars.all);
                     });
                 }
                 while (!todo.isEmpty()) {
@@ -366,7 +381,10 @@ final class Unit {
                 }
             }
             Types.flush();
-            return dropDeadNames(b);
+            debug.roots(Types.flushed);
+            Types.flushed.clear();
+            debug.genericFile = DebugInfo.genericOf(module.genericFile);
+            return debug.attach(dropDeadNames(b));
         } finally {
             Revelation.pop(yy);
             Scope.pop(zz);
@@ -445,6 +463,7 @@ final class Unit {
             if (v instanceof Variable.T var && !var.javaBound) {
                 clb.withField(Code.id(var.name), Code.varType(var).desc,
                     ClassFile.ACC_PUBLIC | ClassFile.ACC_STATIC);
+                debug.global(Code.id(var.name), m3j.front.Type.globalUID(var.type));
             }
         }
     }

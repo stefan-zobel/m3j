@@ -1,0 +1,182 @@
+m3.i.IntStack: interface IntStack
+  generic Stack.ig
+  body of IntStack: method $init
+m3.i.Main: interface Main
+  body of Main: method $init
+m3.i.Shapes: interface Shapes
+  variable made: CARDINAL
+  body of Shapes: method $init
+m3.m.IntStack: module IntStack
+  generic Stack.mg
+  body of IntStack: method $init
+  procedure IntStack.New: method New
+  procedure IntStack.Push: method Push
+    VALUE s: IntStack.T in the frame as v1_s, lines 11-21
+    VALUE e: INTEGER in the frame as v2_e, lines 11-21
+    local bigger: REF ARRAY OF INTEGER in the frame as v0_bigger, lines 12-21
+  chunk of IntStack.Push (in Push): method Push$$0
+  chunk of IntStack.Push (in Push): method Push$$1
+  chunk of IntStack.Push (in Push): method Push$$2
+  procedure IntStack.Pop: method Pop
+    VALUE s: IntStack.T
+  type 664e83a6 IntStack.T = REF RECORD items: REF ARRAY OF INTEGER; size: CARDINAL END
+  type 217fba22 = REF ARRAY OF INTEGER
+  type f398f42d = RECORD items: REF ARRAY OF INTEGER; size: CARDINAL; END
+  type f400f3db = ARRAY OF INTEGER
+m3.m.Main: module Main
+  variable count: INTEGER
+  variable color: Main.Color
+  variable palette: Main.Palette
+  variable digits: Main.Digits
+  variable greeting: TEXT
+  variable origin: Main.Point
+  variable grid: Main.Grid
+  variable list: Main.List
+  variable counter: Main.Counter
+  variable fun: Main.Fun
+  variable ratio: REAL
+  variable precise: LONGREAL
+  variable big: LONGINT
+  variable initial: CHAR
+  variable wide: WIDECHAR
+  variable done: BOOLEAN
+  variable small: Main.Small
+  variable letter: Main.Letter
+  variable v: INTEGER
+  variable chars: ARRAY [0..2] OF CHAR
+  variable thread: Thread.T
+  body of Main: method $init
+  chunk of Main (in $init): method $init$$0
+  chunk of Main (in $init): method $init$$1
+  chunk of Main (in $init): method $init$$2
+  chunk of Main (in $init): method $init$$3
+  chunk of Main (in $init): method $init$$4
+  chunk of Main (in $init): method $init$$5
+  chunk of Main (in $init): method $init$$6
+  chunk of Main (in $init): method $init$$7
+  chunk of Main (in $init): method $init$$8
+  procedure Main.Inc: method Inc
+    VALUE self: Main.Counter
+  procedure Main.Twice: method Twice
+    VALUE x: INTEGER
+  procedure Main.Scalars: method Scalars
+    VAR v: INTEGER
+    READONLY p: Main.Point
+    VALUE a: ARRAY OF INTEGER
+    VAR chars: ARRAY OF CHAR
+    local i: INTEGER
+    local n: CARDINAL
+    local l: LONGINT
+    local b: BOOLEAN
+    local c: CHAR
+    local w: WIDECHAR
+    local r: REAL
+    local d: LONGREAL
+    local e: EXTENDED
+    local col: Main.Color
+    local s: Main.Small
+    local t: TEXT
+    local nil: REFANY
+  procedure Main.Structured: method Structured
+    local pt: Main.Point in the frame as v5_pt, lines 94-119
+    local g: Main.Grid in the frame as v1_g, lines 95-119
+    local pal: Main.Palette in the frame as v7_pal, lines 96-119
+    local dig: Main.Digits in the frame as v8_dig, lines 97-119
+    local lst: Main.List in the frame as v9_lst, lines 98-119
+    local named: Main.Named in the frame as v4_named, lines 99-119
+    local shape: Shapes.T in the frame as v10_shape, lines 100-119
+    local any: REFANY in the frame as v11_any, lines 101-119
+    local f: Main.Fun in the frame as v6_f, lines 102-119
+    local open: REF ARRAY OF INTEGER in the frame as v2_open, lines 103-119
+    local stack: IntStack.T in the frame as v3_stack, lines 104-119
+  chunk of Main.Structured (in Structured): method Structured$$0
+    FOR c: Main.Color
+  chunk of Main.Structured (in Structured): method Structured$$1
+  chunk of Main.Structured (in Structured): method Structured$$2
+  chunk of Main.Structured (in Structured): method Structured$$3
+  chunk of Main.Structured (in Structured): method Structured$$4
+    FOR k: INTEGER in the frame as v12_k, lines 106-108
+  procedure Main.Outer: method Outer
+    VALUE k: INTEGER
+    local captured: INTEGER in the frame as v0_captured, lines 123-133
+    local plain: INTEGER
+  procedure Main.Bindings: method Bindings
+    local sum: INTEGER in the frame as v13_sum, lines 137-163
+    local any: REFANY in the frame as v14_any, lines 137-163
+    EXCEPT code: INTEGER
+  chunk of Main.Bindings (in Bindings): method Bindings$$0
+    WITH p: Main.Point (no home)
+    WITH q: INTEGER
+  chunk of Main.Bindings (in Bindings): method Bindings$$1
+    FOR i: INTEGER
+  chunk of Main.Bindings (in Bindings): method Bindings$$2
+    TYPECASE l: Main.List
+  chunk of Main.Bindings (in Bindings): method Bindings$$3
+  procedure Main.Big: method Big
+    VALUE n: INTEGER
+    local a: INTEGER in the frame as v15_a, lines 167-187
+    local b: INTEGER in the frame as v17_b, lines 167-187
+    local c: INTEGER in the frame as v16_c, lines 167-187
+    local text: TEXT in the frame as v18_text, lines 167-187
+  chunk of Main.Big (in Big): method Big$$0
+  chunk of Main.Big (in Big): method Big$$1
+  chunk of Main.Big (in Big): method Big$$2
+  chunk of Main.Big (in Big): method Big$$3
+  chunk of Main.Big (in Big): method Big$$4
+  chunk of Main.Big (in Big): method Big$$5
+  chunk of Main.Big (in Big): method Big$$6
+  chunk of Main.Big (in Big): method Big$$7
+  chunk of Main.Big (in Big): method Big$$8
+  chunk of Main.Big (in Big): method Big$$9
+  chunk of Main.Big (in Big): method Big$$10
+  chunk of Main.Big (in Big): method Big$$11
+  chunk of Main.Big (in Big): method Big$$12
+  chunk of Main.Big (in Big): method Big$$13
+  procedure Main.Work: method Work
+    VALUE self: Main.Worker
+    local total: INTEGER
+    FOR i: INTEGER
+  procedure Main.Others: method Others
+    local n: INTEGER
+  procedure Main.Fail: method Fail
+    READONLY a: ARRAY OF INTEGER
+    VALUE i: INTEGER
+  procedure Main.Outer.Inner: method Outer$Inner
+    VALUE m: INTEGER
+  type 2fb8bd78 Main.Color = {Red, Green, Blue}
+  type 6f4d3b4c Main.Grid = ARRAY [1..2] OF ARRAY Main.Color OF INTEGER
+  type 99710130 Shapes.T = <: Shapes.Public, revealed 9c631f83
+  type 65fa2d38 Main.Digits = SET OF [0..99]
+  type 7115add6 Main.Counter = ROOT OBJECT n: INTEGER; END
+  type 638ed6ca Main.Worker = Thread.Closure OBJECT steps: INTEGER; END
+  type ae14f91b = ARRAY [0..2] OF CHAR
+  type f400f3db = ARRAY OF INTEGER
+  type 217fba22 = REF ARRAY OF INTEGER
+  type 13ac4a0d Main.Named = Main.Counter OBJECT name: TEXT; END
+  type 51c44b27 Main.List = REF RECORD head: INTEGER; tail: Main.List END
+  type 664e83a6 IntStack.T = REF RECORD items: REF ARRAY OF INTEGER; size: CARDINAL END
+  type e9c9b0e5 Main.Letter = ['a'..'z'] OF CHAR
+  type 0556fca6 Main.Palette = SET OF Main.Color
+  type d1599f69 Main.Point = RECORD x: INTEGER; y: INTEGER; END
+  type 89cd34bd = ARRAY OF CHAR
+  type 2ca4581c Main.Small = [1..10] OF INTEGER
+  type 4b16b0ed Thread.T = <: ROOT
+  type e545939d Thread.Closure = ROOT OBJECT END
+  type 51c44b24 = RECORD head: INTEGER; tail: Main.List; END
+  type f398f42d = RECORD items: REF ARRAY OF INTEGER; size: CARDINAL; END
+  type 882830d7 = [1..2] OF INTEGER
+  type 7eb1c237 = ARRAY Main.Color OF INTEGER
+  type 25ac581d = [0..99] OF INTEGER
+  type 882831d7 = [0..2] OF INTEGER
+m3.m.Shapes: module Shapes
+  body of Shapes: method $init
+  procedure Shapes.Area: method Area
+    VALUE self: Shapes.T
+  procedure Shapes.Circle: method Circle
+    VALUE r: REAL
+  procedure Shapes.Square: method Square
+    VALUE side: REAL
+  type 99710130 Shapes.T = <: Shapes.Public, revealed 9c631f83
+  type 9c631f83 = Shapes.Public OBJECT size: REAL; END
+  type 2072e253 Shapes.Public = ROOT OBJECT kind: Shapes.Kind; END
+  type f0af3886 Shapes.Kind = {Circle, Square}

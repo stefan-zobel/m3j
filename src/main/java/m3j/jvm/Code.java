@@ -117,6 +117,8 @@ final class Code {
     /** this procedure's frame, and the frame of the nearest enclosing procedure with one */
     Loc myFrame, staticLink;
     private int lastLine = -1;
+    /** the highest line of the code generated so far, with the code of the chunks called */
+    private int highLine;
     /** The place of the source being compiled. */
     long origin;
     /** the plan if the procedure is split in chunks, else null */
@@ -159,6 +161,7 @@ final class Code {
             cb.lineNumber(l);
             lastLine = l;
         }
+        highLine = Math.max(highLine, l);
     }
 
     // ------------------------------------------------------------- frames
@@ -282,7 +285,9 @@ final class Code {
             // copy, a cell), not in the slots they are passed in
             Label formalsStart = here();
             for (Variable.T var : formals) {
-                debugName(id(var.name), locals.get(var), formalsStart);
+                Formal.Mode mode = ((Formal.T) var.formal).mode;
+                debugVar(var, locals.get(var), formalsStart,
+                         mode == Formal.Mode.mVAR ? 'r' : mode == Formal.Mode.mREADONLY ? 'o' : 'v');
             }
             // an exception that leaves the procedure must be in its RAISES clause
             List<ClassDesc> allowed = raisesGuard();
@@ -538,7 +543,7 @@ final class Code {
         }
         Label start = here();
         for (Variable.T var : vars) {
-            debugName(id(var.name), locals.get(var), start);
+            debugVar(var, locals.get(var), start, var.formal != null ? 'v' : 'l');
         }
     }
 
@@ -555,9 +560,13 @@ final class Code {
         return cb.newBoundLabel();
     }
 
+    /** the variables of this method for the description of the unit (DebugInfo) */
+    final DebugInfo.Scopes debugVars = new DebugInfo.Scopes();
+
     /** Opens a scope of variables for the LocalVariableTable. */
     void openScope() {
         debugScopes.push(new ArrayList<>());
+        debugVars.open();
     }
 
     /** Closes the innermost scope at end: the slots named in it go into the LocalVariableTable. */
@@ -565,15 +574,51 @@ final class Code {
         for (DebugVar v : debugScopes.pop()) {
             cb.localVariable(v.slot(), v.name(), v.desc(), v.start(), end);
         }
+        debugVars.close(highLine);
     }
 
     /** Closes the innermost scope here. */
     void closeScope() {
         if (debugScopes.peek().isEmpty()) {
             debugScopes.pop();
+            debugVars.close(highLine);
         } else {
             closeScope(here());
         }
+    }
+
+    /**
+     * Names the variable var at location l (as debugName) and describes it
+     * for the description of the unit: kind is one of the kinds of variables
+     * of DebugInfo.
+     */
+    void debugVar(Variable.T var, Loc l, Label start, char kind) {
+        String name = id(var.name);
+        debugName(name, l, start);
+        if (name.startsWith("_")) {
+            return;
+        }
+        String field = frames.fieldNames.get(var);
+        String home;
+        Loc base = base(l);
+        if (field != null && base instanceof Loc.Field f && f.name().equals(field)) {
+            home = field;
+        } else if (base instanceof Loc.Local) {
+            home = ".";
+        } else {
+            home = "-";
+        }
+        debugVars.add(new DebugInfo.Var(name, Type.globalUID(var.type), kind, Math.max(0, lineOf(var.origin)), home));
+    }
+
+    /** The location that holds the value of l: the holder of a cell or a reference, the storage of an array. */
+    private static Loc base(Loc l) {
+        return switch (l) {
+            case Loc.Cell c -> c.holder();
+            case Loc.VarRef r -> r.ref();
+            case Loc.Arr a -> a.storage();
+            default -> l;
+        };
     }
 
     /**
@@ -839,6 +884,10 @@ final class Code {
 
     /** Calls the method of chunk c and does what its result says. */
     void callChunk(Split.Chunk c) {
+        Stmt.T s = c.first;
+        for (int i = 0; i < c.count && s != null; i++, s = s.next) {
+            Walk.stmt(s, x -> highLine = Math.max(highLine, lineOf(x.origin)), x -> {});
+        }
         if (frames.framed(proc)) {
             myFrame.load(cb);
         }
@@ -1534,7 +1583,7 @@ final class Code {
                 locals.put(var, counter);
             }
             openScope();
-            debugName(id(var.name), locals.get(var), top);
+            debugVar(var, locals.get(var), top, 'f');
             unwind.push(exit);
             stmts(p.body);
             unwind.pop();
@@ -1654,7 +1703,7 @@ final class Code {
             }
             locals.put(var, l);
             openScope();
-            debugName(id(var.name), l, here());
+            debugVar(var, l, here(), 'w');
             stmts(p.body);
             closeScope();
         } finally {

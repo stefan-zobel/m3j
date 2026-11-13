@@ -157,10 +157,15 @@ final class Types {
         return ClassDesc.of(name);
     }
 
+    /** the UIDs of the types whose classes flush generated (and the UIDs of the classes), for DebugInfo */
+    static final List<Long> flushed = new ArrayList<>();
+
     /** Generates the classes of the types used since the last call. */
     static void flush() {
         while (!pending.isEmpty()) {
             Type.T t = pending.removeFirst();
+            flushed.add(Type.globalUID(t));
+            flushed.add(Long.parseLong(classOf(t).displayName().substring(1), 16));
             fingerprints.put(classOf(t), fingerprint(t));
             layouts.put(classOf(t), Layouts.describe(t));
             String n = t instanceof ObjectType.P op ? op.user_name

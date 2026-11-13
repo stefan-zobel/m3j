@@ -404,8 +404,13 @@ final class FrontEnv extends M3Compiler.Environment {
         }
     }
 
+    /** the WebInfo of the unit compiled last: its types, for the description of the unit (DebugInfo) */
+    String webInfo;
+
     @Override
-    public void note_webinfo(String t) {}
+    public void note_webinfo(String t) {
+        webInfo = t;
+    }
 
     @Override
     public M3Compiler.ImplList get_implementations(int interface_) {

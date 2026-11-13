@@ -1,0 +1,9 @@
+% The program of tools/dap_test.py: what a debugger has to show.
+import ("libm3")
+
+generic_interface ("Stack")
+generic_module ("Stack")
+module ("IntStack")
+module ("Shapes")
+implementation ("Main")
+program ("debug")

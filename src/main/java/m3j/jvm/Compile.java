@@ -352,6 +352,8 @@ public final class Compile {
     /** The back end: called by the front end for each unit compiled without errors. */
     void generate(Module.T m) {
         Unit u = new Unit(m, Host.filename);
+        u.debug.webInfo = env.webInfo;
+        env.webInfo = null;
         if (!m.safe) {
             if (!m.interface_ && !optional.contains(currentFile)) {
                 err.println("\"" + Host.filename + "\": UNSAFE modules are not supported");

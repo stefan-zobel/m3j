@@ -139,7 +139,7 @@ final class Exceptions {
                         c.unboxValue(vt);
                         v.storePost(cb);
                     }
-                    c.debugName(Code.id(h.var_.name), v, c.here());
+                    c.debugVar(h.var_, v, c.here(), 'e');
                 }
                 c.line(h.origin);
                 c.stmts(h.body);
@@ -320,7 +320,7 @@ final class Exceptions {
                     x.load(cb);
                     c.checkcastIfNeeded(v.type().desc);
                     v.storePost(cb);
-                    c.debugName(Code.id(k.var_.name), v, c.here());
+                    c.debugVar(k.var_, v, c.here(), 't');
                 }
                 c.stmts(k.stmt);
                 c.closeScope();
