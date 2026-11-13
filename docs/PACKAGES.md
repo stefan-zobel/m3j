@@ -24,12 +24,15 @@ with cm3 ([`USING.md`](USING.md#packages-m3build)).
 
 ## Brought by m3j
 
-| Package | How |
+These packages need no CM3 installation: m3j has them, as libraries or
+inside its tools.
+
+| Package | What you get |
 |---|---|
-| m3core, libm3, tcp, netobj, sysutils, libbuf, patternmatching | in `lib`: the safe modules of CM3, some changed, and in place of the UNSAFE ones the runtime of m3j in Java; [`lib/README.md`](../lib/README.md) lists what is there and what changed |
-| m3quake, and the parts of cm3 and m3middle that read m3makefiles | in `m3build.jar` |
-| m3bundle | `m3bundle.jar` |
-| m3tk, m3tk-misc | in `stubgen.jar` and `m3_lang_server.jar`, in a changed copy (`tests/stubgen`); not installed as libraries |
+| m3core, libm3, tcp, netobj, sysutils, libbuf, patternmatching | Libraries, which a program uses as with cm3 (`import ("libm3")` in an m3makefile). They are CM3's safe modules, a few of them changed; what CM3 does in UNSAFE modules, m3j's runtime does in Java. [`lib/README.md`](../lib/README.md) lists what is there and what changed. |
+| m3quake, and the parts of cm3 and m3middle that read m3makefiles | Not a library: they are the tool m3build, which builds a package from its m3makefile as cm3 does. |
+| m3bundle | Not a library: the tool m3bundle, which m3build runs for `bundle` in an m3makefile. |
+| m3tk, m3tk-misc | Not a library: m3j's tools stubgen (the stubs of network objects, for `netobj` in an m3makefile) and the language server are built on a changed copy of them; m3j does not install it as a library. |
 
 m3j's `json` is a library of its own under the same name, not CM3's (whose
 `Json` module is UNSAFE); `import ("json")` gets m3j's.
