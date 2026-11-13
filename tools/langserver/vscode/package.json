@@ -39,6 +39,11 @@
         "path": "./syntaxes/modula3.tmLanguage.json"
       }
     ],
+    "configurationDefaults": {
+      "[modula3]": {
+        "editor.wordBasedSuggestions": "off"
+      }
+    },
     "configuration": {
       "title": "Modula-3 (m3j)",
       "properties": {

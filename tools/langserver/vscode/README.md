@@ -24,7 +24,10 @@ language server of m3j (`m3_lang_server.jar`):
   after `T.` the values of an enumeration; else the parameters and local
   names of the procedure, the identifiers of the file and of the
   interfaces it exports and imports, the predeclared identifiers and the
-  reserved words; in an `IMPORT` list the names of the interfaces.
+  reserved words; in an `IMPORT` list the names of the interfaces. The
+  words of the file are not offered (`editor.wordBasedSuggestions` is
+  `off` for Modula-3), so where the server has nothing, as after a
+  variable of type `INTEGER`, the list stays empty.
 
 It needs no other packages: `extension.js` talks to the server with
 `lsp.js`, a client of the Language Server Protocol of its own.
