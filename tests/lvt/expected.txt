@@ -83,4 +83,7 @@ line 80 in Cases
   o: java.lang.Object = m3.t.T23848456 {val = 9, m3$keeper = null}
 line 82 in Cases
   o: java.lang.Object = m3.t.T23848456 {val = 9, m3$keeper = null}
-13 stops, exit status 0
+line 90 in Dead
+  n: long = 0
+  t: java.lang.String = "abc"
+14 stops, exit status 0

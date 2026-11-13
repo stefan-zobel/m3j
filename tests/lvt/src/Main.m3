@@ -6,7 +6,7 @@
 
 MODULE Main;
 
-IMPORT IO, Fmt;
+IMPORT IO, Fmt, Text;
 
 TYPE
   Color = {Red, Green, Blue};
@@ -82,6 +82,16 @@ PROCEDURE Cases (o: REFANY) =
     IO.Put ("done\n"); (* probe *)
   END Cases;
 
+(* The FOR variable is only in code that cannot be reached, which the
+   class file leaves out of max_locals: it must not be named. *)
+PROCEDURE Dead (t: TEXT): INTEGER =
+  VAR n := 0;
+  BEGIN
+    IF TRUE THEN RETURN n + 1 END; (* probe *)
+    FOR k := 0 TO Text.Length (t) DO INC (n, k) END;
+    RETURN n;
+  END Dead;
+
 VAR nums := ARRAY [0 .. 1] OF INTEGER {2, 3};
 
 BEGIN
@@ -89,4 +99,5 @@ BEGIN
   IO.Put (Fmt.Int (Sum (nums, nums)) & "\n");
   IO.Put (Fmt.Int (Outer (5)) & "\n");
   Cases (NEW (Node, val := 9));
+  IO.Put (Fmt.Int (Dead ("abc")) & "\n");
 END Main.

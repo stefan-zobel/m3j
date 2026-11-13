@@ -3,11 +3,21 @@
 
 package m3j.jvm;
 
+import java.lang.classfile.Attributes;
 import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
+import java.lang.classfile.ClassModel;
+import java.lang.classfile.ClassTransform;
 import java.lang.classfile.CodeBuilder;
+import java.lang.classfile.CodeModel;
+import java.lang.classfile.MethodModel;
+import java.lang.classfile.TypeKind;
+import java.lang.classfile.attribute.CodeAttribute;
 import java.lang.classfile.attribute.ConstantValueAttribute;
+import java.lang.classfile.attribute.LocalVariableInfo;
+import java.lang.classfile.attribute.LocalVariableTableAttribute;
 import java.lang.classfile.attribute.SourceFileAttribute;
+import java.lang.classfile.instruction.LocalVariable;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
 import java.lang.constant.DirectMethodHandleDesc;
@@ -356,11 +366,56 @@ final class Unit {
                 }
             }
             Types.flush();
-            return b;
+            return dropDeadNames(b);
         } finally {
             Revelation.pop(yy);
             Scope.pop(zz);
         }
+    }
+
+    /**
+     * The class b without the entries of a LocalVariableTable whose slot is
+     * beyond max_locals: those of variables that only code which cannot be
+     * reached uses (after a RETURN, in a branch of a constant condition).
+     * The ClassFile API replaces such code with nop and athrow and leaves its
+     * locals out of max_locals, and HotSpot rejects a class with such an
+     * entry. Only the methods that have one are rebuilt.
+     */
+    static byte[] dropDeadNames(byte[] b) {
+        ClassModel cm = ClassFile.of().parse(b);
+        Map<String, Integer> bad = new HashMap<>();
+        for (MethodModel mm : cm.methods()) {
+            if (mm.code().orElse(null) instanceof CodeAttribute ca) {
+                for (LocalVariableTableAttribute t : ca.findAttributes(Attributes.localVariableTable())) {
+                    for (LocalVariableInfo v : t.localVariables()) {
+                        if (v.slot() + TypeKind.fromDescriptor(v.type().stringValue()).slotSize() > ca.maxLocals()) {
+                            bad.put(key(mm), ca.maxLocals());
+                        }
+                    }
+                }
+            }
+        }
+        if (bad.isEmpty()) {
+            return b;
+        }
+        return Types.classFile().transformClass(cm, ClassTransform.transformingMethods(mm -> bad.containsKey(key(mm)),
+            (mb, me) -> {
+                if (me instanceof CodeModel code) {
+                    int max = bad.get(key(code.parent().orElseThrow()));
+                    mb.transformCode(code, (cob, coe) -> {
+                        if (!(coe instanceof LocalVariable lv
+                              && lv.slot() + TypeKind.from(lv.typeSymbol()).slotSize() > max)) {
+                            cob.with(coe);
+                        }
+                    });
+                } else {
+                    mb.with(me);
+                }
+            }));
+    }
+
+    private static String key(MethodModel mm) {
+        return mm.methodName().stringValue() + mm.methodType().stringValue();
     }
 
     /** The formals and the variables of the scope of procedure p. */

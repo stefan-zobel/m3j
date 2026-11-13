@@ -290,7 +290,10 @@ reference object; a variable that lives in a cell as the cell, whose field
 parents through `$up` (and their field `up`). The formals are named where
 they end up, a copy or a cell, not in the slots that they are passed in.
 Locals of the compiler (for a `FOR` limit, an exception, a temporary) have
-no name.
+no name, nor have variables that only code which cannot be reached uses:
+the ClassFile API replaces that code with `nop` and `athrow` and leaves its
+locals out of `max_locals`, so `Unit.dropDeadNames` removes their entries
+(HotSpot rejects a class with an entry beyond `max_locals`).
 
 ## 5. Procedures
 
