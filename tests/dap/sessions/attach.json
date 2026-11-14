@@ -1,0 +1,29 @@
+{
+ "start": false,
+ "debuggee": {"suspend": "y", "args": ["wait"]},
+ "steps": [
+  {"send": {"command": "attach", "arguments": {}}},
+  {"send": {"command": "attach", "arguments": {"port": {"$port": true}, "sourceRoots": [{"$src": ""}]}},
+   "until": "initialized"},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @wait *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "threads"}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {"source": {"path": {"$src": "Main.m3"}}, "breakpoints": []}}},
+  {"send": {"command": "disconnect", "arguments": {}}},
+  {"restart": true},
+  {"send": {"command": "attach", "arguments": {"port": {"$port": true}, "sourceRoots": [{"$src": ""}]}},
+   "until": "initialized"},
+  {"send": {"command": "threads"}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @wait *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "setExpression", "arguments": {"expression": "Main.done", "value": "TRUE", "frameId": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {"source": {"path": {"$src": "Main.m3"}}, "breakpoints": []}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

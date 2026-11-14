@@ -1,0 +1,18 @@
+{
+ "start": false,
+ "refuse": 1,
+ "steps": [
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "debug"}, "console": "integratedTerminal"}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "debug"}, "build": false,
+                                               "console": "integratedTerminal", "args": ["one", "two words"],
+                                               "env": {"M3J_TEST": "yes"}, "javaOptions": ["-Dm3j.test=yes"]}},
+   "until": "initialized"},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @scalars *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "evaluate", "arguments": {"expression": "i", "frameId": 1, "context": "watch"}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

@@ -1,0 +1,188 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": false,
+  "command": "launch",
+  "message": "launch needs the attribute package or jar"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": false,
+  "command": "launch",
+  "message": "no such package: <work>/missing"
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": false,
+  "command": "launch",
+  "message": "launch takes the attribute package or jar, not both"
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": false,
+  "command": "launch",
+  "message": "there is no program in <work>/pkgs/broken/JVM: build the package with m3build"
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": false,
+  "command": "launch",
+  "message": "m3build failed in <work>/pkgs/broken (exit code 1)"
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": false,
+  "command": "launch",
+  "message": "there is no program nope in <work>/pkgs/debug/JVM"
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": false,
+  "command": "launch",
+  "message": "the console is internalConsole, integratedTerminal or externalTerminal, not window"
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 85
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<work>/pkgs/debug/src/Main.m3"
+     },
+     "line": 85,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "console": "--- building in JVM ---\n\nnew sources -> compiling broken.jar\n\"../src/Main.m3\", line 8: Types are not assignable in assignment (2.3.1).\n1 error encountered\ncompilation failed => not building program \"broken\"\nFatal Error: package build failed\n--- building in JVM ---\n\nnew sources -> compiling debug.jar\n\"../src/Main.m3\", line 68: warning: Open array passed by value. (a)\n\"../src/Main.m3\", line 230: warning: potentially unhandled exception: Main.Oops\n2 warnings encountered\nm3j: warning: no module of interface RT0 is compiled (it is UNSAFE or missing): calling its procedures fails, its variables keep their initial values\n--- building in JVM ---\n\nprogram \"debug.jar\" is up to date\n",
+   "stdout": "v = 2583, count = 35, shapes = 2\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

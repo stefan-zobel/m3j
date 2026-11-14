@@ -135,6 +135,21 @@ class CompletionItem {
   }
 }
 
+class DebugAdapterExecutable {
+  constructor(command, args, options) {
+    this.command = command;
+    this.args = args;
+    this.options = options;
+  }
+}
+
+class EvaluatableExpression {
+  constructor(range, expression) {
+    this.range = range;
+    this.expression = expression;
+  }
+}
+
 class Diagnostic {
   constructor(range, message, severity) {
     this.range = range;
@@ -152,7 +167,8 @@ function register(kind) {
 
 module.exports = {
   Uri, Position, Range, Location, MarkdownString, Hover, Diagnostic, DiagnosticSeverity,
-  SymbolKind, DocumentSymbol, CompletionItemKind, CompletionItem,
+  SymbolKind, DocumentSymbol, CompletionItemKind, CompletionItem, DebugAdapterExecutable,
+  EvaluatableExpression,
   workspace: {
     workspaceFolders: [],
     textDocuments: [],
@@ -170,7 +186,12 @@ module.exports = {
       dispose() {}
     }),
     showErrorMessage: (m) => { shown.push(m); },
-    showInformationMessage: (m) => { shown.push(m); }
+    showInformationMessage: (m) => { shown.push(m); },
+    activeTextEditor: undefined
+  },
+  debug: {
+    registerDebugAdapterDescriptorFactory: (type, f) => register('debugAdapter:' + type)(null, f),
+    registerDebugConfigurationProvider: (type, p) => register('debugConfiguration:' + type)(null, p)
   },
   languages: {
     createDiagnosticCollection: () => {
@@ -190,7 +211,8 @@ module.exports = {
     registerDeclarationProvider: register('declaration'),
     registerTypeDefinitionProvider: register('typeDefinition'),
     registerDocumentSymbolProvider: register('documentSymbol'),
-    registerCompletionItemProvider: register('completion')
+    registerCompletionItemProvider: register('completion'),
+    registerEvaluatableExpressionProvider: register('evaluatableExpression')
   },
   // for the test
   mock: { events, providers, shown, collections, setSettings: (s) => { settings = s; } }

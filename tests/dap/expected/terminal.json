@@ -1,0 +1,211 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": false,
+  "command": "launch",
+  "message": "the client did not run the program in a terminal: refused by the test"
+ },
+ {
+  "type": "request",
+  "command": "runInTerminal",
+  "arguments": {
+   "kind": "integrated",
+   "title": "m3j: debug",
+   "cwd": "<work>/pkgs/debug",
+   "args": [
+    "<jdk>/bin/java",
+    "-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=<address>",
+    "-Xss8m",
+    "-cp",
+    [
+     "<m3j>/m3j-runtime.jar",
+     "<work>/pkgs/debug/JVM/debug.jar",
+     "<work>/pkgs/debug/src"
+    ],
+    "m3.Main"
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "request",
+  "command": "runInTerminal",
+  "arguments": {
+   "kind": "integrated",
+   "title": "m3j: debug",
+   "cwd": "<work>/pkgs/debug",
+   "args": [
+    "<jdk>/bin/java",
+    "-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=<address>",
+    "-Xss8m",
+    "-Dm3j.test=yes",
+    "-cp",
+    [
+     "<m3j>/m3j-runtime.jar",
+     "<work>/pkgs/debug/JVM/debug.jar",
+     "<work>/pkgs/debug/src"
+    ],
+    "m3.Main",
+    "one",
+    "two words"
+   ],
+   "env": {
+    "M3J_TEST": "yes"
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 85
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<work>/pkgs/debug/src/Main.m3"
+     },
+     "line": 85,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "7",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "console": "--- building in JVM ---\n\nnew sources -> compiling debug.jar\n\"../src/Main.m3\", line 68: warning: Open array passed by value. (a)\n\"../src/Main.m3\", line 230: warning: potentially unhandled exception: Main.Oops\n2 warnings encountered\nm3j: warning: no module of interface RT0 is compiled (it is UNSAFE or missing): calling its procedures fails, its variables keep their initial values\n"
+  }
+ },
+ {
+  "exit": 0
+ },
+ {
+  "terminal": {
+   "stdout": "v = 2583, count = 35, shapes = 2\n",
+   "stderr": "",
+   "exit": 0
+  }
+ }
+]

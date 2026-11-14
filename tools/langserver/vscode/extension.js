@@ -3,10 +3,12 @@
 
 'use strict';
 // The extension for Visual Studio Code: the language Modula-3 (in
-// package.json, with its grammar), and the language server of m3j
+// package.json, with its grammar), the language server of m3j
 // (java -jar m3_lang_server.jar) for errors and warnings, hovers,
 // declarations, type definitions, the outline and the completion of
-// identifiers.
+// identifiers, and the debugger of m3j (java -cp m3j.jar
+// m3j.debug.dap.Main), with the designators under the mouse as the
+// expressions of its hovers.
 
 const vscode = require('vscode');
 const fs = require('fs');
@@ -27,14 +29,20 @@ let restarts = 0;
 let stopping = false;
 const opened = new Set(); // the URIs of the documents the server has opened
 
-// The java program and the jar of the server.
-function serverCommand() {
+// The java program and the directory of m3j.
+function installation() {
   const cfg = vscode.workspace.getConfiguration('m3j');
   const home = cfg.get('home') || process.env.M3J_HOME || '';
   let java = cfg.get('java');
   if (!java) {
     java = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java') : 'java';
   }
+  return { java, home };
+}
+
+// The java program and the jar of the server.
+function serverCommand() {
+  const { java, home } = installation();
   return { java, jar: home ? path.join(home, 'm3_lang_server.jar') : '' };
 }
 
@@ -221,6 +229,162 @@ function toLocations(result) {
     new vscode.Location(vscode.Uri.parse(l.uri), toRange(l.range)));
 }
 
+// ---- the debugger
+
+// The debug adapter of m3j, in the folder of the session (relative paths
+// of its configuration are relative to it).
+const debugAdapters = {
+  createDebugAdapterDescriptor(session) {
+    const { java, home } = installation();
+    const jar = home ? path.join(home, 'm3j.jar') : '';
+    if (!jar || !fs.existsSync(jar)) {
+      throw new Error('Modula-3: m3j.jar was not found; set m3j.home (or M3J_HOME) to the directory of m3j.');
+    }
+    const options = {};
+    if (session && session.workspaceFolder) options.cwd = session.workspaceFolder.uri.fsPath;
+    return new vscode.DebugAdapterExecutable(java, ['-cp', jar, 'm3j.debug.dap.Main'], options);
+  }
+};
+
+// The package of a file: the directory above it with src/m3makefile, or
+// null.
+function packageOf(file) {
+  let dir = path.dirname(file);
+  for (;;) {
+    if (fs.existsSync(path.join(dir, 'src', 'm3makefile'))) return dir;
+    const up = path.dirname(dir);
+    if (up === dir) return null;
+    dir = up;
+  }
+}
+
+// The package of the file in the editor, or null.
+function activePackage() {
+  const editor = vscode.window.activeTextEditor;
+  const doc = editor && editor.document;
+  return doc && doc.languageId === LANGUAGE && doc.uri.scheme === 'file' ? packageOf(doc.uri.fsPath) : null;
+}
+
+// Without a launch configuration (F5 with no launch.json), and for one
+// that names neither a package nor a jar: the program of the package of
+// the file in the editor.
+const debugConfigurations = {
+  resolveDebugConfiguration(folder, config) {
+    const empty = !config.type && !config.request && !config.name;
+    if (empty || (config.request === 'launch' && !config.package && !config.jar)) {
+      const pkg = activePackage();
+      if (!pkg) {
+        vscode.window.showErrorMessage('Modula-3: open a file of a package (a directory with src/m3makefile) ' +
+          'to debug its program, or name the package in the launch configuration.');
+        return undefined;
+      }
+      if (empty) return { type: 'm3j', request: 'launch', name: 'Debug ' + path.basename(pkg), package: pkg };
+      config.package = pkg;
+    }
+    return config;
+  }
+};
+
+// The words that are no variables: the reserved words and the predeclared
+// identifiers.
+const RESERVED = new Set(('AND ANY ARRAY AS BEGIN BITS BRANDED BY CASE CONST DIV DO ELSE ELSIF END EVAL ' +
+  'EXCEPT EXCEPTION EXIT EXPORTS FINALLY FOR FROM GENERIC IF IMPORT IN INTERFACE LOCK LOOP METHODS MOD ' +
+  'MODULE NOT OBJECT OF OR OVERRIDES PROCEDURE RAISE RAISES READONLY RECORD REF REPEAT RETURN REVEAL ROOT ' +
+  'SET THEN TO TRY TYPE TYPECASE UNSAFE UNTIL UNTRACED VALUE VAR WHILE WITH ' +
+  'ABS ADDRESS ADR ADRSIZE BITSIZE BOOLEAN BYTESIZE CARDINAL CEILING CHAR DEC DISPOSE EXTENDED FALSE ' +
+  'FIRST FLOAT FLOOR INC INTEGER ISTYPE LAST LONGINT LONGREAL LOOPHOLE MAX MIN MUTEX NARROW NEW NIL NULL ' +
+  'NUMBER ORD REAL REFANY ROUND SUBARRAY TEXT TRUE TRUNC TYPECODE VAL WIDECHAR').split(' '));
+
+// The tokens of a line: names, numbers, literals, comments (to the end
+// of the line if they go on) and single characters, with their columns.
+function tokens(line) {
+  const out = [];
+  let i = 0;
+  while (i < line.length) {
+    const c = line[i];
+    if (/\s/.test(c)) {
+      i++;
+      continue;
+    }
+    let j = i + 1;
+    let kind = 'char';
+    if (/[A-Za-z]/.test(c)) {
+      while (j < line.length && /[A-Za-z0-9_]/.test(line[j])) j++;
+      kind = 'name';
+    } else if (/[0-9]/.test(c)) {
+      while (j < line.length && /[A-Za-z0-9_]/.test(line[j])) j++;
+      kind = 'number';
+    } else if (c === '"' || c === "'") {
+      while (j < line.length && line[j] !== c) j += line[j] === '\\' ? 2 : 1;
+      j = Math.min(j + 1, line.length);
+      kind = 'literal';
+    } else if (c === '(' && line[j] === '*') {
+      let depth = 1;
+      j++;
+      while (j < line.length && depth > 0) {
+        if (line.startsWith('(*', j)) {
+          depth++;
+          j += 2;
+        } else if (line.startsWith('*)', j)) {
+          depth--;
+          j += 2;
+        } else {
+          j++;
+        }
+      }
+      kind = 'comment';
+    }
+    out.push({ kind, text: line.slice(i, j), start: i, end: j });
+    i = j;
+  }
+  return out;
+}
+
+// The first token of the operand that ends with the token k (a name,
+// with ^ and [...] after it), or -1.
+function operandStart(toks, k) {
+  while (k >= 0 && (toks[k].text === '^' || toks[k].text === ']')) {
+    if (toks[k].text === '^') {
+      k--;
+      continue;
+    }
+    let depth = 0;
+    for (; k >= 0; k--) {
+      if (toks[k].text === ']') depth++;
+      else if (toks[k].text === '[' && --depth === 0) break;
+    }
+    k--;
+  }
+  return k >= 0 && toks[k].kind === 'name' && !RESERVED.has(toks[k].text) ? k : -1;
+}
+
+// The designator that ends with the name at column ch of the line
+// (a.b[i].c for c, i for i): {start, end, text}, or null.
+function designatorAt(line, ch) {
+  const toks = tokens(line);
+  const w = toks.findIndex((t) => t.kind === 'name' && t.start <= ch && ch < t.end);
+  if (w < 0 || RESERVED.has(toks[w].text)) return null;
+  let s = w;
+  while (s >= 2 && toks[s - 1].text === '.') {
+    const k = operandStart(toks, s - 2);
+    if (k < 0) break;
+    s = k;
+  }
+  const start = toks[s].start;
+  const end = toks[w].end;
+  return { start, end, text: line.slice(start, end) };
+}
+
+const evaluatableExpressions = {
+  provideEvaluatableExpression(doc, position) {
+    const d = designatorAt(doc.lineAt(position.line).text, position.character);
+    if (!d) return undefined;
+    return new vscode.EvaluatableExpression(
+      new vscode.Range(new vscode.Position(position.line, d.start), new vscode.Position(position.line, d.end)),
+      d.text);
+  }
+};
+
 function activate(context) {
   output = vscode.window.createOutputChannel('Modula-3 (m3j)');
   diagnostics = vscode.languages.createDiagnosticCollection(LANGUAGE);
@@ -253,7 +417,10 @@ function activate(context) {
     vscode.languages.registerCompletionItemProvider(selector, {
       provideCompletionItems: async (doc, position) =>
         toItems(await ask('textDocument/completion', doc, position))
-    }, '.'));
+    }, '.'),
+    vscode.languages.registerEvaluatableExpressionProvider(selector, evaluatableExpressions),
+    vscode.debug.registerDebugAdapterDescriptorFactory('m3j', debugAdapters),
+    vscode.debug.registerDebugConfigurationProvider('m3j', debugConfigurations));
   if (vscode.workspace.getConfiguration('m3j').get('server', true)) start();
 }
 
@@ -265,4 +432,4 @@ function deactivate() {
   return c.stop(5000);
 }
 
-module.exports = { activate, deactivate };
+module.exports = { activate, deactivate, designatorAt };

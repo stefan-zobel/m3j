@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -24,16 +25,39 @@ import m3j.debug.Sources;
 /**
  * The debug adapter: the Debug Adapter Protocol on the input and output
  * it is given, for a {@link Session}.
+ *
+ * <p>The request launch starts a program: a jar (the attribute jar), or
+ * the program that m3build makes of a package in its directory JVM (the
+ * attribute package; program chooses one if there are several), built
+ * first unless build is false, with the class path and the options of
+ * java that its m3makefile names (java_classpath, java_option). The
+ * program runs with its output in the console of the client (console
+ * internalConsole), or in a terminal that the client opens for it by the
+ * request runInTerminal (integratedTerminal, externalTerminal), so that
+ * it can read its standard input. The request attach connects to a
+ * program that runs with the agent of JDWP as a server
+ * (-agentlib:jdwp=transport=dt_socket,server=y,address=PORT), at host and
+ * port; disconnect leaves it running unless terminateDebuggee is true.
  */
 public final class Adapter implements Session.Listener {
     private final InputStream in;
     private final OutputStream out;
     private final Path home;
     private int seq = 1;
-    private Session session;
+    private volatile Session session;
+    /** the program that the client is to start in a terminal, until it connects */
+    private volatile Session.Waiting waiting;
+    /** the number of the request runInTerminal */
+    private int terminalRequest = -1;
+    /** whether the client can run a program in a terminal */
+    private boolean runInTerminal;
+    /** whether the session is attached to a program that runs on its own */
+    private boolean attached;
     private boolean done;
     /** what to do after the response to the request being served */
     private Runnable after;
+    /** whether the response to the request being served comes later */
+    private boolean deferred;
 
     public Adapter(InputStream in, OutputStream out, Path home) {
         this.in = in;
@@ -50,8 +74,23 @@ public final class Adapter implements Session.Listener {
             }
             handle(text);
         }
-        if (session != null) {
-            session.kill();
+        end(!attached);
+    }
+
+    /** Ends the session: the program too if kill, else it runs on. */
+    private void end(boolean kill) {
+        Session.Waiting w = waiting;
+        if (w != null) {
+            w.cancel("the client is gone");
+        }
+        Session s = session;
+        session = null;
+        if (s != null) {
+            if (kill) {
+                s.kill();
+            } else {
+                s.detach();
+            }
         }
     }
 
@@ -101,9 +140,11 @@ public final class Adapter implements Session.Listener {
         return b.toString(StandardCharsets.ISO_8859_1);
     }
 
-    private synchronized void send(Map<String, Object> m) {
+    /** Sends the message m: its number. */
+    private synchronized int send(Map<String, Object> m) {
+        int n = seq++;
         Map<String, Object> msg = new LinkedHashMap<>();
-        msg.put("seq", seq++);
+        msg.put("seq", n);
         msg.putAll(m);
         byte[] b = Json.write(msg).getBytes(StandardCharsets.UTF_8);
         try {
@@ -113,6 +154,7 @@ public final class Adapter implements Session.Listener {
         } catch (IOException e) {
             // the client is gone
         }
+        return n;
     }
 
     private void event(String name, Map<String, Object> body) {
@@ -148,8 +190,14 @@ public final class Adapter implements Session.Listener {
             event("output", obj("category", "stderr", "output", "m3j debug adapter: " + e.getMessage() + "\n"));
             return;
         }
-        if (!(o instanceof Map<?, ?> m) || !"request".equals(m.get("type"))) {
-            // a response to a request of the adapter, or not a message
+        if (!(o instanceof Map<?, ?> m)) {
+            return;
+        }
+        if ("response".equals(m.get("type"))) {
+            answered(m);
+            return;
+        }
+        if (!"request".equals(m.get("type"))) {
             return;
         }
         Object rseq = m.get("seq");
@@ -157,8 +205,9 @@ public final class Adapter implements Session.Listener {
         Map<?, ?> args = m.get("arguments") instanceof Map<?, ?> a ? a : Map.of();
         Object body;
         after = null;
+        deferred = false;
         try {
-            body = dispatch(command, args);
+            body = dispatch(command, args, rseq);
         } catch (Failure e) {
             respond(rseq, command, null, e.getMessage());
             return;
@@ -166,35 +215,26 @@ public final class Adapter implements Session.Listener {
             respond(rseq, command, null, "internal error: " + e);
             return;
         }
+        if (deferred) {
+            return;
+        }
         respond(rseq, command, body, null);
         if (after != null) {
             after.run();
         }
         switch (command) {
-            case "launch" -> event("initialized", null);
+            case "launch", "attach" -> event("initialized", null);
             case "disconnect" -> done = true;
             default -> {
             }
         }
     }
 
-    private Object dispatch(String command, Map<?, ?> args) throws Failure {
+    private Object dispatch(String command, Map<?, ?> args, Object rseq) throws Failure {
         return switch (command) {
-            case "initialize" -> obj("supportsConfigurationDoneRequest", true,
-                                     "supportsTerminateRequest", true,
-                                     "supportsExceptionInfoRequest", true,
-                                     "supportsEvaluateForHovers", true,
-                                     "supportsSetVariable", true,
-                                     "supportsSetExpression", true,
-                                     "exceptionBreakpointFilters", List.of(
-                                         obj("filter", "raise", "label", "Every RAISE", "default", false,
-                                             "description", "Stop where an exception is raised."),
-                                         obj("filter", "error", "label", "Runtime errors", "default", false,
-                                             "description", "Stop at a checked runtime error, also if it is handled."),
-                                         obj("filter", "unhandled", "label", "Unhandled exceptions", "default", true,
-                                             "description", "Stop where an exception or a runtime error is raised"
-                                                 + " that no TRY EXCEPT handles.")));
-            case "launch" -> launch(args);
+            case "initialize" -> initialize(args);
+            case "launch" -> launch(args, rseq);
+            case "attach" -> attach(args);
             case "setBreakpoints" -> setBreakpoints(args);
             case "setExceptionBreakpoints" -> {
                 List<String> f = strings(args, "filters");
@@ -248,13 +288,29 @@ public final class Adapter implements Session.Listener {
                 yield null;
             }
             case "disconnect" -> {
-                if (session != null) {
-                    session.kill();
-                }
+                end(args.get("terminateDebuggee") instanceof Boolean b ? b : !attached);
                 yield null;
             }
             default -> throw new Failure("unknown request " + command);
         };
+    }
+
+    private Object initialize(Map<?, ?> args) {
+        runInTerminal = Boolean.TRUE.equals(args.get("supportsRunInTerminalRequest"));
+        return obj("supportsConfigurationDoneRequest", true,
+                   "supportsTerminateRequest", true,
+                   "supportsExceptionInfoRequest", true,
+                   "supportsEvaluateForHovers", true,
+                   "supportsSetVariable", true,
+                   "supportsSetExpression", true,
+                   "exceptionBreakpointFilters", List.of(
+                       obj("filter", "raise", "label", "Every RAISE", "default", false,
+                           "description", "Stop where an exception is raised."),
+                       obj("filter", "error", "label", "Runtime errors", "default", false,
+                           "description", "Stop at a checked runtime error, also if it is handled."),
+                       obj("filter", "unhandled", "label", "Unhandled exceptions", "default", true,
+                           "description", "Stop where an exception or a runtime error is raised"
+                               + " that no TRY EXCEPT handles.")));
     }
 
     private Object step(Map<?, ?> args, Session.StepKind kind) throws Failure {
@@ -273,36 +329,58 @@ public final class Adapter implements Session.Listener {
 
     // ---- requests
 
-    private Object launch(Map<?, ?> args) throws Failure {
-        if (session != null) {
+    private Object launch(Map<?, ?> args, Object rseq) throws Failure {
+        if (session != null || waiting != null) {
             throw new Failure("a program is running");
         }
-        Path cwd = Path.of(string(args, "cwd", System.getProperty("user.dir"))).toAbsolutePath().normalize();
+        String cwdName = string(args, "cwd", null);
+        Path dir = Path.of(cwdName == null ? System.getProperty("user.dir") : cwdName).toAbsolutePath().normalize();
+        String pkgName = string(args, "package", null);
         String jarName = string(args, "jar", null);
-        if (jarName == null) {
-            throw new Failure("launch needs the attribute jar");
+        Path pkg = null;
+        Program prog;
+        if (pkgName != null) {
+            if (jarName != null) {
+                throw new Failure("launch takes the attribute package or jar, not both");
+            }
+            pkg = dir.resolve(pkgName).toAbsolutePath().normalize();
+            if (!Files.isDirectory(pkg)) {
+                throw new Failure("no such package: " + pkg);
+            }
+            if (!Boolean.FALSE.equals(args.get("build"))) {
+                build(pkg);
+            }
+            prog = program(pkg, string(args, "program", null));
+        } else if (jarName != null) {
+            Path jar = dir.resolve(jarName).toAbsolutePath().normalize();
+            if (!Files.isRegularFile(jar)) {
+                throw new Failure("no such jar: " + jar);
+            }
+            prog = new Program(jar, List.of(), List.of());
+        } else {
+            throw new Failure("launch needs the attribute package or jar");
         }
-        Path jar = cwd.resolve(jarName).toAbsolutePath().normalize();
-        if (!Files.isRegularFile(jar)) {
-            throw new Failure("no such jar: " + jar);
-        }
+        Path cwd = cwdName == null && pkg != null ? pkg : dir;
         String main = "m3.Main";
-        try (JarFile jf = new JarFile(jar.toFile())) {
+        try (JarFile jf = new JarFile(prog.jar().toFile())) {
             Manifest mf = jf.getManifest();
             String m = mf == null ? null : mf.getMainAttributes().getValue("Main-Class");
             if (m != null) {
                 main = m.trim();
             }
         } catch (IOException e) {
-            throw new Failure("not a jar: " + jar);
+            throw new Failure("not a jar: " + prog.jar());
         }
         List<String> cp = new ArrayList<>();
         Path runtime = home.resolve("m3j-runtime.jar");
         cp.add((Files.isRegularFile(runtime) ? runtime : home.resolve("m3j.jar")).toString());
-        cp.add(jar.toString());
+        cp.add(prog.jar().toString());
+        cp.addAll(prog.classpath());
         for (String c : strings(args, "classpath")) {
-            cp.add(cwd.resolve(c).toString());
+            cp.add(dir.resolve(c).toString());
         }
+        List<String> options = new ArrayList<>(prog.options());
+        options.addAll(strings(args, "javaOptions"));
         Map<String, String> env = new LinkedHashMap<>();
         if (args.get("env") instanceof Map<?, ?> e) {
             for (Map.Entry<?, ?> x : e.entrySet()) {
@@ -311,22 +389,199 @@ public final class Adapter implements Session.Listener {
         }
         List<Path> roots = new ArrayList<>();
         for (String r : strings(args, "sourceRoots")) {
-            roots.add(cwd.resolve(r));
+            roots.add(dir.resolve(r));
         }
-        Path dir = jar.getParent();
-        if (dir != null && dir.getFileName() != null && dir.getFileName().toString().equals("JVM")
-            && dir.getParent() != null) {
+        Path jdir = prog.jar().getParent();
+        if (pkg != null) {
+            roots.add(pkg);
+        } else if (jdir != null && jdir.getFileName() != null && jdir.getFileName().toString().equals("JVM")
+                   && jdir.getParent() != null) {
             // the package of a program that m3build made
-            roots.add(dir.getParent());
+            roots.add(jdir.getParent());
         }
         roots.add(home.resolve("lib"));
-        String java = Path.of(System.getProperty("java.home"), "bin", "java").toString();
-        Session.Launch l = new Session.Launch(java, cp, main, strings(args, "args"), cwd, env,
-                                              strings(args, "javaOptions"));
+        Session.Launch l = new Session.Launch(java(), cp, main, strings(args, "args"), cwd, env, options);
         boolean entry = Boolean.TRUE.equals(args.get("stopOnEntry"));
-        session = Session.launch(l, new Sources(roots, cwd), this);
-        session.stopOnEntry(entry);
+        Sources sources = new Sources(roots, cwd);
+        String console = string(args, "console", "internalConsole");
+        switch (console) {
+            case "internalConsole" -> {
+                Session s = Session.launch(l, sources, this);
+                s.stopOnEntry(entry);
+                session = s;
+            }
+            case "integratedTerminal", "externalTerminal" -> {
+                if (!runInTerminal) {
+                    throw new Failure("the client cannot run a program in a terminal: use the console internalConsole");
+                }
+                terminal(l, console.equals("integratedTerminal") ? "integrated" : "external", sources, entry, rseq);
+            }
+            default -> throw new Failure("the console is internalConsole, integratedTerminal or externalTerminal,"
+                                         + " not " + console);
+        }
         return null;
+    }
+
+    /**
+     * Has the client run the program of l in a terminal of kind; the
+     * response to the request launch (rseq) comes when the program has
+     * connected.
+     */
+    private void terminal(Session.Launch l, String kind, Sources sources, boolean entry, Object rseq)
+        throws Failure {
+        Session.Waiting w = Session.listen(l);
+        waiting = w;
+        Map<String, Object> a = obj("kind", kind, "title", "m3j: " + name(l), "cwd", l.cwd().toString(),
+                                    "args", new ArrayList<Object>(w.command()));
+        if (!l.env().isEmpty()) {
+            a.put("env", new LinkedHashMap<String, Object>(l.env()));
+        }
+        Map<String, Object> m = obj("type", "request", "command", "runInTerminal", "arguments", a);
+        terminalRequest = send(m);
+        deferred = true;
+        Thread t = new Thread(() -> {
+            try {
+                Session s = w.accept(sources, this);
+                s.stopOnEntry(entry);
+                session = s;
+                waiting = null;
+                respond(rseq, "launch", null, null);
+                event("initialized", null);
+            } catch (Failure e) {
+                waiting = null;
+                respond(rseq, "launch", null, e.getMessage());
+            }
+        }, "m3j-debug-terminal");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /** The name of the program of l: its jar without .jar. */
+    private static String name(Session.Launch l) {
+        String jar = l.classpath().get(1);
+        String n = Path.of(jar).getFileName().toString();
+        return n.endsWith(".jar") ? n.substring(0, n.length() - 4) : n;
+    }
+
+    /** A response of the client to a request of the adapter. */
+    private void answered(Map<?, ?> m) {
+        Session.Waiting w = waiting;
+        if (w != null && m.get("request_seq") instanceof Number n && n.intValue() == terminalRequest
+            && !Boolean.TRUE.equals(m.get("success"))) {
+            w.cancel("the client did not run the program in a terminal"
+                     + (m.get("message") instanceof String s ? ": " + s : ""));
+        }
+    }
+
+    private Object attach(Map<?, ?> args) throws Failure {
+        if (session != null || waiting != null) {
+            throw new Failure("a program is running");
+        }
+        String host = string(args, "host", "localhost");
+        int port = integer(args, "port", 0);
+        if (port <= 0 || port > 65535) {
+            throw new Failure("attach needs the attribute port, the port of the agent of the program");
+        }
+        Path dir = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        List<Path> roots = new ArrayList<>();
+        for (String r : strings(args, "sourceRoots")) {
+            roots.add(dir.resolve(r));
+        }
+        String pkg = string(args, "package", null);
+        if (pkg != null) {
+            roots.add(dir.resolve(pkg));
+        }
+        roots.add(home.resolve("lib"));
+        session = Session.attach(host, port, new Sources(roots, dir), this);
+        attached = true;
+        return null;
+    }
+
+    /** Builds the package pkg with m3build, with its output in the console. */
+    private void build(Path pkg) throws Failure {
+        Path m3build = home.resolve("m3build.jar");
+        if (!Files.isRegularFile(m3build)) {
+            throw new Failure("there is no m3build.jar in " + home + " to build " + pkg);
+        }
+        int code = Session.run(List.of(java(), "-jar", m3build.toString()), pkg, "console", this);
+        if (code != 0) {
+            throw new Failure("m3build failed in " + pkg + " (exit code " + code + ")");
+        }
+    }
+
+    /** A program that m3build made: its jar, the class path of its bindings, the options of java. */
+    private record Program(Path jar, List<String> classpath, List<String> options) {}
+
+    /**
+     * The program called name (null: the only one) of the package pkg,
+     * which m3build made in pkg/JVM. Next to NAME.jar, m3build keeps in
+     * NAME.m3j the arguments of the compiler on the first line, separated by
+     * blanks (the class path of java_classpath after -cp, before -I), and
+     * the options of java_option on the lines after it.
+     */
+    private static Program program(Path pkg, String name) throws Failure {
+        Path dir = pkg.resolve("JVM");
+        List<String> names = new ArrayList<>();
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.m3j")) {
+            for (Path p : ds) {
+                String n = p.getFileName().toString();
+                names.add(n.substring(0, n.length() - 4));
+            }
+        } catch (IOException e) {
+            // no programs
+        }
+        names.sort(null);
+        if (name == null) {
+            if (names.isEmpty()) {
+                throw new Failure("there is no program in " + dir + ": build the package with m3build");
+            }
+            if (names.size() > 1) {
+                throw new Failure("the package " + pkg + " has the programs " + String.join(", ", names)
+                                  + ": the attribute program chooses one");
+            }
+            name = names.get(0);
+        } else if (!names.contains(name)) {
+            throw new Failure("there is no program " + name + " in " + dir);
+        }
+        Path jar = dir.resolve(name + ".jar");
+        if (!Files.isRegularFile(jar)) {
+            throw new Failure("no such jar: " + jar);
+        }
+        String stamp;
+        try {
+            stamp = Files.readString(dir.resolve(name + ".m3j"), StandardCharsets.ISO_8859_1);
+        } catch (IOException e) {
+            throw new Failure("cannot read " + dir.resolve(name + ".m3j") + ": " + e.getMessage());
+        }
+        String[] lines = stamp.split("\r?\n");
+        List<String> cp = new ArrayList<>();
+        String first = lines.length > 0 ? lines[0] : "";
+        if (first.startsWith("-cp ")) {
+            int end = first.length();
+            for (String next : List.of(" -I ", " -pkg ", " -d ")) {
+                int k = first.indexOf(next, 4);
+                if (k >= 0 && k < end) {
+                    end = k;
+                }
+            }
+            for (String e : first.substring(4, end).split(java.io.File.pathSeparator)) {
+                if (!e.isEmpty()) {
+                    cp.add(e);
+                }
+            }
+        }
+        List<String> options = new ArrayList<>();
+        for (int k = 1; k < lines.length; k++) {
+            if (!lines[k].isEmpty()) {
+                options.add(lines[k]);
+            }
+        }
+        return new Program(jar, cp, options);
+    }
+
+    /** The java program that runs the adapter. */
+    private static String java() {
+        return Path.of(System.getProperty("java.home"), "bin", "java").toString();
     }
 
     private Object setBreakpoints(Map<?, ?> args) throws Failure {

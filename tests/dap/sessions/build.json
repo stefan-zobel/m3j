@@ -1,0 +1,19 @@
+{
+ "start": false,
+ "steps": [
+  {"send": {"command": "launch", "arguments": {}}},
+  {"send": {"command": "launch", "arguments": {"package": "missing"}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "debug"}, "jar": {"$program": true}}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "broken"}, "build": false}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "broken"}}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "debug"}, "program": "nope"}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "debug"}, "build": false, "console": "window"}}},
+  {"send": {"command": "launch", "arguments": {"package": {"$pkg": "debug"}, "program": "debug"}}, "until": "initialized"},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @scalars *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

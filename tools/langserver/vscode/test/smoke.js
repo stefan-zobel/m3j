@@ -11,7 +11,8 @@
 // with the environment variables M3J_JAVA (the java program) and
 // M3J_LSP_JAR (m3_lang_server.jar). First lsp.js alone, then
 // extension.js with the API of Visual Studio Code replaced by
-// vscode-mock.js. Exit code 0 if all went well.
+// vscode-mock.js, then the parts of extension.js for the debugger
+// (without it). Exit code 0 if all went well.
 
 const fs = require('fs');
 const path = require('path');
@@ -171,6 +172,51 @@ async function testExtension() {
   check('extension.js: no error messages', vscode.mock.shown.length === 0, vscode.mock.shown.join('; '));
 }
 
+// The parts of the debugger in extension.js (after testExtension, which
+// activates it): the adapter, the configuration without launch.json, the
+// expressions of hovers.
+function testDebugger() {
+  const extension = require('../extension');
+  const p = vscode.mock.providers;
+  check('debugger: providers', p['debugAdapter:m3j'] && p['debugConfiguration:m3j'] && p.evaluatableExpression,
+    Object.keys(p).join(' '));
+  const folder = { uri: vscode.Uri.file(work) };
+  const d = p['debugAdapter:m3j'].createDebugAdapterDescriptor({ workspaceFolder: folder });
+  check('debugger: the adapter', d instanceof vscode.DebugAdapterExecutable && d.command === java &&
+    JSON.stringify(d.args) === JSON.stringify(['-cp', path.join(path.dirname(jar), 'm3j.jar'), 'm3j.debug.dap.Main']) &&
+    d.options.cwd === folder.uri.fsPath, JSON.stringify(d));
+  const configs = p['debugConfiguration:m3j'];
+  vscode.window.activeTextEditor = { document: { uri: vscode.Uri.file(main), languageId: 'modula3' } };
+  const c = configs.resolveDebugConfiguration(folder, {});
+  check('debugger: F5 without launch.json', c && c.type === 'm3j' && c.request === 'launch' &&
+    sameFile(c.package, path.join(work, 'app')) && c.name === 'Debug app', JSON.stringify(c));
+  const named = configs.resolveDebugConfiguration(folder, { type: 'm3j', request: 'launch', name: 'x', jar: 'a.jar' });
+  check('debugger: a configuration with a jar stays', named && named.jar === 'a.jar' && !named.package,
+    JSON.stringify(named));
+  vscode.window.activeTextEditor = undefined;
+  const shown = vscode.mock.shown.length;
+  const none = configs.resolveDebugConfiguration(folder, {});
+  check('debugger: no package, no configuration', none === undefined && vscode.mock.shown.length === shown + 1,
+    JSON.stringify(none));
+  vscode.mock.shown.length = shown;
+  // the designator under the mouse: the line, the text under the mouse, the expression
+  const line = '  x := a[i, Red].f^.g + Main.v (* p.q *) & "s.t" + lst^.tail^.head; INC (a [k] . b)';
+  const cases = [['g', 'a[i, Red].f^.g'], ['f', 'a[i, Red].f'], ['a[', 'a'], ['i,', 'i'], ['Red', 'Red'],
+    ['v ', 'Main.v'], ['Main', 'Main'], ['q', null], ['t"', null], ['head', 'lst^.tail^.head'],
+    ['tail', 'lst^.tail'], ['INC', null], ['b)', 'a [k] . b'], ['x :=', 'x'], [':=', null]];
+  for (const [at, want] of cases) {
+    const ch = line.indexOf(at);
+    const got = extension.designatorAt(line, ch);
+    check('debugger: the expression at ' + at, (got ? got.text : null) === want, JSON.stringify(got));
+  }
+  const doc = { lineAt: () => ({ text: line }) };
+  const e = p.evaluatableExpression.provideEvaluatableExpression(doc, new vscode.Position(4, line.indexOf('head')));
+  check('debugger: an evaluatable expression', e instanceof vscode.EvaluatableExpression &&
+    e.expression === 'lst^.tail^.head' && e.range.start.line === 4 &&
+    e.range.start.character === line.indexOf('lst') && e.range.end.character === line.indexOf('head') + 4,
+    JSON.stringify(e));
+}
+
 (async () => {
   if (!jar) {
     console.log('FAIL  M3J_LSP_JAR is not set');
@@ -179,6 +225,7 @@ async function testExtension() {
   try {
     await testConnection();
     await testExtension();
+    testDebugger();
   } catch (e) {
     check('no exception', false, e && e.stack || String(e));
   }

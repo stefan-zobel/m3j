@@ -1,0 +1,6 @@
+% A program of tools/dap_test.py that does not compile: the debugger
+% does not start it.
+import ("libm3")
+
+implementation ("Main")
+program ("broken")

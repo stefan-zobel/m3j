@@ -39,6 +39,7 @@ import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.Value;
 import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import com.sun.jdi.connect.ListeningConnector;
@@ -65,6 +66,13 @@ import com.sun.jdi.request.ThreadStartRequest;
 /**
  * A program of Modula-3 under the debugger, on JDI: its breakpoints,
  * threads and stacks in the terms of its sources.
+ *
+ * <p>The session starts the program itself ({@link #launch}), or someone
+ * else does with the command that {@link #listen} gives (a terminal of
+ * the client), or it attaches to a program that runs with the agent of
+ * JDWP as a server ({@link #attach}). Either way the program is stopped
+ * until {@link #start}. The exit code of a program that the session did
+ * not start is the status it passes to Runtime.exit or Runtime.halt.
  *
  * <p>The classes of units carry their descriptions (see {@link Info}); a
  * unit is known to the session when its class is prepared. A breakpoint
@@ -126,7 +134,7 @@ public final class Session {
         /** A thread started or exited. */
         void thread(String reason, int thread);
 
-        /** The program ended with code. */
+        /** The program ended with code (not reported if the code is not known). */
         void exited(int code);
 
         /** The session ended. */
@@ -295,6 +303,11 @@ public final class Session {
     private final List<Thread> drains = new ArrayList<>();
     private int nextBp = 1, nextThread = 1, nextFrame = 1, nextRef = 1;
     private boolean started, ended, killed;
+    /**
+     * the status that the program gave to exit or halt of java.lang.Runtime,
+     * if the session did not start it (else its process tells), or null
+     */
+    private Integer status;
     /** whether the program is stopped (by the session, for the client) */
     private boolean stopped;
     /** the filters of exceptions, and stopping at the start of the main module */
@@ -324,6 +337,115 @@ public final class Session {
      * {@link #start}.
      */
     public static Session launch(Launch l, Sources sources, Listener listener) throws Failure {
+        Waiting w = listen(l);
+        ProcessBuilder pb = new ProcessBuilder(w.command()).directory(l.cwd().toFile());
+        for (Map.Entry<String, String> e : l.env().entrySet()) {
+            if (e.getValue() == null) {
+                pb.environment().remove(e.getKey());
+            } else {
+                pb.environment().put(e.getKey(), e.getValue());
+            }
+        }
+        Process p;
+        try {
+            p = pb.start();
+            p.getOutputStream().close();
+        } catch (IOException e) {
+            stop(w.lc, w.args);
+            throw new Failure("cannot start " + l.java() + ": " + e.getMessage());
+        }
+        List<Thread> drains = List.of(drain(p.getInputStream(), "stdout", listener),
+                                      drain(p.getErrorStream(), "stderr", listener));
+        return w.accept(p, drains, sources, listener);
+    }
+
+    /**
+     * A program that someone else starts (the client, in a terminal): it is
+     * to run the command, which connects the program to the session.
+     */
+    public static final class Waiting {
+        private final ListeningConnector lc;
+        private final Map<String, Connector.Argument> args;
+        private final List<String> command;
+        private volatile String cancelled;
+
+        private Waiting(ListeningConnector lc, Map<String, Connector.Argument> args, List<String> command) {
+            this.lc = lc;
+            this.args = args;
+            this.command = List.copyOf(command);
+        }
+
+        /** The command that starts the program. */
+        public List<String> command() {
+            return command;
+        }
+
+        /** Gives up waiting for the program, because of why. */
+        public void cancel(String why) {
+            cancelled = why;
+        }
+
+        /**
+         * The session of the program, once it has connected (within a
+         * minute), stopped before its first instruction until {@link #start}.
+         */
+        public Session accept(Sources sources, Listener listener) throws Failure {
+            return accept(null, List.of(), sources, listener);
+        }
+
+        private Session accept(Process p, List<Thread> drains, Sources sources, Listener listener)
+            throws Failure {
+            VirtualMachine vm = null;
+            set(args, "timeout", "500");
+            long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(60);
+            try {
+                while (vm == null && (p == null || p.isAlive()) && cancelled == null
+                       && System.nanoTime() < end) {
+                    try {
+                        vm = lc.accept(args);
+                    } catch (TransportTimeoutException e) {
+                        // not yet
+                    }
+                }
+            } catch (IOException | IllegalConnectorArgumentsException e) {
+                if (p != null) {
+                    p.destroyForcibly();
+                }
+                throw new Failure("the program did not connect: " + e.getMessage());
+            } finally {
+                stop(lc, args);
+            }
+            if (vm == null) {
+                if (p == null) {
+                    throw new Failure(cancelled != null ? cancelled : "the program did not connect");
+                }
+                p.destroyForcibly();
+                join(drains);
+                throw new Failure(p.isAlive() ? "the program did not connect"
+                    : "the program ended before it started, exit code " + exitCode(p));
+            }
+            ThreadReference initial = null;
+            try {
+                EventSet es = vm.eventQueue().remove(30000);
+                if (es != null) {
+                    for (Event e : es) {
+                        if (e instanceof VMStartEvent s) {
+                            initial = s.thread();
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return open(vm, p, drains, sources, listener, initial);
+        }
+    }
+
+    /**
+     * Listens for the program of l, which the command of the result starts
+     * and connects to the session.
+     */
+    public static Waiting listen(Launch l) throws Failure {
         ListeningConnector lc = null;
         for (ListeningConnector c : Bootstrap.virtualMachineManager().listeningConnectors()) {
             if (c.name().equals("com.sun.jdi.SocketListen")) {
@@ -350,60 +472,78 @@ public final class Session {
         cmd.add(String.join(java.io.File.pathSeparator, l.classpath()));
         cmd.add(l.mainClass());
         cmd.addAll(l.args());
-        ProcessBuilder pb = new ProcessBuilder(cmd).directory(l.cwd().toFile());
-        for (Map.Entry<String, String> e : l.env().entrySet()) {
-            if (e.getValue() == null) {
-                pb.environment().remove(e.getKey());
-            } else {
-                pb.environment().put(e.getKey(), e.getValue());
+        return new Waiting(lc, a, cmd);
+    }
+
+    /**
+     * Attaches to the program that runs with the agent of JDWP as a server
+     * at host:port. The program is stopped until {@link #start}.
+     */
+    public static Session attach(String host, int port, Sources sources, Listener listener) throws Failure {
+        AttachingConnector ac = null;
+        for (AttachingConnector c : Bootstrap.virtualMachineManager().attachingConnectors()) {
+            if (c.name().equals("com.sun.jdi.SocketAttach")) {
+                ac = c;
             }
         }
-        Process p;
-        try {
-            p = pb.start();
-            p.getOutputStream().close();
-        } catch (IOException e) {
-            stop(lc, a);
-            throw new Failure("cannot start " + l.java() + ": " + e.getMessage());
+        if (ac == null) {
+            throw new Failure("the JDK has no socket connector for a debugger");
         }
-        List<Thread> drains = List.of(drain(p.getInputStream(), "stdout", listener),
-                                      drain(p.getErrorStream(), "stderr", listener));
-        VirtualMachine vm = null;
-        set(a, "timeout", "500");
-        long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(60);
+        Map<String, Connector.Argument> a = ac.defaultArguments();
+        set(a, "hostname", host);
+        set(a, "port", Integer.toString(port));
+        set(a, "timeout", "10000");
+        VirtualMachine vm;
         try {
-            while (vm == null && p.isAlive() && System.nanoTime() < end) {
-                try {
-                    vm = lc.accept(a);
-                } catch (TransportTimeoutException e) {
-                    // not yet
-                }
-            }
+            vm = ac.attach(a);
         } catch (IOException | IllegalConnectorArgumentsException e) {
-            p.destroyForcibly();
-            throw new Failure("the program did not connect: " + e.getMessage());
-        } finally {
-            stop(lc, a);
-        }
-        if (vm == null) {
-            p.destroyForcibly();
-            join(drains);
-            throw new Failure(p.isAlive() ? "the program did not connect"
-                : "the program ended before it started, exit code " + exitCode(p));
+            throw new Failure("cannot attach to " + host + ":" + port + ": " + e.getMessage());
         }
         ThreadReference initial = null;
         try {
-            EventSet es = vm.eventQueue().remove(30000);
+            // a program that waits for the debugger (suspend=y) reports its start, stopped
+            EventSet es = vm.eventQueue().remove(1000);
+            boolean stopped = false;
             if (es != null) {
                 for (Event e : es) {
                     if (e instanceof VMStartEvent s) {
                         initial = s.thread();
+                        stopped = es.suspendPolicy() == EventRequest.SUSPEND_ALL;
                     }
                 }
             }
+            if (!stopped) {
+                vm.suspend();
+            }
+            if (initial == null) {
+                initial = launcher(vm);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        } catch (VMDisconnectedException e) {
+            throw new Failure("the program at " + host + ":" + port + " has ended");
         }
+        return open(vm, null, List.of(), sources, listener, initial);
+    }
+
+    /** The thread that started the program and waits for it to end (its first frame is m3.Main), or null. */
+    private static ThreadReference launcher(VirtualMachine vm) {
+        for (ThreadReference t : vm.allThreads()) {
+            try {
+                int n = t.frameCount();
+                if (t.name().equals("main") && n > 0
+                    && t.frame(n - 1).location().declaringType().name().equals("m3.Main")) {
+                    return t;
+                }
+            } catch (IncompatibleThreadStateException | ObjectCollectedException e) {
+                // not this one
+            }
+        }
+        return null;
+    }
+
+    private static Session open(VirtualMachine vm, Process p, List<Thread> drains, Sources sources,
+                                Listener listener, ThreadReference initial) {
         Session s = new Session(vm, p, sources, listener, initial);
         s.drains.addAll(drains);
         s.requests();
@@ -411,6 +551,30 @@ public final class Session {
         t.setDaemon(true);
         t.start();
         return s;
+    }
+
+    /**
+     * Runs cmd in dir to its end, with what it prints (also on standard
+     * error) as output of category: its exit code.
+     */
+    public static int run(List<String> cmd, Path dir, String category, Listener listener) throws Failure {
+        Process p;
+        try {
+            p = new ProcessBuilder(cmd).directory(dir.toFile()).redirectErrorStream(true).start();
+            p.getOutputStream().close();
+        } catch (IOException e) {
+            throw new Failure("cannot start " + cmd.get(0) + ": " + e.getMessage());
+        }
+        Thread d = drain(p.getInputStream(), category, listener);
+        try {
+            int code = p.waitFor();
+            d.join();
+            return code;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            p.destroyForcibly();
+            return -1;
+        }
     }
 
     private static void set(Map<String, Connector.Argument> a, String name, String value) {
@@ -432,6 +596,9 @@ public final class Session {
         EventRequestManager erm = vm.eventRequestManager();
         List<String> prepare = new ArrayList<>(List.of("m3.m.*", "m3.i.*", "m3j.rt.M3Exception", "m3j.rt.Rt"));
         prepare.addAll(JVM_ERRORS.keySet());
+        if (process == null) {
+            prepare.add("java.lang.Runtime");
+        }
         for (String f : prepare) {
             ClassPrepareRequest r = erm.createClassPrepareRequest();
             r.addClassFilter(f);
@@ -587,7 +754,9 @@ public final class Session {
         try {
             vm.exit(1);
         } catch (RuntimeException e) {
-            process.destroyForcibly();
+            if (process != null) {
+                process.destroyForcibly();
+            }
         }
     }
 
@@ -601,7 +770,21 @@ public final class Session {
         } catch (RuntimeException e) {
             // it has ended
         }
-        process.destroyForcibly();
+        if (process != null) {
+            process.destroyForcibly();
+        }
+    }
+
+    /** Leaves the program to run on without the debugger, and ends the session without reports. */
+    public void detach() {
+        synchronized (this) {
+            killed = true;
+        }
+        try {
+            vm.dispose();
+        } catch (RuntimeException e) {
+            // it has ended
+        }
     }
 
     // ---- breakpoints
@@ -878,6 +1061,20 @@ public final class Session {
      */
     private boolean hook(ReferenceType t) {
         String n = t.name();
+        if (n.equals("java.lang.Runtime")) {
+            if (process == null && hooked.add(n)) {
+                // the exit status of a program that the session did not start
+                for (Method m : t.methods()) {
+                    if ((m.name().equals("exit") || m.name().equals("halt")) && m.location() != null) {
+                        BreakpointRequest r = vm.eventRequestManager().createBreakpointRequest(m.location());
+                        r.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
+                        r.putProperty(KIND, "exit");
+                        r.enable();
+                    }
+                }
+            }
+            return true;
+        }
         boolean runtime = n.equals("m3j.rt.M3Exception") || n.equals("m3j.rt.Rt");
         if (!runtime && !JVM_ERRORS.containsKey(n)) {
             return false;
@@ -1041,6 +1238,13 @@ public final class Session {
         } else {
             return false;
         }
+        if (kind.equals("exit")) {
+            List<Value> a = t.frame(0).getArgumentValues();
+            if (!a.isEmpty() && a.get(0) instanceof IntegerValue i) {
+                status = i.value();
+            }
+            return false;
+        }
         List<StackFrame> fs = t.frames();
         List<Run> rs = runs(fs);
         if (kind.equals("entry")) {
@@ -1196,14 +1400,19 @@ public final class Session {
             }
             ended = true;
         }
-        int code = exitCode(process);
+        Integer code = process != null ? Integer.valueOf(exitCode(process)) : null;
         join(drains);
         boolean quiet;
         synchronized (this) {
             quiet = killed;
+            if (code == null) {
+                code = status;
+            }
         }
         if (!quiet) {
-            listener.exited(code);
+            if (code != null) {
+                listener.exited(code);
+            }
             listener.terminated();
         }
     }

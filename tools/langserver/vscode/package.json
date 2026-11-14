@@ -1,7 +1,7 @@
 {
   "name": "modula3",
   "displayName": "Modula-3 (m3j)",
-  "description": "Modula-3: syntax highlighting, and errors, hovers and declarations from the language server of m3j",
+  "description": "Modula-3: syntax highlighting, errors, hovers and declarations from the language server of m3j, and its debugger",
   "version": "0.2.0",
   "publisher": "m3j",
   "license": "MIT",
@@ -9,11 +9,13 @@
     "vscode": "^1.75.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Debuggers"
   ],
   "main": "./extension.js",
   "activationEvents": [
-    "workspaceContains:**/m3makefile"
+    "workspaceContains:**/m3makefile",
+    "onDebugResolve:m3j"
   ],
   "contributes": {
     "languages": [
@@ -55,7 +57,7 @@
         "m3j.java": {
           "type": "string",
           "default": "",
-          "description": "The java program (JDK 25 or later) that runs the language server (empty: JAVA_HOME/bin/java, else java from the PATH)."
+          "description": "The java program (of a JDK 25 or later) that runs the language server and the debugger (empty: JAVA_HOME/bin/java, else java from the PATH)."
         },
         "m3j.server": {
           "type": "boolean",
@@ -63,6 +65,180 @@
           "description": "Run the language server (errors and warnings, hovers, declarations). Without it there is only syntax highlighting."
         }
       }
-    }
+    },
+    "breakpoints": [
+      {
+        "language": "modula3"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "m3j",
+        "label": "Modula-3 (m3j)",
+        "languages": [
+          "modula3"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "package": {
+                "type": "string",
+                "description": "The directory of the package (with src/m3makefile) whose program is debugged, as m3build builds it in the directory JVM."
+              },
+              "program": {
+                "type": "string",
+                "description": "The program of the package, if it has several."
+              },
+              "jar": {
+                "type": "string",
+                "description": "Instead of package: the jar of a program that m3j compiled."
+              },
+              "build": {
+                "type": "boolean",
+                "default": true,
+                "description": "Build the package with m3build first (its output is in the Debug Console)."
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "The arguments of the program."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "The working directory of the program (default: the package)."
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "default": {},
+                "description": "Environment variables of the program (null removes one)."
+              },
+              "javaOptions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "Options of java, after those of java_option in the m3makefile."
+              },
+              "classpath": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "More jars and directories of Java classes, after those of java_classpath."
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "default": false,
+                "description": "Stop at the first line of the main module."
+              },
+              "console": {
+                "type": "string",
+                "enum": [
+                  "internalConsole",
+                  "integratedTerminal",
+                  "externalTerminal"
+                ],
+                "enumDescriptions": [
+                  "The output of the program in the Debug Console; it reads no input.",
+                  "The program in the integrated terminal, where it can read its input.",
+                  "The program in a terminal of the system."
+                ],
+                "default": "internalConsole",
+                "description": "Where the program runs."
+              },
+              "sourceRoots": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "More directories with sources of Modula-3, for the files of the stack (the package and the library of m3j are searched anyway)."
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "port"
+            ],
+            "properties": {
+              "host": {
+                "type": "string",
+                "default": "localhost",
+                "description": "The host of the program."
+              },
+              "port": {
+                "type": "number",
+                "description": "The port of the program, which runs with -agentlib:jdwp=transport=dt_socket,server=y,address=PORT."
+              },
+              "package": {
+                "type": "string",
+                "description": "The directory of the package of the program, for its sources."
+              },
+              "sourceRoots": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": [],
+                "description": "More directories with sources of Modula-3, for the files of the stack (the package and the library of m3j are searched anyway)."
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "m3j",
+            "request": "launch",
+            "name": "Debug the program",
+            "package": "${workspaceFolder}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Modula-3 (m3j): Launch",
+            "description": "Debug the program of a package.",
+            "body": {
+              "type": "m3j",
+              "request": "launch",
+              "name": "Debug the program",
+              "package": "^\"\\${workspaceFolder}\""
+            }
+          },
+          {
+            "label": "Modula-3 (m3j): Launch in the terminal",
+            "description": "Debug the program of a package in the integrated terminal, where it can read its input.",
+            "body": {
+              "type": "m3j",
+              "request": "launch",
+              "name": "Debug the program in the terminal",
+              "package": "^\"\\${workspaceFolder}\"",
+              "console": "integratedTerminal"
+            }
+          },
+          {
+            "label": "Modula-3 (m3j): Attach",
+            "description": "Debug a program that runs with the agent of JDWP.",
+            "body": {
+              "type": "m3j",
+              "request": "attach",
+              "name": "Attach to the program",
+              "port": 5005,
+              "package": "^\"\\${workspaceFolder}\""
+            }
+          }
+        ]
+      }
+    ]
   }
 }

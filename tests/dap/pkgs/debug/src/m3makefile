@@ -6,4 +6,7 @@ generic_module ("Stack")
 module ("IntStack")
 module ("Shapes")
 implementation ("Main")
+% for the session terminal: the debugger runs the program with them
+java_option ("-Xss8m")
+java_classpath (".")
 program ("debug")
