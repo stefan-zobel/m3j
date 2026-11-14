@@ -12,15 +12,18 @@ import java.util.function.Function;
 
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.ArrayReference;
+import com.sun.jdi.ArrayType;
 import com.sun.jdi.BooleanValue;
 import com.sun.jdi.ByteValue;
 import com.sun.jdi.CharValue;
+import com.sun.jdi.ClassNotLoadedException;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.DoubleValue;
 import com.sun.jdi.Field;
 import com.sun.jdi.FloatValue;
 import com.sun.jdi.IntegerValue;
 import com.sun.jdi.InterfaceType;
+import com.sun.jdi.InvalidTypeException;
 import com.sun.jdi.LocalVariable;
 import com.sun.jdi.LongValue;
 import com.sun.jdi.ObjectReference;
@@ -30,6 +33,7 @@ import com.sun.jdi.ShortValue;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.StringReference;
 import com.sun.jdi.Value;
+import com.sun.jdi.VirtualMachine;
 
 /**
  * The values of a program of Modula-3 under the debugger: read from where
@@ -45,10 +49,14 @@ import com.sun.jdi.Value;
 final class Values {
 
     /** A value of Modula-3 in the program. */
-    sealed interface V permits Plain, Store, None {}
+    sealed interface V permits Plain, Store, None, Const {}
 
-    /** A value that the JVM holds as one value; null is NIL. */
-    record Plain(Value value) implements V {}
+    /** A value that the JVM holds as one value; null is NIL. loc is where it is held, or null. */
+    record Plain(Value value, Loc loc) implements V {
+        Plain(Value value) {
+            this(value, null);
+        }
+    }
 
     /** An array or a large set: its elements in storage from offset; dims are its open dimensions. */
     record Store(ArrayReference storage, int offset, int[] dims) implements V {}
@@ -56,8 +64,23 @@ final class Values {
     /** No value, and why. */
     record None(String why) implements V {}
 
+    /** An ordinal value that the debugger computed (FIRST, LAST, NUMBER). */
+    record Const(long value) implements V {}
+
     /** A part of a value (a field, an element, the referent) or a variable: designator names it in Modula-3. */
     record Part(String name, String type, V value, String designator) {}
+
+    /** Where the JVM holds a value that can be set: a slot, a field, an element of an array. */
+    interface Loc {
+        /** The JVM type of the place, as a signature (J, I, B, Ljava/lang/String;, ...). */
+        String signature();
+
+        Value get();
+
+        void set(Value v) throws InvalidTypeException, ClassNotLoadedException;
+
+        VirtualMachine vm();
+    }
 
     /** Where values are found by name: the slots of a frame, the fields of an object, the static fields of a class. */
     interface Home {
@@ -65,6 +88,9 @@ final class Values {
         Value get(String name);
 
         boolean has(String name);
+
+        /** The place of name, or null. */
+        Loc loc(String name);
     }
 
     /** The visible slots of a frame. */
@@ -88,6 +114,32 @@ final class Values {
             public boolean has(String name) {
                 return var(name) != null;
             }
+
+            @Override
+            public Loc loc(String name) {
+                LocalVariable v = var(name);
+                return v == null ? null : new Loc() {
+                    @Override
+                    public String signature() {
+                        return v.signature();
+                    }
+
+                    @Override
+                    public Value get() {
+                        return f.getValue(v);
+                    }
+
+                    @Override
+                    public void set(Value x) throws InvalidTypeException, ClassNotLoadedException {
+                        f.setValue(v, x);
+                    }
+
+                    @Override
+                    public VirtualMachine vm() {
+                        return f.virtualMachine();
+                    }
+                };
+            }
         };
     }
 
@@ -103,6 +155,12 @@ final class Values {
             @Override
             public boolean has(String name) {
                 return o.referenceType().fieldByName(name) != null;
+            }
+
+            @Override
+            public Loc loc(String name) {
+                Field f = o.referenceType().fieldByName(name);
+                return f == null || f.isStatic() ? null : fieldLoc(f, o);
             }
         };
     }
@@ -120,6 +178,71 @@ final class Values {
             public boolean has(String name) {
                 Field f = t.fieldByName(name);
                 return f != null && f.isStatic();
+            }
+
+            @Override
+            public Loc loc(String name) {
+                Field f = t.fieldByName(name);
+                return f == null || !f.isStatic() ? null : fieldLoc(f, null);
+            }
+        };
+    }
+
+    /** The field f of the object o, or the static field f if o is null. */
+    private static Loc fieldLoc(Field f, ObjectReference o) {
+        return new Loc() {
+            @Override
+            public String signature() {
+                return f.signature();
+            }
+
+            @Override
+            public Value get() {
+                return o == null ? f.declaringType().getValue(f) : o.getValue(f);
+            }
+
+            @Override
+            public void set(Value x) throws InvalidTypeException, ClassNotLoadedException {
+                if (f.isFinal()) {
+                    throw new IllegalArgumentException("it is a constant");
+                }
+                if (o != null) {
+                    o.setValue(f, x);
+                } else if (f.declaringType() instanceof ClassType c) {
+                    c.setValue(f, x);
+                } else {
+                    throw new IllegalArgumentException("it cannot be set");
+                }
+            }
+
+            @Override
+            public VirtualMachine vm() {
+                return f.virtualMachine();
+            }
+        };
+    }
+
+    /** The element i of the array a. */
+    private static Loc elementLoc(ArrayReference a, int i) {
+        return new Loc() {
+            @Override
+            public String signature() {
+                return ((ArrayType) a.referenceType()).componentSignature();
+            }
+
+            @Override
+            public Value get() {
+                return a.getValue(i);
+            }
+
+            @Override
+            public void set(Value x) throws InvalidTypeException, ClassNotLoadedException {
+                a.setValue(i, x);
+            }
+
+            @Override
+            public VirtualMachine vm() {
+                return a.virtualMachine();
             }
         };
     }
@@ -184,7 +307,7 @@ final class Values {
         return switch (r) {
             case "BOOLEAN" -> 2;
             case "CHAR" -> 256;
-            case "WIDECHAR" -> 0x110000;
+            case "WIDECHAR" -> 0x10000;
             default -> switch (types.get(r)) {
                 case Info.Enum e -> e.elements().size();
                 case Info.Subrange s -> s.last() - s.first() + 1;
@@ -244,19 +367,23 @@ final class Values {
             }
             return new Store(a, off, dims);
         }
-        return plain(t, v);
+        return plain(t, v, home.loc(name));
     }
 
-    /** The value v of type t, through the reference object that holds it for a VAR formal or a cell. */
-    private V plain(String t, Value v) {
+    /**
+     * The value v of type t held at loc, through the reference object that
+     * holds it for a VAR formal or a cell.
+     */
+    private V plain(String t, Value v, Loc loc) {
         if (v instanceof ObjectReference o && kind(t) != Kind.RECORD && isRef(o)) {
             try {
-                return new Plain(deref(o));
+                Loc l = deref(o);
+                return new Plain(l.get(), l);
             } catch (IllegalStateException e) {
                 return new None(e.getMessage());
             }
         }
-        return new Plain(v);
+        return new Plain(v, loc);
     }
 
     /** Whether o is a reference object of the runtime (a VAR formal, a cell). */
@@ -272,16 +399,20 @@ final class Values {
         return false;
     }
 
-    /** The value that the reference object o refers to. */
-    private static Value deref(ObjectReference o) {
+    /** The place that the reference object o refers to. */
+    private static Loc deref(ObjectReference o) {
         ReferenceType c = o.referenceType();
         String n = c.name();
         if (n.startsWith("m3j.rt.") && n.endsWith("Cell")) {
-            return get(o, "v");
+            Loc l = fields(o).loc("v");
+            if (l != null) {
+                return l;
+            }
+            throw new IllegalStateException("not available");
         }
         if (n.startsWith("m3j.rt.") && n.endsWith("Elem")) {
             if (get(o, "a") instanceof ArrayReference a) {
-                return a.getValue((int) toLong(get(o, "i")));
+                return elementLoc(a, (int) toLong(get(o, "i")));
             }
             throw new IllegalStateException("not available");
         }
@@ -297,14 +428,14 @@ final class Values {
                     for (ReferenceType t : o.virtualMachine().classesByName(cls)) {
                         Field f = t.fieldByName(s.substring(d + 2));
                         if (f != null && f.isStatic()) {
-                            return t.getValue(f);
+                            return fieldLoc(f, null);
                         }
                     }
                 }
             } else if (d > 0 && get(o, "o") instanceof ObjectReference owner) {
                 Field f = owner.referenceType().fieldByName(s.substring(d + 1));
                 if (f != null) {
-                    return owner.getValue(f);
+                    return fieldLoc(f, owner);
                 }
             }
         }
@@ -356,6 +487,9 @@ final class Values {
     private String show(String t, V v, boolean preview) {
         if (v instanceof None n) {
             return "(" + n.why() + ")";
+        }
+        if (v instanceof Const c) {
+            return types.ordinal(t, c.value());
         }
         Kind k = kind(t);
         if (v instanceof Store s) {
@@ -529,7 +663,7 @@ final class Values {
                 V v = refStore(target, o);
                 yield v instanceof Store s && kind(target) != Kind.BIGSET ? elements(target, s) : "{" + show(target, v, false) + "}";
             }
-            default -> "{" + show(target, plain(target, get(o, "v")), false) + "}";
+            default -> "{" + show(target, plain(target, get(o, "v"), null), false) + "}";
         };
     }
 
@@ -667,7 +801,7 @@ final class Values {
             if (v instanceof Store s && (k == Kind.ARRAY || k == Kind.OPEN)) {
                 return count(t, s);
             }
-            if (v instanceof Plain(ObjectReference o) && k == Kind.REF && !(o instanceof StringReference)) {
+            if (v instanceof Plain(ObjectReference o, _) && k == Kind.REF && !(o instanceof StringReference)) {
                 String uid = dynamicUid(o);
                 if (uid != null && types.get(types.resolve(uid)) instanceof Info.Ref r
                     && (kind(r.target()) == Kind.OPEN || kind(r.target()) == Kind.ARRAY)
@@ -696,7 +830,7 @@ final class Values {
             if (v instanceof Store s && (k == Kind.ARRAY || k == Kind.OPEN)) {
                 return elements(t, s, designator, start, count);
             }
-            if (v instanceof Plain(ObjectReference o) && k == Kind.REF && !(o instanceof StringReference)) {
+            if (v instanceof Plain(ObjectReference o, _) && k == Kind.REF && !(o instanceof StringReference)) {
                 String uid = dynamicUid(o);
                 if (uid != null && types.get(types.resolve(uid)) instanceof Info.Ref r
                     && (kind(r.target()) == Kind.OPEN || kind(r.target()) == Kind.ARRAY)
@@ -712,7 +846,7 @@ final class Values {
 
     /** The parts of value v of type t that are not elements of an array. */
     private List<Part> parts(String t, V v, String designator) {
-        if (!(v instanceof Plain(ObjectReference o)) || o instanceof StringReference) {
+        if (!(v instanceof Plain(ObjectReference o, _)) || o instanceof StringReference) {
             return List.of();
         }
         Kind k = kind(t);
@@ -734,7 +868,8 @@ final class Values {
                 case RECORD -> record(r.target(), o, designator);
                 case OPEN, ARRAY -> List.of();
                 case BIGSET -> List.of(new Part("^", r.target(), refStore(r.target(), o), designator + "^"));
-                default -> List.of(new Part("^", r.target(), plain(r.target(), get(o, "v")), designator + "^"));
+                default -> List.of(new Part("^", r.target(), plain(r.target(), get(o, "v"), fields(o).loc("v")),
+                                            designator + "^"));
             };
             case Info.ObjectType ob -> objectFields(uid, o, designator);
             case null, default -> List.of();
@@ -787,7 +922,7 @@ final class Values {
         if (k == Kind.ARRAY || k == Kind.BIGSET) {
             return v instanceof ArrayReference a ? new Store(a, 0, new int[0]) : new None("no storage");
         }
-        return plain(t, v);
+        return plain(t, v, h.loc(name));
     }
 
     /** Elements start.. (count of them, 0: all) of the array s of type t. */
@@ -825,7 +960,7 @@ final class Values {
         for (int i = from; i < to; i++) {
             String ix = index == null ? Integer.toString(i) : types.ordinal(index, first(index) + i);
             V v = vs == null ? new Store(s.storage(), (int) (s.offset() + i * size), rest)
-                : plain(elem, vs.get(i - from));
+                : plain(elem, vs.get(i - from), elementLoc(s.storage(), s.offset() + i));
             out.add(new Part("[" + ix + "]", elem, v, designator + "[" + ix + "]"));
         }
         return out;
@@ -838,5 +973,233 @@ final class Values {
             e = a.element();
         }
         return e;
+    }
+
+    // ---- designators
+
+    /** The field name of p: a record, a reference to one, an object. */
+    Part field(Part p, String name) {
+        V v = usable(p);
+        Kind k = kind(p.type());
+        if (k == Kind.RECORD || k == Kind.REF || k == Kind.OTHER) {
+            if (v instanceof Plain(Value x, _) && x == null) {
+                throw new IllegalArgumentException(p.designator() + " is NIL");
+            }
+            for (Part f : parts(p.type(), v, p.designator())) {
+                if (f.name().equals(name)) {
+                    return f;
+                }
+            }
+        }
+        throw new IllegalArgumentException(p.designator() + " has no field " + name);
+    }
+
+    /** The referent of p, a reference. */
+    Part deref(Part p) {
+        V v = usable(p);
+        if (kind(p.type()) == Kind.REF && v instanceof Plain(Value x, _)) {
+            if (x == null) {
+                throw new IllegalArgumentException(p.designator() + " is NIL");
+            }
+            String uid = x instanceof ObjectReference o && !(x instanceof StringReference) ? dynamicUid(o) : null;
+            if (uid != null && types.get(types.resolve(uid)) instanceof Info.Ref r) {
+                ObjectReference o = (ObjectReference) x;
+                String d = p.designator() + "^";
+                return switch (kind(r.target())) {
+                    case RECORD -> new Part("^", r.target(), new Plain(o), d);
+                    case OPEN, ARRAY, BIGSET -> new Part("^", r.target(), refStore(r.target(), o), d);
+                    default -> new Part("^", r.target(), plain(r.target(), get(o, "v"), fields(o).loc("v")), d);
+                };
+            }
+        }
+        throw new IllegalArgumentException(p.designator() + " is not a reference to dereference");
+    }
+
+    /**
+     * The array that p is, or that p refers to; fails if it is neither. A
+     * reference to an array is dereferenced, as in Modula-3.
+     */
+    private Part array(Part p) {
+        V v = usable(p);
+        Kind k = kind(p.type());
+        if (v instanceof Store && (k == Kind.ARRAY || k == Kind.OPEN)) {
+            return p;
+        }
+        if (k == Kind.REF && v instanceof Plain(ObjectReference o, _) && !(o instanceof StringReference)) {
+            String uid = dynamicUid(o);
+            if (uid != null && types.get(types.resolve(uid)) instanceof Info.Ref r
+                && (kind(r.target()) == Kind.OPEN || kind(r.target()) == Kind.ARRAY)) {
+                return deref(p);
+            }
+        }
+        if (v instanceof Plain(Value x, _) && x == null && k == Kind.REF) {
+            throw new IllegalArgumentException(p.designator() + " is NIL");
+        }
+        throw new IllegalArgumentException(p.designator() + " is not an array");
+    }
+
+    /** The type of the index of the array p (or that p refers to): null for an open array. */
+    String indexType(Part p) {
+        Part a = array(p);
+        return types.get(types.resolve(a.type())) instanceof Info.Array x ? x.index() : null;
+    }
+
+    /** The element of the array p (or that p refers to) at the index with the ordinal value index. */
+    Part element(Part p, long index) {
+        Part a = array(p);
+        Store s = (Store) a.value();
+        String it = indexType(a);
+        long lo = it == null ? 0 : first(it);
+        int n = count(a.type(), s);
+        if (index < lo || index - lo >= n) {
+            String shown = it == null ? Long.toString(index) : types.ordinal(it, index);
+            String range = n == 0 ? "it is empty"
+                : "[" + (it == null ? "0" : types.ordinal(it, lo)) + ".."
+                  + (it == null ? Integer.toString(n - 1) : types.ordinal(it, lo + n - 1)) + "]";
+            throw new IllegalArgumentException("the index " + shown + " of " + p.designator()
+                                               + " is out of range: " + range);
+        }
+        Part e = elements(a.type(), s, a.designator(), (int) (index - lo), 1).getFirst();
+        return new Part(e.name(), e.type(), e.value(), p.designator() + e.name());
+    }
+
+    /** The ordinal value of p. */
+    long ordinalValue(Part p) {
+        V v = usable(p);
+        if (v instanceof Const c) {
+            return c.value();
+        }
+        if (kind(p.type()) == Kind.ORDINAL && v instanceof Plain(PrimitiveValue x, _)) {
+            return ordinal(p.type(), x);
+        }
+        throw new IllegalArgumentException(p.designator() + " is not of an ordinal type");
+    }
+
+    /** FIRST, LAST or NUMBER (op) of p: an array (or what p refers to), or a variable of an ordinal type. */
+    Part attribute(String op, Part p) {
+        String d = op + " (" + p.designator() + ")";
+        if (kind(p.type()) == Kind.ORDINAL && !(p.value() instanceof None)) {
+            long[] b = bounds(p.type());
+            return switch (op) {
+                case "FIRST" -> new Part(d, p.type(), new Const(b[0]), d);
+                case "LAST" -> new Part(d, p.type(), new Const(b[1]), d);
+                default -> new Part(d, "CARDINAL", b[1] - b[0] == Long.MAX_VALUE || b[1] < b[0] ? new None("too many")
+                                        : new Const(b[1] - b[0] + 1), d);
+            };
+        }
+        Part a = array(p);
+        String it = indexType(a);
+        int n = count(a.type(), (Store) a.value());
+        long lo = it == null ? 0 : first(it);
+        String t = it == null ? "INTEGER" : it;
+        return switch (op) {
+            case "FIRST" -> new Part(d, t, new Const(lo), d);
+            case "LAST" -> new Part(d, t, new Const(lo + n - 1), d);
+            default -> new Part(d, "CARDINAL", new Const(n), d);
+        };
+    }
+
+    /** The first and the last value of the ordinal type t. */
+    private long[] bounds(String t) {
+        String r = types.resolve(t);
+        return switch (r) {
+            case "INTEGER", "LONGINT" -> new long[] {Long.MIN_VALUE, Long.MAX_VALUE};
+            case "CARDINAL", "LONGCARD" -> new long[] {0, Long.MAX_VALUE};
+            default -> {
+                if (types.get(r) instanceof Info.Subrange s) {
+                    yield new long[] {s.first(), s.last()};
+                }
+                yield new long[] {0, number(r) - 1};
+            }
+        };
+    }
+
+    /** The value of p, if it has one. */
+    private static V usable(Part p) {
+        if (p.value() instanceof None n) {
+            throw new IllegalArgumentException(p.designator() + ": " + n.why());
+        }
+        return p.value();
+    }
+
+    // ---- setting
+
+    /** Sets p to the value that text writes (a literal of its type), and returns p with its new value. */
+    Part set(Part p, String text) {
+        V v = usable(p);
+        Kind k = kind(p.type());
+        switch (k) {
+            case RECORD, ARRAY, OPEN, SET, BIGSET -> throw new IllegalArgumentException(
+                "a value of type " + types.show(p.type()) + " cannot be set as a whole, only its parts");
+            default -> {
+            }
+        }
+        if (!(v instanceof Plain pl) || pl.loc() == null) {
+            throw new IllegalArgumentException(p.designator() + " cannot be set");
+        }
+        Loc loc = pl.loc();
+        String sig = loc.signature();
+        VirtualMachine vm = loc.vm();
+        Value x;
+        StringReference made = null;
+        switch (k) {
+            case ORDINAL -> {
+                long n = Literal.ordinal(types, p.type(), text);
+                long[] b = bounds(p.type());
+                if (n < b[0] || n > b[1]) {
+                    throw new IllegalArgumentException(
+                        "the value is out of the range of " + types.show(p.type()) + ": ["
+                        + types.ordinal(p.type(), b[0]) + ".." + types.ordinal(p.type(), b[1]) + "]");
+                }
+                x = switch (sig) {
+                    case "J" -> vm.mirrorOf(n);
+                    case "I" -> vm.mirrorOf((int) n);
+                    case "S" -> vm.mirrorOf((short) n);
+                    case "B" -> vm.mirrorOf((byte) n);
+                    case "C" -> vm.mirrorOf((char) n);
+                    case "Z" -> vm.mirrorOf(n != 0);
+                    default -> throw new IllegalArgumentException(p.designator() + " cannot be set");
+                };
+            }
+            case FLOAT -> {
+                double d = Literal.real(text);
+                x = switch (sig) {
+                    case "D" -> vm.mirrorOf(d);
+                    case "F" -> {
+                        float f = (float) d;
+                        if (Float.isInfinite(f) && !Double.isInfinite(d)) {
+                            throw new IllegalArgumentException("the value is out of the range of REAL");
+                        }
+                        yield vm.mirrorOf(f);
+                    }
+                    default -> throw new IllegalArgumentException(p.designator() + " cannot be set");
+                };
+            }
+            case TEXT -> {
+                String s = Literal.text(text);
+                if (s != null) {
+                    made = vm.mirrorOf(s);
+                    made.disableCollection();
+                }
+                x = made;
+            }
+            default -> {
+                if (!text.strip().equals("NIL")) {
+                    throw new IllegalArgumentException("only NIL can be assigned to " + p.designator()
+                                                       + " by the debugger");
+                }
+                x = null;
+            }
+        }
+        try {
+            loc.set(x);
+        } catch (InvalidTypeException | ClassNotLoadedException e) {
+            throw new IllegalArgumentException(p.designator() + " cannot be set: " + e.getMessage());
+        } finally {
+            if (made != null) {
+                made.enableCollection();
+            }
+        }
+        return new Part(p.name(), p.type(), new Plain(loc.get(), loc), p.designator());
     }
 }

@@ -98,6 +98,14 @@ import com.sun.jdi.request.ThreadStartRequest;
  * units (an exception raised on the line of the TRY counts as raised in
  * it) and by the RAISES clauses that turn an exception into a runtime
  * error; the stack is that of the RAISE, not unwound.
+ *
+ * <p>An expression is a designator, or FIRST, LAST or NUMBER of one (see
+ * {@link Eval}); its names are those of the scopes of the frame, and
+ * Unit.name for a variable of any unit. A variable or a part of a value
+ * of a scalar type (an ordinal, a real type, TEXT, a reference) can be
+ * set to a literal of its type, a reference only to NIL; a value is
+ * checked against the range of its type, not against the rules of
+ * READONLY.
  */
 public final class Session {
 
@@ -1382,7 +1390,18 @@ public final class Session {
 
     /** The scopes of frame. */
     public synchronized List<Scope> scopes(int frame) throws Failure {
-        FrameRef f = frameRef(frame);
+        List<Scope> out = new ArrayList<>();
+        for (Level l : levels(frameRef(frame))) {
+            out.add(new Scope(l.name(), l.locals(), ref(new ScopeRef(l.parts())), l.expensive()));
+        }
+        return out;
+    }
+
+    /** A scope of a frame before it is given a reference. */
+    private record Level(String name, boolean locals, Parts parts, boolean expensive) {}
+
+    /** The scopes of the frame f: its locals, those of the enclosing procedures, those of its unit. */
+    private List<Level> levels(FrameRef f) throws Failure {
         try {
             ThreadReference t = f.thread();
             Location loc = t.frame(f.from()).location();
@@ -1396,8 +1415,8 @@ public final class Session {
             for (int i = f.from(); i <= f.to(); i++) {
                 run.add(t.frame(i));
             }
-            List<Scope> out = new ArrayList<>();
-            out.add(new Scope("Locals", true, ref(new ScopeRef(() -> locals(u, root, run, line))), false));
+            List<Level> out = new ArrayList<>();
+            out.add(new Level("Locals", true, () -> locals(u, root, run, line), false));
             ObjectReference up = link(run);
             for (int k = 0; up != null && k < 100; k++) {
                 ObjectReference fo = up;
@@ -1406,14 +1425,12 @@ public final class Session {
                 if (fm == null) {
                     break;
                 }
-                out.add(new Scope(fm.name(), false,
-                                  ref(new ScopeRef(() -> enclosing(fu, fm.method(), fo, line))), false));
+                out.add(new Level(fm.name(), false, () -> enclosing(fu, fm.method(), fo, line), false));
                 Values.Home h = Values.fields(fo);
                 up = h.has("up") && h.get("up") instanceof ObjectReference o ? o : null;
             }
             boolean module = u.type().name().startsWith("m3.m.");
-            out.add(new Scope((module ? "Module " : "Interface ") + u.info().unit, false,
-                              ref(new ScopeRef(() -> globals(u))), true));
+            out.add(new Level((module ? "Module " : "Interface ") + u.info().unit, false, () -> globals(u), true));
             return out;
         } catch (IncompatibleThreadStateException | InvalidStackFrameException e) {
             throw new Failure("the thread is running");
@@ -1426,6 +1443,137 @@ public final class Session {
         int id = nextRef++;
         refs.put(id, c);
         return id;
+    }
+
+    // ---- expressions
+
+    /**
+     * The value of the expression (see {@link Eval}) in frame, or only of
+     * the variables of units (Unit.name) if frame is 0.
+     */
+    public synchronized Variable evaluate(String expression, int frame) throws Failure {
+        Values.Part p = part(expression, frame);
+        return variable(p.designator(), p);
+    }
+
+    /** Sets the variable or the part of a value that expression names in frame to value. */
+    public synchronized Variable setExpression(String expression, String value, int frame) throws Failure {
+        Values.Part p = part(expression, frame);
+        return variable(p.designator(), set(p, value));
+    }
+
+    /** Sets the variable or the part name of the scope or value ref to value. */
+    public synchronized Variable setVariable(int ref, String name, String value) throws Failure {
+        if (ended) {
+            throw new Failure("the program has ended");
+        }
+        Container c = refs.get(ref);
+        if (c == null) {
+            throw new Failure("no variables " + ref);
+        }
+        Values.Part p = null;
+        try {
+            switch (c) {
+                case ScopeRef s -> {
+                    for (Values.Part x : s.parts().get()) {
+                        if (x.name().equals(name)) {
+                            p = x;
+                            break;
+                        }
+                    }
+                    if (p == null) {
+                        throw new Failure("no variable " + name);
+                    }
+                }
+                case ValueRef v -> {
+                    Eval e = new Eval(values, types, names(List.of()));
+                    p = e.select(v.part(), name.startsWith("[") || name.startsWith("^") ? name : "." + name);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            throw new Failure(e.getMessage());
+        } catch (InvalidStackFrameException e) {
+            throw new Failure("the thread is running");
+        } catch (VMDisconnectedException | ObjectCollectedException e) {
+            throw new Failure("the program has ended");
+        }
+        return variable(p.name(), set(p, value));
+    }
+
+    /** The part that expression names in frame (0: no frame). */
+    private Values.Part part(String expression, int frame) throws Failure {
+        if (ended) {
+            throw new Failure("the program has ended");
+        }
+        if (!stopped) {
+            throw new Failure("the program is running");
+        }
+        List<Level> ls = frame == 0 ? List.of() : levels(frameRef(frame));
+        try {
+            return new Eval(values, types, names(ls)).evaluate(expression);
+        } catch (IllegalArgumentException e) {
+            throw new Failure(e.getMessage());
+        } catch (InvalidStackFrameException e) {
+            throw new Failure("the thread is running");
+        } catch (VMDisconnectedException | ObjectCollectedException e) {
+            throw new Failure("the program has ended");
+        }
+    }
+
+    /** p set to value. */
+    private Values.Part set(Values.Part p, String value) throws Failure {
+        try {
+            return values.set(p, value);
+        } catch (IllegalArgumentException e) {
+            throw new Failure(e.getMessage());
+        } catch (InvalidStackFrameException e) {
+            throw new Failure("the thread is running");
+        } catch (VMDisconnectedException | ObjectCollectedException e) {
+            throw new Failure("the program has ended");
+        }
+    }
+
+    /** The names of the scopes ls (the innermost first), and of the units. */
+    private Eval.Names names(List<Level> ls) {
+        return new Eval.Names() {
+            @Override
+            public Values.Part variable(String name) {
+                for (Level l : ls) {
+                    for (Values.Part p : l.parts().get()) {
+                        if (p.name().equals(name)) {
+                            return p;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public Values.Part global(String unit, String name) {
+                for (String prefix : List.of("m3.i.", "m3.m.")) {
+                    Unit u = units.get(prefix + unit);
+                    String t = u == null ? null : u.info().globals.get(name);
+                    if (t != null) {
+                        Values.Home h = Values.statics(u.type());
+                        return new Values.Part(name, t, values.read(t, h, name), unit + "." + name);
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public boolean isUnit(String name) {
+                return units.containsKey("m3.i." + name) || units.containsKey("m3.m." + name);
+            }
+        };
+    }
+
+    /** The variable or value p, called name. */
+    private Variable variable(String name, Values.Part p) {
+        int n = values.count(p.type(), p.value());
+        int r = values.expandable(p.type(), p.value()) ? ref(new ValueRef(p)) : 0;
+        return new Variable(name, values.show(p.type(), p.value()), types.show(p.type()), r, Math.max(n, 0),
+                            p.designator());
     }
 
     /**
@@ -1463,10 +1611,7 @@ public final class Session {
         }
         List<Variable> out = new ArrayList<>();
         for (Values.Part p : parts) {
-            int n = values.count(p.type(), p.value());
-            int r = values.expandable(p.type(), p.value()) ? ref(new ValueRef(p)) : 0;
-            out.add(new Variable(p.name(), values.show(p.type(), p.value()), types.show(p.type()), r,
-                                 Math.max(n, 0), p.designator()));
+            out.add(variable(p.name(), p));
         }
         return out;
     }

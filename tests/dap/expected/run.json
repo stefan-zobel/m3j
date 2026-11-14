@@ -8,6 +8,9 @@
    "supportsConfigurationDoneRequest": true,
    "supportsTerminateRequest": true,
    "supportsExceptionInfoRequest": true,
+   "supportsEvaluateForHovers": true,
+   "supportsSetVariable": true,
+   "supportsSetExpression": true,
    "exceptionBreakpointFilters": [
     {
      "filter": "raise",

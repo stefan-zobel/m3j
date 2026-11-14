@@ -1,0 +1,1169 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 85
+    },
+    {
+     "id": 2,
+     "verified": false,
+     "line": 114
+    },
+    {
+     "id": 3,
+     "verified": false,
+     "line": 127
+    },
+    {
+     "id": 4,
+     "verified": false,
+     "line": 140
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": false,
+  "command": "evaluate",
+  "message": "the program is running"
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 2,
+    "verified": true,
+    "line": 114
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 3,
+    "verified": true,
+    "line": 127
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 4,
+    "verified": true,
+    "line": 140
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 85,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 219,
+     "column": 1
+    },
+    {
+     "id": 3,
+     "name": "[runtime]",
+     "line": 0,
+     "column": 0,
+     "presentationHint": "subtle"
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "7",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{x := 0, y := 0}",
+   "type": "Main.Point",
+   "variablesReference": 1
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{5, 6}",
+   "type": "ARRAY OF INTEGER",
+   "variablesReference": 2,
+   "indexedVariables": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "6",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "6",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "'c'",
+   "type": "CHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 16,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "2",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 17,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 18,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "2",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 19,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "Main.Small",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 20,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "10",
+   "type": "Main.Small",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 21,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "Blue",
+   "type": "Main.Color",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 22,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "256",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 23,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "9223372036854775807",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 24,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 25,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "'x'",
+   "type": "CHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 26,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "W'y'",
+   "type": "WIDECHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 27,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "\"text\"",
+   "type": "TEXT",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 28,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 29,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 30,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 31,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 32,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "Main.Counter{n := 1}",
+   "type": "Main.Counter",
+   "variablesReference": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 33,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 34,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{1, 3, 64, 99}",
+   "type": "Main.Digits",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 35,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 36,
+  "success": false,
+  "command": "evaluate",
+  "message": "unknown name nope"
+ },
+ {
+  "type": "response",
+  "request_seq": 37,
+  "success": false,
+  "command": "evaluate",
+  "message": "Main has no variable nope"
+ },
+ {
+  "type": "response",
+  "request_seq": 38,
+  "success": false,
+  "command": "evaluate",
+  "message": "i has no field x"
+ },
+ {
+  "type": "response",
+  "request_seq": 39,
+  "success": false,
+  "command": "evaluate",
+  "message": "p has no field z"
+ },
+ {
+  "type": "response",
+  "request_seq": 40,
+  "success": false,
+  "command": "evaluate",
+  "message": "p is not a reference to dereference"
+ },
+ {
+  "type": "response",
+  "request_seq": 41,
+  "success": false,
+  "command": "evaluate",
+  "message": "p is not an array"
+ },
+ {
+  "type": "response",
+  "request_seq": 42,
+  "success": false,
+  "command": "evaluate",
+  "message": "nil is NIL"
+ },
+ {
+  "type": "response",
+  "request_seq": 43,
+  "success": false,
+  "command": "evaluate",
+  "message": "the index 3 of chars is out of range: [0..2]"
+ },
+ {
+  "type": "response",
+  "request_seq": 44,
+  "success": false,
+  "command": "evaluate",
+  "message": "the index -1 of a is out of range: [0..1]"
+ },
+ {
+  "type": "response",
+  "request_seq": 45,
+  "success": false,
+  "command": "evaluate",
+  "message": "t is not of an ordinal type"
+ },
+ {
+  "type": "response",
+  "request_seq": 46,
+  "success": false,
+  "command": "evaluate",
+  "message": "syntax error: ] is needed"
+ },
+ {
+  "type": "response",
+  "request_seq": 47,
+  "success": false,
+  "command": "evaluate",
+  "message": "syntax error: unexpected + 1"
+ },
+ {
+  "type": "response",
+  "request_seq": 48,
+  "success": false,
+  "command": "evaluate",
+  "message": "an expression is needed"
+ },
+ {
+  "type": "response",
+  "request_seq": 49,
+  "success": false,
+  "command": "evaluate",
+  "message": "t is not an array"
+ },
+ {
+  "type": "response",
+  "request_seq": 50,
+  "success": false,
+  "command": "evaluate",
+  "message": "no frame 99"
+ },
+ {
+  "type": "response",
+  "request_seq": 51,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 52,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "'b'",
+   "type": "CHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 53,
+  "success": false,
+  "command": "evaluate",
+  "message": "not a value of type [0..2]: 'b'"
+ },
+ {
+  "type": "response",
+  "request_seq": 54,
+  "success": false,
+  "command": "evaluate",
+  "message": "unknown name i"
+ },
+ {
+  "type": "response",
+  "request_seq": 55,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 56,
+  "success": false,
+  "command": "evaluate",
+  "message": "unknown name v"
+ },
+ {
+  "type": "response",
+  "request_seq": 57,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    2
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 58,
+  "success": false,
+  "command": "evaluate",
+  "message": "no frame 1"
+ },
+ {
+  "type": "response",
+  "request_seq": 59,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Structured",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 114,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 60,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{10, 11, 12}",
+   "type": "ARRAY Main.Color OF INTEGER",
+   "variablesReference": 1,
+   "indexedVariables": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 61,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[Red]",
+     "value": "10",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "g[1][Red]"
+    },
+    {
+     "name": "[Green]",
+     "value": "11",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "g[1][Green]"
+    },
+    {
+     "name": "[Blue]",
+     "value": "12",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "g[1][Blue]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 62,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "22",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 63,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "20",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 64,
+  "success": false,
+  "command": "evaluate",
+  "message": "the index 3 of g is out of range: [1..2]"
+ },
+ {
+  "type": "response",
+  "request_seq": 65,
+  "success": false,
+  "command": "evaluate",
+  "message": "unknown name Pink"
+ },
+ {
+  "type": "response",
+  "request_seq": 66,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "Blue",
+   "type": "Main.Color",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 67,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "[1..2]",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 68,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "4",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 69,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "Main.List{head := 1, tail := Main.List}",
+   "type": "Main.List",
+   "variablesReference": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 70,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{head := 1, tail := Main.List}",
+   "type": "RECORD head: INTEGER; tail: Main.List END",
+   "variablesReference": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 71,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "2",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 72,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "2",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 73,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "NIL",
+   "type": "Main.List",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 74,
+  "success": false,
+  "command": "evaluate",
+  "message": "lst.tail.tail is NIL"
+ },
+ {
+  "type": "response",
+  "request_seq": 75,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "REF ARRAY OF INTEGER{7, 0, 0}",
+   "type": "REF ARRAY OF INTEGER",
+   "variablesReference": 4,
+   "indexedVariables": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 76,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "7",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 77,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{7, 0, 0}",
+   "type": "ARRAY OF INTEGER",
+   "variablesReference": 5,
+   "indexedVariables": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 78,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "3",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 79,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "Main.Named{n := 6, name := \"five\"}",
+   "type": "Main.Named",
+   "variablesReference": 6
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 80,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "\"five\"",
+   "type": "TEXT",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 81,
+  "success": false,
+  "command": "evaluate",
+  "message": "named is not a reference to dereference"
+ },
+ {
+  "type": "response",
+  "request_seq": 82,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "6",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 83,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "Shapes.T{kind := Circle, size := 2.0}",
+   "type": "Shapes.T",
+   "variablesReference": 7
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 84,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "PROCEDURE Main.Twice",
+   "type": "Main.Fun",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 85,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{Green}",
+   "type": "Main.Palette",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 86,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "IntStack.T{items := REF ARRAY OF INTEGER, size := 1}",
+   "type": "IntStack.T",
+   "variablesReference": 8
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 87,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    3
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 88,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Outer.Inner",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 127,
+     "column": 1
+    }
+   ],
+   "totalFrames": 4
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 89,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "6",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 90,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 91,
+  "success": false,
+  "command": "evaluate",
+  "message": "unknown name k"
+ },
+ {
+  "type": "response",
+  "request_seq": 92,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    4
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 93,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 140,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 94,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "1",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 95,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "(an alias, without a value of its own)",
+   "type": "Main.Point",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 96,
+  "success": false,
+  "command": "evaluate",
+  "message": "p: an alias, without a value of its own"
+ },
+ {
+  "type": "response",
+  "request_seq": 97,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "0",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 98,
+  "success": true,
+  "command": "terminate"
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {}
+ },
+ {
+  "exit": 0
+ }
+]

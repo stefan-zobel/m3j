@@ -1,0 +1,1037 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 85
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 85,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "42",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": false,
+  "command": "setExpression",
+  "message": "the value is out of the range of CARDINAL: [0..9223372036854775807]"
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "16",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "-5",
+   "type": "LONGINT",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "FALSE",
+   "type": "BOOLEAN",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": false,
+  "command": "setExpression",
+  "message": "not a value of type BOOLEAN: yes"
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "'\\t'",
+   "type": "CHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": false,
+  "command": "setExpression",
+  "message": "not a value of type CHAR: 'ab'"
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "W'\\x20ac'",
+   "type": "WIDECHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "25.0",
+   "type": "REAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 16,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "1.25",
+   "type": "LONGREAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 17,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "7.0",
+   "type": "EXTENDED",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 18,
+  "success": false,
+  "command": "setExpression",
+  "message": "the value is out of the range of REAL"
+ },
+ {
+  "type": "response",
+  "request_seq": 19,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "Red",
+   "type": "Main.Color",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 20,
+  "success": false,
+  "command": "setExpression",
+  "message": "not a value of type Main.Color: Pink"
+ },
+ {
+  "type": "response",
+  "request_seq": 21,
+  "success": false,
+  "command": "setExpression",
+  "message": "the value is out of the range of Main.Small: [1..10]"
+ },
+ {
+  "type": "response",
+  "request_seq": 22,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "10",
+   "type": "Main.Small",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 23,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "\"new\\ttext\"",
+   "type": "TEXT",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 24,
+  "success": false,
+  "command": "setExpression",
+  "message": "only NIL can be assigned to nil by the debugger"
+ },
+ {
+  "type": "response",
+  "request_seq": 25,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "NIL",
+   "type": "REFANY",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 26,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "100",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 27,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "100",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 28,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "9",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 29,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "'\\377'",
+   "type": "CHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 30,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{'a', '\\377', 'c'}",
+   "type": "ARRAY [0..2] OF CHAR",
+   "variablesReference": 1,
+   "indexedVariables": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 31,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "3",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 32,
+  "success": true,
+  "command": "evaluate",
+  "body": {
+   "result": "{x := 0, y := 3}",
+   "type": "Main.Point",
+   "variablesReference": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 33,
+  "success": false,
+  "command": "setExpression",
+  "message": "a value of type Main.Point cannot be set as a whole, only its parts"
+ },
+ {
+  "type": "response",
+  "request_seq": 34,
+  "success": false,
+  "command": "setExpression",
+  "message": "a value of type ARRAY OF INTEGER cannot be set as a whole, only its parts"
+ },
+ {
+  "type": "response",
+  "request_seq": 35,
+  "success": false,
+  "command": "setExpression",
+  "message": "a value of type Main.Palette cannot be set as a whole, only its parts"
+ },
+ {
+  "type": "response",
+  "request_seq": 36,
+  "success": false,
+  "command": "setExpression",
+  "message": "FIRST (a) cannot be set"
+ },
+ {
+  "type": "response",
+  "request_seq": 37,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "-3",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 38,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "\"good bye\"",
+   "type": "TEXT",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 39,
+  "success": false,
+  "command": "setExpression",
+  "message": "the value is out of the range of WIDECHAR: [W'\\000'..W'\\xffff']"
+ },
+ {
+  "type": "response",
+  "request_seq": 40,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "W'\\xffff'",
+   "type": "WIDECHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 41,
+  "success": false,
+  "command": "setExpression",
+  "message": "the value is out of the range of Main.Letter: ['a'..'z']"
+ },
+ {
+  "type": "response",
+  "request_seq": 42,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "'b'",
+   "type": "Main.Letter",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 43,
+  "success": false,
+  "command": "setExpression",
+  "message": "the value is out of the range of Main.Small: [1..10]"
+ },
+ {
+  "type": "response",
+  "request_seq": 44,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "9223372036854775807",
+   "type": "LONGINT",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 45,
+  "success": true,
+  "command": "setExpression",
+  "body": {
+   "value": "5",
+   "type": "CARDINAL",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 46,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 3,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 4,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 47,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "v",
+     "value": "100",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "v"
+    },
+    {
+     "name": "p",
+     "value": "{x := 0, y := 3}",
+     "type": "Main.Point",
+     "variablesReference": 5,
+     "evaluateName": "p"
+    },
+    {
+     "name": "a",
+     "value": "{9, 6}",
+     "type": "ARRAY OF INTEGER",
+     "variablesReference": 6,
+     "indexedVariables": 2,
+     "evaluateName": "a"
+    },
+    {
+     "name": "chars",
+     "value": "{'a', '\\377', 'c'}",
+     "type": "ARRAY OF CHAR",
+     "variablesReference": 7,
+     "indexedVariables": 3,
+     "evaluateName": "chars"
+    },
+    {
+     "name": "i",
+     "value": "42",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "i"
+    },
+    {
+     "name": "n",
+     "value": "16",
+     "type": "CARDINAL",
+     "variablesReference": 0,
+     "evaluateName": "n"
+    },
+    {
+     "name": "l",
+     "value": "-5",
+     "type": "LONGINT",
+     "variablesReference": 0,
+     "evaluateName": "l"
+    },
+    {
+     "name": "b",
+     "value": "FALSE",
+     "type": "BOOLEAN",
+     "variablesReference": 0,
+     "evaluateName": "b"
+    },
+    {
+     "name": "c",
+     "value": "'\\t'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "c"
+    },
+    {
+     "name": "w",
+     "value": "W'\\x20ac'",
+     "type": "WIDECHAR",
+     "variablesReference": 0,
+     "evaluateName": "w"
+    },
+    {
+     "name": "r",
+     "value": "25.0",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "r"
+    },
+    {
+     "name": "d",
+     "value": "1.25",
+     "type": "LONGREAL",
+     "variablesReference": 0,
+     "evaluateName": "d"
+    },
+    {
+     "name": "e",
+     "value": "7.0",
+     "type": "EXTENDED",
+     "variablesReference": 0,
+     "evaluateName": "e"
+    },
+    {
+     "name": "col",
+     "value": "Red",
+     "type": "Main.Color",
+     "variablesReference": 0,
+     "evaluateName": "col"
+    },
+    {
+     "name": "s",
+     "value": "10",
+     "type": "Main.Small",
+     "variablesReference": 0,
+     "evaluateName": "s"
+    },
+    {
+     "name": "t",
+     "value": "\"new\\ttext\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "t"
+    },
+    {
+     "name": "nil",
+     "value": "NIL",
+     "type": "REFANY",
+     "variablesReference": 0,
+     "evaluateName": "nil"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 48,
+  "success": true,
+  "command": "setVariable",
+  "body": {
+   "value": "8",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 49,
+  "success": false,
+  "command": "setVariable",
+  "message": "no variable nope"
+ },
+ {
+  "type": "response",
+  "request_seq": 50,
+  "success": true,
+  "command": "setVariable",
+  "body": {
+   "value": "4",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 51,
+  "success": true,
+  "command": "setVariable",
+  "body": {
+   "value": "'Q'",
+   "type": "CHAR",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 52,
+  "success": false,
+  "command": "setVariable",
+  "message": "the index 7 of a is out of range: [0..1]"
+ },
+ {
+  "type": "response",
+  "request_seq": 53,
+  "success": true,
+  "command": "setVariable",
+  "body": {
+   "value": "1000",
+   "type": "INTEGER",
+   "variablesReference": 0
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 54,
+  "success": false,
+  "command": "setVariable",
+  "message": "no variables 99"
+ },
+ {
+  "type": "response",
+  "request_seq": 55,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "v",
+     "value": "100",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "v"
+    },
+    {
+     "name": "p",
+     "value": "{x := 4, y := 3}",
+     "type": "Main.Point",
+     "variablesReference": 8,
+     "evaluateName": "p"
+    },
+    {
+     "name": "a",
+     "value": "{9, 6}",
+     "type": "ARRAY OF INTEGER",
+     "variablesReference": 9,
+     "indexedVariables": 2,
+     "evaluateName": "a"
+    },
+    {
+     "name": "chars",
+     "value": "{'a', '\\377', 'Q'}",
+     "type": "ARRAY OF CHAR",
+     "variablesReference": 10,
+     "indexedVariables": 3,
+     "evaluateName": "chars"
+    },
+    {
+     "name": "i",
+     "value": "8",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "i"
+    },
+    {
+     "name": "n",
+     "value": "16",
+     "type": "CARDINAL",
+     "variablesReference": 0,
+     "evaluateName": "n"
+    },
+    {
+     "name": "l",
+     "value": "-5",
+     "type": "LONGINT",
+     "variablesReference": 0,
+     "evaluateName": "l"
+    },
+    {
+     "name": "b",
+     "value": "FALSE",
+     "type": "BOOLEAN",
+     "variablesReference": 0,
+     "evaluateName": "b"
+    },
+    {
+     "name": "c",
+     "value": "'\\t'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "c"
+    },
+    {
+     "name": "w",
+     "value": "W'\\x20ac'",
+     "type": "WIDECHAR",
+     "variablesReference": 0,
+     "evaluateName": "w"
+    },
+    {
+     "name": "r",
+     "value": "25.0",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "r"
+    },
+    {
+     "name": "d",
+     "value": "1.25",
+     "type": "LONGREAL",
+     "variablesReference": 0,
+     "evaluateName": "d"
+    },
+    {
+     "name": "e",
+     "value": "7.0",
+     "type": "EXTENDED",
+     "variablesReference": 0,
+     "evaluateName": "e"
+    },
+    {
+     "name": "col",
+     "value": "Red",
+     "type": "Main.Color",
+     "variablesReference": 0,
+     "evaluateName": "col"
+    },
+    {
+     "name": "s",
+     "value": "10",
+     "type": "Main.Small",
+     "variablesReference": 0,
+     "evaluateName": "s"
+    },
+    {
+     "name": "t",
+     "value": "\"new\\ttext\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "t"
+    },
+    {
+     "name": "nil",
+     "value": "NIL",
+     "type": "REFANY",
+     "variablesReference": 0,
+     "evaluateName": "nil"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 56,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "count",
+     "value": "1000",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "count"
+    },
+    {
+     "name": "color",
+     "value": "Green",
+     "type": "Main.Color",
+     "variablesReference": 0,
+     "evaluateName": "color"
+    },
+    {
+     "name": "palette",
+     "value": "{Red, Blue}",
+     "type": "Main.Palette",
+     "variablesReference": 0,
+     "evaluateName": "palette"
+    },
+    {
+     "name": "digits",
+     "value": "{1, 3, 64, 99}",
+     "type": "Main.Digits",
+     "variablesReference": 0,
+     "evaluateName": "digits"
+    },
+    {
+     "name": "greeting",
+     "value": "\"good bye\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "greeting"
+    },
+    {
+     "name": "origin",
+     "value": "{x := 4, y := 3}",
+     "type": "Main.Point",
+     "variablesReference": 11,
+     "evaluateName": "origin"
+    },
+    {
+     "name": "grid",
+     "value": "{{...}, {...}}",
+     "type": "Main.Grid",
+     "variablesReference": 12,
+     "indexedVariables": 2,
+     "evaluateName": "grid"
+    },
+    {
+     "name": "list",
+     "value": "NIL",
+     "type": "Main.List",
+     "variablesReference": 0,
+     "evaluateName": "list"
+    },
+    {
+     "name": "counter",
+     "value": "Main.Counter{n := -3}",
+     "type": "Main.Counter",
+     "variablesReference": 13,
+     "evaluateName": "counter"
+    },
+    {
+     "name": "fun",
+     "value": "PROCEDURE Main.Twice",
+     "type": "Main.Fun",
+     "variablesReference": 0,
+     "evaluateName": "fun"
+    },
+    {
+     "name": "ratio",
+     "value": "0.5",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "ratio"
+    },
+    {
+     "name": "precise",
+     "value": "0.25",
+     "type": "LONGREAL",
+     "variablesReference": 0,
+     "evaluateName": "precise"
+    },
+    {
+     "name": "big",
+     "value": "9223372036854775807",
+     "type": "LONGINT",
+     "variablesReference": 0,
+     "evaluateName": "big"
+    },
+    {
+     "name": "initial",
+     "value": "'M'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "initial"
+    },
+    {
+     "name": "wide",
+     "value": "W'\\xffff'",
+     "type": "WIDECHAR",
+     "variablesReference": 0,
+     "evaluateName": "wide"
+    },
+    {
+     "name": "done",
+     "value": "FALSE",
+     "type": "BOOLEAN",
+     "variablesReference": 0,
+     "evaluateName": "done"
+    },
+    {
+     "name": "small",
+     "value": "3",
+     "type": "Main.Small",
+     "variablesReference": 0,
+     "evaluateName": "small"
+    },
+    {
+     "name": "letter",
+     "value": "'b'",
+     "type": "Main.Letter",
+     "variablesReference": 0,
+     "evaluateName": "letter"
+    },
+    {
+     "name": "v",
+     "value": "100",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "v"
+    },
+    {
+     "name": "chars",
+     "value": "{'a', '\\377', 'Q'}",
+     "type": "ARRAY [0..2] OF CHAR",
+     "variablesReference": 14,
+     "indexedVariables": 3,
+     "evaluateName": "chars"
+    },
+    {
+     "name": "thread",
+     "value": "NIL",
+     "type": "Thread.T",
+     "variablesReference": 0,
+     "evaluateName": "thread"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 57,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "type": "response",
+  "request_seq": 58,
+  "success": false,
+  "command": "setExpression",
+  "message": "the program has ended"
+ },
+ {
+  "output": {
+   "stdout": "v = 2698, count = 1035, shapes = 7\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

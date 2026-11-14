@@ -183,6 +183,9 @@ public final class Adapter implements Session.Listener {
             case "initialize" -> obj("supportsConfigurationDoneRequest", true,
                                      "supportsTerminateRequest", true,
                                      "supportsExceptionInfoRequest", true,
+                                     "supportsEvaluateForHovers", true,
+                                     "supportsSetVariable", true,
+                                     "supportsSetExpression", true,
                                      "exceptionBreakpointFilters", List.of(
                                          obj("filter", "raise", "label", "Every RAISE", "default", false,
                                              "description", "Stop where an exception is raised."),
@@ -211,6 +214,21 @@ public final class Adapter implements Session.Listener {
             case "stackTrace" -> stackTrace(args);
             case "scopes" -> scopes(args);
             case "variables" -> variables(args);
+            case "evaluate" -> {
+                Session.Variable v = session().evaluate(string(args, "expression", ""), integer(args, "frameId", 0));
+                Map<String, Object> m = obj("result", v.value());
+                yield value(m, v);
+            }
+            case "setExpression" -> {
+                Session.Variable v = session().setExpression(string(args, "expression", ""),
+                                                             string(args, "value", ""), integer(args, "frameId", 0));
+                yield value(obj("value", v.value()), v);
+            }
+            case "setVariable" -> {
+                Session.Variable v = session().setVariable(integer(args, "variablesReference", 0),
+                                                           string(args, "name", ""), string(args, "value", ""));
+                yield value(obj("value", v.value()), v);
+            }
             case "continue" -> {
                 after = session()::resume;
                 yield obj("allThreadsContinued", true);
@@ -409,6 +427,16 @@ public final class Adapter implements Session.Listener {
             out.add(m);
         }
         return obj("variables", out);
+    }
+
+    /** m with the type of v and the reference to its parts. */
+    private static Map<String, Object> value(Map<String, Object> m, Session.Variable v) {
+        m.put("type", v.type());
+        m.put("variablesReference", v.ref());
+        if (v.ref() != 0 && v.indexed() > 0) {
+            m.put("indexedVariables", v.indexed());
+        }
+        return m;
     }
 
     // ---- events of the session
