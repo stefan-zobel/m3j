@@ -1,0 +1,194 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "entry",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 38,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "[runtime]",
+     "line": 0,
+     "column": 0,
+     "presentationHint": "subtle"
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 39,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 40,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": false,
+  "command": "exceptionInfo",
+  "message": "the thread did not stop at an exception"
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "stdout": "v = 2583, count = 35, shapes = 2\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

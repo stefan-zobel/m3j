@@ -24,6 +24,7 @@ m3.m.IntStack: module IntStack
   type f398f42d = RECORD items: REF ARRAY OF INTEGER; size: CARDINAL; END
   type f400f3db = ARRAY OF INTEGER
 m3.m.Main: module Main
+  main module of the program
   variable count: INTEGER
   variable color: Main.Color
   variable palette: Main.Palette
@@ -52,6 +53,7 @@ m3.m.Main: module Main
   chunk of Main (in $init): method $init$$3
   chunk of Main (in $init): method $init$$4
   chunk of Main (in $init): method $init$$5
+    TRY lines 224-225 EXCEPT m3.i.RuntimeError$E
   chunk of Main (in $init): method $init$$6
   chunk of Main (in $init): method $init$$7
   chunk of Main (in $init): method $init$$8
@@ -104,6 +106,8 @@ m3.m.Main: module Main
     local sum: INTEGER in the frame as v13_sum, lines 137-163
     local any: REFANY in the frame as v14_any, lines 137-163
     EXCEPT code: INTEGER
+    TRY lines 151-152 EXCEPT m3.m.Main$Oops
+    RAISES only runtime errors
   chunk of Main.Bindings (in Bindings): method Bindings$$0
     WITH p: Main.Point (no home)
     WITH q: INTEGER

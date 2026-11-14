@@ -228,7 +228,7 @@ final class Unit {
             Code c = new Code(this, cb, p);
             c.split = fs;
             body.accept(c);
-            debug.method(name, p == Frames.INIT ? 'B' : 'P', m3Name(p), null, c.debugVars.all);
+            debug.method(name, p == Frames.INIT ? 'B' : 'P', m3Name(p), null, c.debugVars);
         });
         if (fs != null) {
             for (Split.Chunk ch : fs.chunks.values()) {
@@ -237,7 +237,7 @@ final class Unit {
                         Code c = new Code(this, cb, p);
                         c.split = fs;
                         c.chunkBody(ch);
-                        debug.method(chunkName(p, ch), 'C', m3Name(p), name, c.debugVars.all);
+                        debug.method(chunkName(p, ch), 'C', m3Name(p), name, c.debugVars);
                     });
             }
         }
@@ -330,7 +330,7 @@ final class Unit {
                         c.outlined = true;
                         c.stmt(e.getKey());
                         cb.return_();
-                        debug.method(e.getValue(), 'L', name, "$init", c.debugVars.all);
+                        debug.method(e.getValue(), 'L', name, "$init", c.debugVars);
                     });
                 }
                 while (!todo.isEmpty()) {
@@ -384,6 +384,7 @@ final class Unit {
             debug.roots(Types.flushed);
             Types.flushed.clear();
             debug.genericFile = DebugInfo.genericOf(module.genericFile);
+            debug.main = !isInterface && exports().contains("Main");
             return debug.attach(dropDeadNames(b));
         } finally {
             Revelation.pop(yy);

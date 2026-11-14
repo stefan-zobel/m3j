@@ -1,0 +1,269 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setExceptionBreakpoints"
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "exception",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "text": "Main.Oops (16)"
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "exceptionInfo",
+  "body": {
+   "exceptionId": "Main.Oops",
+   "description": "Main.Oops (16)",
+   "breakMode": "always",
+   "details": {
+    "message": "Main.Oops (16)",
+    "typeName": "Main.Oops"
+   }
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 152,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "sum",
+     "value": "16",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "sum"
+    },
+    {
+     "name": "any",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "REFANY",
+     "variablesReference": 3,
+     "evaluateName": "any"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "setExceptionBreakpoints"
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "exception",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "text": "An array subscript was out of range."
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "exceptionInfo",
+  "body": {
+   "exceptionId": "RuntimeError.E",
+   "description": "An array subscript was out of range.",
+   "breakMode": "always",
+   "details": {
+    "message": "An array subscript was out of range.",
+    "typeName": "RuntimeError.E"
+   }
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Fail",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 209,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 225,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": false,
+  "command": "exceptionInfo",
+  "message": "no thread 99"
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "setExceptionBreakpoints"
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "stdout": "v = 2583, count = 35, shapes = 2\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

@@ -79,7 +79,18 @@ import m3j.front.WCharr;
  *                           name for a designator, without a home of its
  *                           own); FROM and TO are the lines of the scope
  *                           of a variable not in a slot (0: from the start)
+ *   t FROM TO CLASS...      a TRY EXCEPT in the method of the m line above:
+ *                           its statements are on the lines FROM to TO, its
+ *                           handlers handle the exceptions of the classes
+ *                           CLASS (binary names), * stands for ELSE
+ *   r [CLASS...]            the procedure of the method of the m line above
+ *                           checks that only the exceptions of the classes
+ *                           CLASS (and runtime errors) leave it: any other
+ *                           becomes the runtime error of an exception not in
+ *                           its RAISES clause
  * </pre>
+ * A {@code p} line after the first (and the g line) says that the unit is
+ * the main module of a program (the module that exports Main).
  * Methods without an m line are helpers of the compiler. Then come the
  * lines of cm3's WebInfo for the types that the variables need, which
  * start with a capital letter and the UID of the type they are about (but
@@ -118,8 +129,8 @@ final class DebugInfo {
         }
     }
 
-    /** A method of Modula-3 code and its variables. */
-    record Method(char kind, String name, String parent, List<Var> vars) {}
+    /** A method of Modula-3 code, its variables and the lines t and r about it. */
+    record Method(char kind, String name, String parent, List<Var> vars, List<String> lines) {}
 
     /** the methods, by their names (a method built twice keeps the last) */
     private final Map<String, Method> methods = new LinkedHashMap<>();
@@ -136,9 +147,17 @@ final class DebugInfo {
     String webInfo;
     /** the generic unit of an instance, or null */
     String genericFile;
+    /** whether the unit is the main module of a program */
+    boolean main;
 
-    void method(String method, char kind, String name, String parent, List<Var> vars) {
-        methods.put(method, new Method(kind, name, parent, List.copyOf(vars)));
+    void method(String method, char kind, String name, String parent, Scopes s) {
+        methods.put(method, new Method(kind, name, parent, List.copyOf(s.all), List.copyOf(s.lines)));
+    }
+
+    /** The binary name of the class cd. */
+    static String className(java.lang.constant.ClassDesc cd) {
+        String p = cd.packageName();
+        return p.isEmpty() ? cd.displayName() : p + "." + cd.displayName();
     }
 
     void global(String name, long uid) {
@@ -203,6 +222,9 @@ final class DebugInfo {
                 body.append('\n');
                 used.add(v.uid);
             }
+            for (String l : m.lines()) {
+                body.append(l).append('\n');
+            }
         }
         if (webInfo != null) {
             types(body, used);
@@ -210,6 +232,9 @@ final class DebugInfo {
         StringBuilder sb = new StringBuilder(MAGIC).append('\n');
         if (genericFile != null) {
             sb.append("g ").append(genericFile).append('\n');
+        }
+        if (main) {
+            sb.append("p\n");
         }
         sb.append(body);
         return ascii(sb.toString());
@@ -393,9 +418,13 @@ final class DebugInfo {
         return f.substring(s + 1);
     }
 
-    /** The variables of the scopes of a method that are open. */
+    /**
+     * The variables of the scopes of a method that are open, and the lines
+     * about its TRY statements and its RAISES clause.
+     */
     static final class Scopes {
         final List<Var> all = new ArrayList<>();
+        final List<String> lines = new ArrayList<>();
         private final java.util.ArrayDeque<List<Var>> open = new java.util.ArrayDeque<>();
 
         void open() {

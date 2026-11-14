@@ -46,7 +46,20 @@ public final class Info {
      * unit), C (a chunk of the method parent) or L (a loop of the body);
      * name is the name of the procedure (Unit.P, Unit.P.Q) or the unit.
      */
-    public record Method(String method, char kind, String name, String parent, List<Var> vars) {}
+    public record Method(String method, char kind, String name, String parent, List<Var> vars, List<Try> tries,
+                         List<String> raises) {}
+
+    /**
+     * A TRY EXCEPT of a method: its statements are on the lines from..to,
+     * its handlers handle the exceptions of the classes (binary names), and
+     * all of them if it has an ELSE.
+     */
+    public record Try(int from, int to, List<String> classes, boolean otherwise) {
+        /** Whether it handles an exception of class cls raised at line. */
+        public boolean handles(String cls, int line) {
+            return from <= line && line <= to && (otherwise || classes.contains(cls));
+        }
+    }
 
     /** A field of a record or an object. */
     public record Field(String name, String type) {}
@@ -82,6 +95,8 @@ public final class Info {
     public final String unit;
     /** the generic unit of an instance (a file name), else null */
     public final String generic;
+    /** whether the unit is the main module of a program */
+    public final boolean main;
     /** the variables of the unit and their types */
     public final Map<String, String> globals;
     /** the methods of Modula-3 code, by their names */
@@ -91,10 +106,11 @@ public final class Info {
     /** the names of types, by UID */
     public final Map<String, List<String>> names;
 
-    private Info(String unit, String generic, Map<String, String> globals, Map<String, Method> methods,
+    private Info(String unit, String generic, boolean main, Map<String, String> globals, Map<String, Method> methods,
                  Map<String, Type> types, Map<String, List<String>> names) {
         this.unit = unit;
         this.generic = generic;
+        this.main = main;
         this.globals = Collections.unmodifiableMap(globals);
         this.methods = Collections.unmodifiableMap(methods);
         this.types = Collections.unmodifiableMap(types);
@@ -127,11 +143,15 @@ public final class Info {
             throw new IllegalArgumentException("not a description of m3j");
         }
         String generic = null;
+        boolean main = false;
         Map<String, String> globals = new LinkedHashMap<>();
         Map<String, Method> methods = new LinkedHashMap<>();
         Map<String, Type> types = new LinkedHashMap<>();
         Map<String, List<String>> names = new LinkedHashMap<>();
+        // the method of the last m line, its variables and TRY statements
+        Method current = null;
         List<Var> vars = null;
+        List<Try> tries = null;
         // the record or object whose fields follow, the enumeration whose elements follow
         List<Field> fields = null;
         List<String> elements = null;
@@ -147,6 +167,7 @@ public final class Info {
                 if (Character.isLowerCase(tag)) {
                     switch (t[0]) {
                         case "g" -> generic = t[1];
+                        case "p" -> main = true;
                         case "s" -> globals.put(t[1], t[2]);
                         case "m" -> {
                             char kind = t[2].charAt(0);
@@ -161,7 +182,26 @@ public final class Info {
                                 name = p != null ? p.name() : unit;
                             }
                             vars = new ArrayList<>();
-                            methods.put(t[1], new Method(t[1], kind, name, parent, Collections.unmodifiableList(vars)));
+                            tries = new ArrayList<>();
+                            current = new Method(t[1], kind, name, parent, Collections.unmodifiableList(vars),
+                                                 Collections.unmodifiableList(tries), null);
+                            methods.put(t[1], current);
+                        }
+                        case "t" -> {
+                            if (tries != null) {
+                                List<String> cs = new ArrayList<>(List.of(t).subList(3, t.length));
+                                boolean otherwise = cs.remove("*");
+                                tries.add(new Try(Integer.parseInt(t[1]), Integer.parseInt(t[2]), List.copyOf(cs),
+                                                  otherwise));
+                            }
+                        }
+                        case "r" -> {
+                            if (current != null) {
+                                Method m = current;
+                                current = new Method(m.method(), m.kind(), m.name(), m.parent(), m.vars(), m.tries(),
+                                                     List.of(t).subList(1, t.length));
+                                methods.put(m.method(), current);
+                            }
                         }
                         case "v" -> {
                             if (vars != null) {
@@ -226,6 +266,6 @@ public final class Info {
                 // a line of another form: skipped
             }
         }
-        return new Info(unit, generic, globals, methods, types, names);
+        return new Info(unit, generic, main, globals, methods, types, names);
     }
 }

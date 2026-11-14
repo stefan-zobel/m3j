@@ -1,0 +1,10 @@
+{
+ "launch": {"args": ["fail"]},
+ "steps": [
+  {"send": {"command": "setExceptionBreakpoints", "arguments": {"filters": ["unhandled"]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "exceptionInfo", "arguments": {"threadId": 1}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "next", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

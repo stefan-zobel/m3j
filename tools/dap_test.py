@@ -21,7 +21,8 @@ them through the source roots). The cases:
            Modula-3 next to JAR (m3build, m3bundle, stubgen, the language
            server, those of them that build.sh made): every method with
            lines is described, every named slot is a described variable,
-           every variable in a frame is a field of the frame
+           every variable in a frame is a field of the frame, every TRY
+           has lines
   SESSION  each tests/dap/sessions/SESSION.json: the adapter (java -cp
            JAR m3j.debug.dap.Main, in the work directory) gets the
            requests initialize and launch (with the jar of the program,

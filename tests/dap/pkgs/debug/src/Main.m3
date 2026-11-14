@@ -6,9 +6,9 @@
    variable of the module), the statements that bind names, a procedure
    big enough to be split in chunks (with -Dm3j.maxMethod), a generic
    instance, a second thread and exceptions. The lines that the tests
-   stop at are marked with a comment of the form "@name". With the
-   argument "raise" the program ends with an exception that nobody
-   handles, with "fail" with a runtime error. *)
+   stop at are marked with a comment of the form "@name". With "raise"
+   the program ends with an exception that nobody handles, with "fail"
+   with a runtime error; with "wait" it waits until done is TRUE. *)
 
 MODULE Main;
 
@@ -230,6 +230,10 @@ BEGIN
     RAISE Oops (v); (* @raise *)
   ELSIF Params.Count > 1 AND Text.Equal (Params.Get (1), "fail") THEN
     v := v + Fail (ARRAY OF INTEGER {1}, 2);
+  ELSIF Params.Count > 1 AND Text.Equal (Params.Get (1), "wait") THEN
+    WHILE NOT done DO
+      Thread.Pause (0.01D0); (* @wait *)
+    END;
   END;
   v := v + Others ();
   done := TRUE;

@@ -1,0 +1,817 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 59
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 59
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Inc",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 59,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 218,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Inc",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 60,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 218,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 219,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": true,
+  "command": "stepIn"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 71,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 219,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 16,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 72,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 17,
+  "success": true,
+  "command": "stepOut"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 18,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 220,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 19,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 20,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 21,
+  "success": true,
+  "command": "stepIn"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 22,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Outer",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 123,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 23,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 24,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Outer",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 132,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 25,
+  "success": true,
+  "command": "stepIn"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 26,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Outer.Inner",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 127,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main.Outer",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 132,
+     "column": 1
+    },
+    {
+     "id": 3,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 4
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 27,
+  "success": true,
+  "command": "stepOut"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 28,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Outer",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 132,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 29,
+  "success": true,
+  "command": "stepOut"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 30,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 31,
+  "success": true,
+  "command": "stepIn"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 32,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 137,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 33,
+  "success": true,
+  "command": "stepOut"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 34,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 35,
+  "success": true,
+  "command": "stepIn"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 36,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Big",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 167,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 37,
+  "success": true,
+  "command": "stepOut"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 38,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 221,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 39,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "step",
+   "threadId": 1,
+   "allThreadsStopped": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 40,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 222,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 41,
+  "success": false,
+  "command": "next",
+  "message": "no thread 7"
+ },
+ {
+  "type": "response",
+  "request_seq": 42,
+  "success": true,
+  "command": "terminate"
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {}
+ },
+ {
+  "exit": 0
+ }
+]

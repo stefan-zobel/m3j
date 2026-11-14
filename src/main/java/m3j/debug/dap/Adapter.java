@@ -32,6 +32,8 @@ public final class Adapter implements Session.Listener {
     private int seq = 1;
     private Session session;
     private boolean done;
+    /** what to do after the response to the request being served */
+    private Runnable after;
 
     public Adapter(InputStream in, OutputStream out, Path home) {
         this.in = in;
@@ -154,6 +156,7 @@ public final class Adapter implements Session.Listener {
         String command = m.get("command") instanceof String s ? s : "";
         Map<?, ?> args = m.get("arguments") instanceof Map<?, ?> a ? a : Map.of();
         Object body;
+        after = null;
         try {
             body = dispatch(command, args);
         } catch (Failure e) {
@@ -164,6 +167,9 @@ public final class Adapter implements Session.Listener {
             return;
         }
         respond(rseq, command, body, null);
+        if (after != null) {
+            after.run();
+        }
         switch (command) {
             case "launch" -> event("initialized", null);
             case "disconnect" -> done = true;
@@ -175,9 +181,28 @@ public final class Adapter implements Session.Listener {
     private Object dispatch(String command, Map<?, ?> args) throws Failure {
         return switch (command) {
             case "initialize" -> obj("supportsConfigurationDoneRequest", true,
-                                     "supportsTerminateRequest", true);
+                                     "supportsTerminateRequest", true,
+                                     "supportsExceptionInfoRequest", true,
+                                     "exceptionBreakpointFilters", List.of(
+                                         obj("filter", "raise", "label", "Every RAISE", "default", false,
+                                             "description", "Stop where an exception is raised."),
+                                         obj("filter", "error", "label", "Runtime errors", "default", false,
+                                             "description", "Stop at a checked runtime error, also if it is handled."),
+                                         obj("filter", "unhandled", "label", "Unhandled exceptions", "default", true,
+                                             "description", "Stop where an exception or a runtime error is raised"
+                                                 + " that no TRY EXCEPT handles.")));
             case "launch" -> launch(args);
             case "setBreakpoints" -> setBreakpoints(args);
+            case "setExceptionBreakpoints" -> {
+                List<String> f = strings(args, "filters");
+                session().exceptionFilters(f.contains("raise"), f.contains("error"), f.contains("unhandled"));
+                yield null;
+            }
+            case "exceptionInfo" -> {
+                Session.ExceptionDetails d = session().exception(integer(args, "threadId", 0));
+                yield obj("exceptionId", d.id(), "description", d.description(), "breakMode", d.breakMode(),
+                          "details", obj("message", d.description(), "typeName", d.id()));
+            }
             case "configurationDone" -> {
                 session().start();
                 yield null;
@@ -187,8 +212,18 @@ public final class Adapter implements Session.Listener {
             case "scopes" -> scopes(args);
             case "variables" -> variables(args);
             case "continue" -> {
-                session().resume();
+                after = session()::resume;
                 yield obj("allThreadsContinued", true);
+            }
+            case "next" -> step(args, Session.StepKind.OVER);
+            case "stepIn" -> step(args, Session.StepKind.IN);
+            case "stepOut" -> step(args, Session.StepKind.OUT);
+            case "pause" -> {
+                int t = session().pause(integer(args, "threadId", 0));
+                if (t != 0) {
+                    after = () -> stopped("pause", t, List.of(), null);
+                }
+                yield null;
             }
             case "terminate" -> {
                 session().terminate();
@@ -202,6 +237,13 @@ public final class Adapter implements Session.Listener {
             }
             default -> throw new Failure("unknown request " + command);
         };
+    }
+
+    private Object step(Map<?, ?> args, Session.StepKind kind) throws Failure {
+        Session s = session();
+        s.step(integer(args, "threadId", 0), kind);
+        after = s::resume;
+        return null;
     }
 
     private Session session() throws Failure {
@@ -263,7 +305,9 @@ public final class Adapter implements Session.Listener {
         String java = Path.of(System.getProperty("java.home"), "bin", "java").toString();
         Session.Launch l = new Session.Launch(java, cp, main, strings(args, "args"), cwd, env,
                                               strings(args, "javaOptions"));
+        boolean entry = Boolean.TRUE.equals(args.get("stopOnEntry"));
         session = Session.launch(l, new Sources(roots, cwd), this);
+        session.stopOnEntry(entry);
         return null;
     }
 
@@ -375,10 +419,13 @@ public final class Adapter implements Session.Listener {
     }
 
     @Override
-    public void stopped(String reason, int thread, List<Integer> breakpoints) {
+    public void stopped(String reason, int thread, List<Integer> breakpoints, String text) {
         Map<String, Object> b = obj("reason", reason, "threadId", thread, "allThreadsStopped", true);
         if (!breakpoints.isEmpty()) {
             b.put("hitBreakpointIds", new ArrayList<Object>(breakpoints));
+        }
+        if (text != null) {
+            b.put("text", text);
         }
         event("stopped", b);
     }

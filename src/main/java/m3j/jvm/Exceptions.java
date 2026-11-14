@@ -94,6 +94,7 @@ final class Exceptions {
         // the JVM rejects an empty range of an exception handler, and the
         // body may give no code at all
         cb.nop();
+        describe(c, p);
         Guard g = new Guard(start);
         if (p.hasElse) {
             g.elseEntry = cb.newLabel();
@@ -162,6 +163,23 @@ final class Exceptions {
         }
         g.catchAll(cb, handler);
         cb.labelBinding(after);
+    }
+
+    /** Describes the TRY EXCEPT p for the description of the unit (a t line of DebugInfo). */
+    private static void describe(Code c, TryStmt.P p) {
+        int from = Code.lineOf(p.origin);
+        int[] to = {from};
+        Walk.stmts(p.body, s -> to[0] = Math.max(to[0], Code.lineOf(s.origin)), x -> {});
+        StringBuilder sb = new StringBuilder("t ").append(from).append(' ').append(to[0]);
+        for (TryStmt.Handler h = p.handles; h != null; h = h.next) {
+            for (TryStmt.Except t = h.tags; t != null; t = t.next) {
+                sb.append(' ').append(DebugInfo.className(classOf((Exceptionz.T) Value.base(t.obj))));
+            }
+        }
+        if (p.hasElse) {
+            sb.append(" *");
+        }
+        c.debugVars.lines.add(sb.toString());
     }
 
     /**

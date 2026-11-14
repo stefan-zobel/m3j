@@ -123,6 +123,9 @@ public final class Dump {
         if (info.generic != null) {
             out.println("  generic " + info.generic);
         }
+        if (info.main) {
+            out.println("  main module of the program");
+        }
         for (Map.Entry<String, String> g : info.globals.entrySet()) {
             out.println("  variable " + g.getKey() + ": " + table.show(g.getValue()));
         }
@@ -139,6 +142,19 @@ public final class Dump {
                     + v.from() + "-" + v.to() : " (no home)";
                 out.println("    " + KINDS.getOrDefault(v.kind(), "?") + " " + v.name() + ": "
                     + table.show(v.type()) + home);
+            }
+            for (Info.Try t : m.tries()) {
+                List<String> h = new ArrayList<>();
+                for (String c : t.classes()) {
+                    h.add(c);
+                }
+                if (t.otherwise()) {
+                    h.add("ELSE");
+                }
+                out.println("    TRY lines " + t.from() + "-" + t.to() + " EXCEPT " + String.join(", ", h));
+            }
+            if (m.raises() != null) {
+                out.println("    RAISES only " + (m.raises().isEmpty() ? "runtime errors" : String.join(", ", m.raises())));
             }
         }
         for (String uid : info.types.keySet()) {

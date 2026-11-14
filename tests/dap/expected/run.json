@@ -6,7 +6,28 @@
   "command": "initialize",
   "body": {
    "supportsConfigurationDoneRequest": true,
-   "supportsTerminateRequest": true
+   "supportsTerminateRequest": true,
+   "supportsExceptionInfoRequest": true,
+   "exceptionBreakpointFilters": [
+    {
+     "filter": "raise",
+     "label": "Every RAISE",
+     "default": false,
+     "description": "Stop where an exception is raised."
+    },
+    {
+     "filter": "error",
+     "label": "Runtime errors",
+     "default": false,
+     "description": "Stop at a checked runtime error, also if it is handled."
+    },
+    {
+     "filter": "unhandled",
+     "label": "Unhandled exceptions",
+     "default": true,
+     "description": "Stop where an exception or a runtime error is raised that no TRY EXCEPT handles."
+    }
+   ]
   }
  },
  {

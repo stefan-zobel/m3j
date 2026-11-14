@@ -291,6 +291,13 @@ final class Code {
             }
             // an exception that leaves the procedure must be in its RAISES clause
             List<ClassDesc> allowed = raisesGuard();
+            if (allowed != null) {
+                StringBuilder r = new StringBuilder("r");
+                for (ClassDesc c : allowed) {
+                    r.append(' ').append(DebugInfo.className(c));
+                }
+                debugVars.lines.add(r.toString());
+            }
             Label guardStart = cb.newLabel(), guardEnd = cb.newLabel();
             cb.labelBinding(guardStart);
             // the locals of the procedure's own scope

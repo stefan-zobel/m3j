@@ -43,10 +43,12 @@ import m3j.debug.TypeTable;
  * procedure names a field of the class of the frame; every variable of
  * the unit names a static field. The types of the variables that none of
  * the units describes or names are counted, not errors (procedure types
- * are not described).
+ * are not described). A TRY has lines and the exceptions it handles.
  */
 public final class InfoCheck {
-    private static final String TAGS = "gsmvEFGHIJKLMNOPQUVYZ";
+    private static final String TAGS = "gpsmvtrEFGHIJKLMNOPQUVYZ";
+    /** the lines that may be a tag alone */
+    private static final String ALONE = "pr";
 
     private static final List<String> errors = new ArrayList<>();
     private static int units, methods, vars, unresolved;
@@ -118,8 +120,15 @@ public final class InfoCheck {
             for (int i = 1; i < lines.length; i++) {
                 String l = lines[i];
                 if (l.isEmpty() || TAGS.indexOf(l.charAt(0)) < 0
-                    || Character.isLowerCase(l.charAt(0)) && (l.length() < 2 || l.charAt(1) != ' ')) {
+                    || Character.isLowerCase(l.charAt(0)) && (l.length() < 2 ? ALONE.indexOf(l.charAt(0)) < 0
+                                                              : l.charAt(1) != ' ')) {
                     errors.add(where + ": " + cls + ": line " + (i + 1) + " of an unknown kind: " + l);
+                } else if (l.startsWith("t ")) {
+                    String[] t = l.split(" ");
+                    int from = t.length > 3 ? Integer.parseInt(t[1]) : -1, to = t.length > 3 ? Integer.parseInt(t[2]) : -1;
+                    if (from <= 0 || to < from) {
+                        errors.add(where + ": " + cls + ": line " + (i + 1) + ": not a TRY: " + l);
+                    }
                 }
             }
             Info info = Info.parse(unit, text);

@@ -1,0 +1,144 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setExceptionBreakpoints"
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "exception",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "text": "An array subscript was out of range."
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "exceptionInfo",
+  "body": {
+   "exceptionId": "RuntimeError.E",
+   "description": "An array subscript was out of range.",
+   "breakMode": "unhandled",
+   "details": {
+    "message": "An array subscript was out of range.",
+    "typeName": "RuntimeError.E"
+   }
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Fail",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 209,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 232,
+     "column": 1
+    },
+    {
+     "id": 3,
+     "name": "[runtime]",
+     "line": 0,
+     "column": 0,
+     "presentationHint": "subtle"
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "next"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": -1
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "stderr": "\n\n***\n*** runtime error:\n***    An array subscript was out of range.\n***    file \"Main.m3\", line 209\n***\n\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

@@ -12,9 +12,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +25,7 @@ import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.IntegerValue;
 import com.sun.jdi.InvalidStackFrameException;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
@@ -29,9 +33,11 @@ import com.sun.jdi.ObjectCollectedException;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
+import com.sun.jdi.StringReference;
 import com.sun.jdi.ThreadGroupReference;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VMDisconnectedException;
+import com.sun.jdi.Value;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
@@ -41,6 +47,8 @@ import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.event.Event;
 import com.sun.jdi.event.EventSet;
+import com.sun.jdi.event.ExceptionEvent;
+import com.sun.jdi.event.StepEvent;
 import com.sun.jdi.event.ThreadDeathEvent;
 import com.sun.jdi.event.ThreadStartEvent;
 import com.sun.jdi.event.VMDisconnectEvent;
@@ -49,6 +57,8 @@ import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.EventRequestManager;
+import com.sun.jdi.request.ExceptionRequest;
+import com.sun.jdi.request.StepRequest;
 import com.sun.jdi.request.ThreadDeathRequest;
 import com.sun.jdi.request.ThreadStartRequest;
 
@@ -72,6 +82,22 @@ import com.sun.jdi.request.ThreadStartRequest;
  * of each enclosing procedure that its nested procedures use (only those
  * live in a frame that the nested ones reach), and the variables of its
  * unit (with those of the interface of the same name).
+ *
+ * <p>A step is made of steps of the JVM from line to line, until the
+ * thread is on a new line of the same procedure, in a procedure it called
+ * (step in) or in a procedure that called it: the chunks of a procedure
+ * count as the procedure, and the code of the runtime and the JDK is run
+ * through. Where a step returns from a chunk into its procedure it goes
+ * on, as the line there is still that of the statement before the chunk.
+ *
+ * <p>The program stops at exceptions by three filters: every RAISE, every
+ * runtime error (a checked error of the language, including those that
+ * the JVM finds, such as a subscript out of range), and every exception or
+ * runtime error that no TRY EXCEPT on the stack handles. Whether one does
+ * is judged by the lines of the TRY statements in the descriptions of the
+ * units (an exception raised on the line of the TRY counts as raised in
+ * it) and by the RAISES clauses that turn an exception into a runtime
+ * error; the stack is that of the RAISE, not unwound.
  */
 public final class Session {
 
@@ -80,8 +106,11 @@ public final class Session {
         /** Output of the program, category stdout or stderr. */
         void output(String category, String text);
 
-        /** The program stopped (all its threads), in thread, at the breakpoints. */
-        void stopped(String reason, int thread, List<Integer> breakpoints);
+        /**
+         * The program stopped (all its threads), in thread, at the
+         * breakpoints; text says more about an exception, or is null.
+         */
+        void stopped(String reason, int thread, List<Integer> breakpoints, String text);
 
         /** A breakpoint changed (it was verified, or its line moved). */
         void breakpoint(Breakpoint b);
@@ -121,6 +150,24 @@ public final class Session {
      * elements if it is an array, and the designator that names it.
      */
     public record Variable(String name, String value, String type, int ref, int indexed, String designator) {}
+
+    /** How far a step goes. */
+    public enum StepKind {
+        /** to the next line of the procedure, or of the procedure that called it */
+        OVER,
+        /** like OVER, or into a procedure that is called */
+        IN,
+        /** to the procedure that called this one */
+        OUT
+    }
+
+    /**
+     * The exception the program stopped at: its name (Main.Oops,
+     * RuntimeError.E), what happened, and why the program stopped (always:
+     * by the filter of every RAISE or every runtime error, unhandled: no
+     * handler).
+     */
+    public record ExceptionDetails(String id, String description, String breakMode) {}
 
     /** How to start a program. */
     public record Launch(String java, List<String> classpath, String mainClass, List<String> args, Path cwd,
@@ -175,7 +222,52 @@ public final class Session {
         }
     }
 
+    /** A step under way: where it started (its depth in frames of Modula-3 code, its line). */
+    private static final class Step {
+        final ThreadReference thread;
+        final StepKind kind;
+        final int depth;
+        final int line;
+        /** the reason of the stop at its end */
+        final String reason;
+        /** the number of frames of the JVM at the last event */
+        int frames;
+        StepRequest request;
+
+        Step(ThreadReference thread, StepKind kind, int depth, int line, String reason, int frames) {
+            this.thread = thread;
+            this.kind = kind;
+            this.depth = depth;
+            this.line = line;
+            this.reason = reason;
+            this.frames = frames;
+        }
+    }
+
+    /** The frames from..to of a stack, the top one first: a procedure (root) with its chunks. */
+    private record Run(int from, int to, Unit unit, Info.Method method, String root) {}
+
+    /** The property of a breakpoint of the client: its id. */
     private static final String BP = "m3j.bp";
+    /** The property of the other requests of the session: what they are for. */
+    private static final String KIND = "m3j.kind";
+
+    /** The class of runtime errors. */
+    private static final String RUNTIME_ERROR = "m3.i.RuntimeError$E";
+    /** The class of Java exceptions caught by Modula-3 code. */
+    private static final String JAVA_EXCEPTION = "m3.i.Java$Exception";
+    /** The exceptions of the JVM that are runtime errors in Modula-3 code (see m3j.rt.Rt.toM3). */
+    private static final Map<String, Integer> JVM_ERRORS = Map.of(
+        "java.lang.NullPointerException", m3.i.RuntimeError.BadMemoryReference,
+        "java.lang.ArithmeticException", m3.i.RuntimeError.IntegerDivideByZero,
+        "java.lang.IndexOutOfBoundsException", m3.i.RuntimeError.SubscriptOutOfRange,
+        "java.lang.ClassCastException", m3.i.RuntimeError.NarrowFailed,
+        "java.lang.StackOverflowError", m3.i.RuntimeError.StackOverflow);
+    /** The classes whose frames end a thread of the program: what they catch is not handled. */
+    private static final Set<String> TOPS = Set.of("m3j.rt.Rt", "m3.i.Thread");
+    /** The classes a step runs through without stopping. */
+    private static final List<String> RUN_THROUGH = List.of(
+        "java.*", "javax.*", "jdk.*", "sun.*", "com.sun.*", "m3j.*", "m3.t.*", "m3.p.*", "m3.r.*", "m3.Main");
 
     private final VirtualMachine vm;
     private final Process process;
@@ -195,6 +287,20 @@ public final class Session {
     private final List<Thread> drains = new ArrayList<>();
     private int nextBp = 1, nextThread = 1, nextFrame = 1, nextRef = 1;
     private boolean started, ended, killed;
+    /** whether the program is stopped (by the session, for the client) */
+    private boolean stopped;
+    /** the filters of exceptions, and stopping at the start of the main module */
+    private boolean onRaise, onError, onUnhandled, onEntry;
+    /** the requests in the runtime for the filters of exceptions */
+    private final List<EventRequest> raiseHooks = new ArrayList<>(), errorHooks = new ArrayList<>();
+    /** the classes whose requests are made */
+    private final Set<String> hooked = new HashSet<>();
+    /** the exceptions of the JVM seen (their ids), so that one thrown again is not reported again */
+    private final Set<Long> seen = new LinkedHashSet<>();
+    /** the step under way, or null */
+    private Step step;
+    /** the exception that each thread stopped at, at this stop */
+    private final Map<ThreadReference, ExceptionDetails> exceptions = new HashMap<>();
 
     private Session(VirtualMachine vm, Process process, Sources sources, Listener listener,
                     ThreadReference initial) {
@@ -316,7 +422,9 @@ public final class Session {
 
     private void requests() {
         EventRequestManager erm = vm.eventRequestManager();
-        for (String f : List.of("m3.m.*", "m3.i.*")) {
+        List<String> prepare = new ArrayList<>(List.of("m3.m.*", "m3.i.*", "m3j.rt.M3Exception", "m3j.rt.Rt"));
+        prepare.addAll(JVM_ERRORS.keySet());
+        for (String f : prepare) {
             ClassPrepareRequest r = erm.createClassPrepareRequest();
             r.addClassFilter(f);
             r.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
@@ -345,7 +453,7 @@ public final class Session {
         }
     }
 
-    /** Lets the stopped program go on. */
+    /** Lets the stopped program go on (and the step, if one is made). */
     public synchronized void resume() {
         if (ended) {
             return;
@@ -353,13 +461,112 @@ public final class Session {
         frames.clear();
         stacks.clear();
         refs.clear();
+        exceptions.clear();
         nextFrame = 1;
         nextRef = 1;
+        stopped = false;
         try {
             vm.resume();
         } catch (VMDisconnectedException e) {
             // it has ended
         }
+    }
+
+    /** Whether the program stops at the first line of its main module; set before {@link #start}. */
+    public synchronized void stopOnEntry(boolean on) {
+        onEntry = on;
+    }
+
+    /**
+     * Sets the filters of exceptions: stop at every RAISE, at every runtime
+     * error, at every exception and runtime error that is not handled.
+     */
+    public synchronized void exceptionFilters(boolean raise, boolean error, boolean unhandled) {
+        onRaise = raise;
+        onError = error;
+        onUnhandled = unhandled;
+        if (!ended) {
+            try {
+                filters();
+            } catch (VMDisconnectedException e) {
+                // it has ended
+            }
+        }
+    }
+
+    private void filters() {
+        for (EventRequest r : raiseHooks) {
+            r.setEnabled(onRaise || onUnhandled);
+        }
+        for (EventRequest r : errorHooks) {
+            r.setEnabled(onError || onUnhandled);
+        }
+    }
+
+    /**
+     * Prepares a step of thread; it is made by {@link #resume}, and the
+     * program stops at its end.
+     */
+    public synchronized void step(int thread, StepKind kind) throws Failure {
+        if (ended) {
+            throw new Failure("the program has ended");
+        }
+        if (!stopped) {
+            throw new Failure("the program is running");
+        }
+        ThreadReference t = thread(thread);
+        try {
+            List<StackFrame> fs = t.frames();
+            List<Run> rs = runs(fs);
+            int line = rs.isEmpty() ? -1 : fs.get(rs.get(0).from()).location().lineNumber();
+            cancelStep();
+            step = new Step(t, kind, rs.size(), line, "step", fs.size());
+            boolean m3 = !rs.isEmpty() && rs.get(0).from() == 0;
+            step.request = request(t, kind == StepKind.OUT || !m3 && !helper(fs.get(0).location())
+                ? StepRequest.STEP_OUT : StepRequest.STEP_INTO);
+        } catch (IncompatibleThreadStateException | InvalidStackFrameException e) {
+            throw new Failure("the thread is running");
+        } catch (VMDisconnectedException | ObjectCollectedException e) {
+            throw new Failure("the program has ended");
+        }
+    }
+
+    /**
+     * Stops the program if it runs, and returns the thread to report the
+     * stop in (thread, if it is one); 0 if the program was stopped.
+     */
+    public synchronized int pause(int thread) throws Failure {
+        if (ended) {
+            throw new Failure("the program has ended");
+        }
+        if (!started) {
+            throw new Failure("the program has not started: configurationDone first");
+        }
+        if (stopped) {
+            return 0;
+        }
+        try {
+            vm.suspend();
+            List<ThreadInfo> ts = threads();
+            if (ts.isEmpty()) {
+                vm.resume();
+                throw new Failure("the program has no threads");
+            }
+            cancelStep();
+            stopped = true;
+            return threadIds.containsValue(thread) ? thread : ts.get(0).id();
+        } catch (VMDisconnectedException e) {
+            throw new Failure("the program has ended");
+        }
+    }
+
+    /** The exception that thread stopped at. */
+    public synchronized ExceptionDetails exception(int thread) throws Failure {
+        ExceptionDetails d = exceptions.get(thread(thread));
+        if (d == null) {
+            throw new Failure("the thread did not stop at an exception");
+        }
+        return d;
     }
 
     /** Ends the program; the session reports its end. */
@@ -535,7 +742,9 @@ public final class Session {
                 EventSet es = vm.eventQueue().remove();
                 List<Integer> hits = new ArrayList<>();
                 ThreadReference where = null;
-                boolean disconnected = false;
+                StepEvent stepped = null;
+                List<Event> others = new ArrayList<>();
+                boolean disconnected = false, resume = true;
                 synchronized (this) {
                     for (Event e : es) {
                         switch (e) {
@@ -547,14 +756,21 @@ public final class Session {
                                     if (!hits.contains(i)) {
                                         hits.add(i);
                                     }
+                                } else if (b.request().getProperty(KIND) != null) {
+                                    others.add(b);
                                 }
                             }
+                            case StepEvent s -> stepped = s;
+                            case ExceptionEvent x -> others.add(x);
                             case ThreadStartEvent t -> {
                                 if (shown(t.thread())) {
                                     listener.thread("started", id(t.thread()));
                                 }
                             }
                             case ThreadDeathEvent t -> {
+                                if (step != null && step.thread.equals(t.thread())) {
+                                    cancelStep();
+                                }
                                 Integer id = threadIds.remove(t.thread());
                                 if (id != null) {
                                     listener.thread("exited", id);
@@ -565,14 +781,28 @@ public final class Session {
                             }
                         }
                     }
-                    if (where != null) {
-                        listener.stopped("breakpoint", id(where), hits);
+                    if (!disconnected) {
+                        try {
+                            if (where != null) {
+                                stop("breakpoint", where, hits, null);
+                                resume = false;
+                            }
+                            for (int k = 0; resume && k < others.size(); k++) {
+                                resume = !special(others.get(k));
+                            }
+                            if (resume && stepped != null) {
+                                resume = !stepped(stepped);
+                            }
+                        } catch (IncompatibleThreadStateException | InvalidStackFrameException
+                                 | ObjectCollectedException e) {
+                            // the thread runs or is gone: no stop
+                        }
                     }
                 }
                 if (disconnected) {
                     break;
                 }
-                if (where == null) {
+                if (resume) {
                     es.resume();
                 }
             }
@@ -593,8 +823,11 @@ public final class Session {
         return false;
     }
 
-    /** A class is prepared: a unit, its breakpoints are set. */
+    /** A class is prepared: a unit, its breakpoints are set; a class of the runtime that the filters need. */
     private void prepared(ReferenceType t) {
+        if (hook(t)) {
+            return;
+        }
         String unit = Info.unitOf(t.name());
         if (unit == null || units.containsKey(t.name())) {
             return;
@@ -611,6 +844,14 @@ public final class Session {
         Unit u = new Unit(t, Info.parse(unit, text));
         units.put(t.name(), u);
         types.add(u.info());
+        if (onEntry && u.info().main) {
+            for (Method m : t.methodsByName("$init")) {
+                BreakpointRequest r = vm.eventRequestManager().createBreakpointRequest(m.location());
+                r.setSuspendPolicy(EventRequest.SUSPEND_ALL);
+                r.putProperty(KIND, "entry");
+                r.enable();
+            }
+        }
         for (List<Bp> l : breakpoints.values()) {
             for (Bp b : l) {
                 if (matches(b.file, t.name(), u.info()) && resolve(b, u)) {
@@ -620,6 +861,323 @@ public final class Session {
                     listener.breakpoint(b.view());
                 }
             }
+        }
+    }
+
+    /**
+     * Makes the requests in the class t of the runtime that the filters of
+     * exceptions need; whether t is such a class.
+     */
+    private boolean hook(ReferenceType t) {
+        String n = t.name();
+        boolean runtime = n.equals("m3j.rt.M3Exception") || n.equals("m3j.rt.Rt");
+        if (!runtime && !JVM_ERRORS.containsKey(n)) {
+            return false;
+        }
+        if (!hooked.add(n)) {
+            return true;
+        }
+        EventRequestManager erm = vm.eventRequestManager();
+        switch (n) {
+            case "m3j.rt.M3Exception" -> hook(t, "at", "raise", raiseHooks);
+            case "m3j.rt.Rt" -> {
+                hook(t, "error", "error", errorHooks);
+                hook(t, "assertFailed", "assert", errorHooks);
+            }
+            default -> {
+                ExceptionRequest r = erm.createExceptionRequest(t, true, true);
+                r.setSuspendPolicy(EventRequest.SUSPEND_ALL);
+                r.putProperty(KIND, "jvm");
+                errorHooks.add(r);
+            }
+        }
+        filters();
+        return true;
+    }
+
+    /** A breakpoint at the start of the methods name of t, for kind. */
+    private void hook(ReferenceType t, String name, String kind, List<EventRequest> to) {
+        for (Method m : t.methodsByName(name)) {
+            Location l = m.location();
+            if (l != null) {
+                BreakpointRequest r = vm.eventRequestManager().createBreakpointRequest(l);
+                r.setSuspendPolicy(EventRequest.SUSPEND_ALL);
+                r.putProperty(KIND, kind);
+                to.add(r);
+            }
+        }
+    }
+
+    /** Reports a stop of the program, in t. */
+    private void stop(String reason, ThreadReference t, List<Integer> hits, String text) {
+        cancelStep();
+        stopped = true;
+        listener.stopped(reason, id(t), hits, text);
+    }
+
+    // ---- steps
+
+    private void cancelStep() {
+        if (step != null) {
+            if (step.request != null) {
+                try {
+                    vm.eventRequestManager().deleteEventRequest(step.request);
+                } catch (VMDisconnectedException e) {
+                    // it has ended
+                }
+            }
+            step = null;
+        }
+    }
+
+    /** A request for a step of t from line to line, into calls or out of the frame (depth). */
+    private StepRequest request(ThreadReference t, int depth) {
+        StepRequest r = vm.eventRequestManager().createStepRequest(t, StepRequest.STEP_LINE, depth);
+        for (String f : RUN_THROUGH) {
+            r.addClassExclusionFilter(f);
+        }
+        r.setSuspendPolicy(EventRequest.SUSPEND_ALL);
+        r.enable();
+        return r;
+    }
+
+    /**
+     * Whether l is in code that the compiler made for a unit without lines
+     * of its own (a bridge, a procedure value): a step goes through it into
+     * what it calls, where it goes out of other code (of the runtime).
+     */
+    private boolean helper(Location l) {
+        String n = l.declaringType().name();
+        int k = n.indexOf('$');
+        return units.containsKey(k < 0 ? n : n.substring(0, k));
+    }
+
+    /** The step of s went on to e; whether the program stopped. */
+    private boolean stepped(StepEvent e) throws IncompatibleThreadStateException {
+        Step s = step;
+        if (s == null || !e.thread().equals(s.thread)) {
+            vm.eventRequestManager().deleteEventRequest(e.request());
+            return false;
+        }
+        vm.eventRequestManager().deleteEventRequest(s.request);
+        s.request = null;
+        List<StackFrame> fs = s.thread.frames();
+        List<Run> rs = runs(fs);
+        int d = rs.size();
+        if (d == 0) {
+            // no Modula-3 code is left in the thread: it runs to its end
+            step = null;
+            return false;
+        }
+        Location loc = e.location();
+        boolean m3 = rs.get(0).from() == 0 && loc.lineNumber() > 0;
+        boolean returned = fs.size() < s.frames;
+        s.frames = fs.size();
+        int depth;
+        if (s.kind == StepKind.OUT) {
+            if (m3 && d < s.depth) {
+                return stepEnd(s);
+            }
+            depth = StepRequest.STEP_OUT;
+        } else if (!m3) {
+            depth = !helper(loc) || d > s.depth && s.kind == StepKind.OVER ? StepRequest.STEP_OUT
+                : StepRequest.STEP_INTO;
+        } else if (d > s.depth) {
+            if (s.kind == StepKind.IN) {
+                return stepEnd(s);
+            }
+            depth = StepRequest.STEP_OUT;
+        } else if (d < s.depth || lineStart(loc) || !returned && loc.lineNumber() != s.line) {
+            return stepEnd(s);
+        } else {
+            depth = StepRequest.STEP_INTO;
+        }
+        s.request = request(s.thread, depth);
+        return false;
+    }
+
+    private boolean stepEnd(Step s) {
+        stop(s.reason, s.thread, List.of(), null);
+        return true;
+    }
+
+    /** Whether l is where the code of a line starts (and not in the middle of a line). */
+    private static boolean lineStart(Location l) {
+        try {
+            for (Location x : l.method().locationsOfLine(l.lineNumber())) {
+                if (x.codeIndex() == l.codeIndex()) {
+                    return true;
+                }
+            }
+        } catch (AbsentInformationException e) {
+            // no lines
+        }
+        return false;
+    }
+
+    // ---- exceptions
+
+    /**
+     * The event e of a request of the session: the start of the main
+     * module, an exception or a runtime error; whether the program stopped.
+     */
+    private boolean special(Event e) throws IncompatibleThreadStateException {
+        ThreadReference t;
+        String kind;
+        if (e instanceof BreakpointEvent b) {
+            t = b.thread();
+            kind = (String) b.request().getProperty(KIND);
+        } else if (e instanceof ExceptionEvent x) {
+            t = x.thread();
+            kind = "jvm";
+        } else {
+            return false;
+        }
+        List<StackFrame> fs = t.frames();
+        List<Run> rs = runs(fs);
+        if (kind.equals("entry")) {
+            vm.eventRequestManager().deleteEventRequest(((BreakpointEvent) e).request());
+            Location l = fs.get(0).location();
+            if (l.lineNumber() > 0 && lineStart(l)) {
+                stop("entry", t, List.of(), null);
+                return true;
+            }
+            cancelStep();
+            step = new Step(t, StepKind.OVER, rs.size(), -1, "entry", fs.size());
+            step.request = request(t, StepRequest.STEP_INTO);
+            return false;
+        }
+        if (rs.isEmpty()) {
+            // not in Modula-3 code
+            return false;
+        }
+        String id = "RuntimeError.E";
+        String what;
+        List<String> classes = List.of(RUNTIME_ERROR);
+        boolean always = onError;
+        switch (kind) {
+            case "raise" -> {
+                if (rs.get(0).from() != 1) {
+                    // the place of a runtime error or of an exception that a RAISES clause stopped
+                    return false;
+                }
+                ObjectReference x = fs.get(0).thisObject();
+                classes = classes(x.referenceType());
+                id = m3Name(x.referenceType().name());
+                String arg = argument(x);
+                what = arg == null ? id : id + " (" + arg + ")";
+                always = onRaise;
+            }
+            case "error" -> {
+                List<Value> a = fs.get(0).getArgumentValues();
+                what = tag(!a.isEmpty() && a.get(0) instanceof IntegerValue i ? i.value() : -1);
+            }
+            case "assert" -> {
+                List<Value> a = fs.get(0).getArgumentValues();
+                what = "<*ASSERT*> failed" + (!a.isEmpty() && a.get(0) instanceof StringReference m
+                    ? ": " + m.value() : "");
+            }
+            default -> {
+                ExceptionEvent x = (ExceptionEvent) e;
+                ObjectReference o = x.exception();
+                if (!seen.add(o.uniqueID())) {
+                    return false;
+                }
+                if (seen.size() > 1000) {
+                    seen.remove(seen.iterator().next());
+                }
+                Location c = x.catchLocation();
+                if (c != null && !units.containsKey(c.declaringType().name())
+                    && !TOPS.contains(c.declaringType().name())) {
+                    // caught where it is thrown, in the runtime or the JDK
+                    return false;
+                }
+                Integer code = null;
+                for (String n : classes(o.referenceType())) {
+                    code = code != null ? code : JVM_ERRORS.get(n);
+                }
+                what = tag(code == null ? -1 : code);
+            }
+        }
+        if (!always && (!onUnhandled || handled(fs, rs, classes))) {
+            return false;
+        }
+        exceptions.put(t, new ExceptionDetails(id, what, always ? "always" : "unhandled"));
+        stop("exception", t, List.of(), what);
+        return true;
+    }
+
+    /**
+     * Whether an exception of one of classes (a class and its superclasses)
+     * raised in the stack fs (with the runs rs) is handled by a TRY EXCEPT.
+     */
+    private static boolean handled(List<StackFrame> fs, List<Run> rs, List<String> classes) {
+        List<String> cs = classes;
+        for (Run r : rs) {
+            int line = fs.get(r.from()).location().lineNumber();
+            Info info = r.unit().info();
+            for (Info.Method m : info.methods.values()) {
+                if (m.tries().isEmpty() || !rootOf(info, m.method()).equals(r.root())) {
+                    continue;
+                }
+                for (Info.Try t : m.tries()) {
+                    for (String c : cs) {
+                        if (t.handles(c, line)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Info.Method root = info.methods.get(r.root());
+            if (root != null && root.raises() != null && !cs.contains(RUNTIME_ERROR) && !cs.contains(JAVA_EXCEPTION)
+                && cs.stream().noneMatch(root.raises()::contains)) {
+                // not in the RAISES clause: a runtime error from here on
+                cs = List.of(RUNTIME_ERROR);
+            }
+        }
+        return false;
+    }
+
+    /** The names of class t and its superclasses. */
+    private static List<String> classes(ReferenceType t) {
+        List<String> out = new ArrayList<>();
+        for (ReferenceType c = t; c != null; c = c instanceof ClassType ct ? ct.superclass() : null) {
+            out.add(c.name());
+        }
+        return out;
+    }
+
+    /** The name of the exception of class cls as Modula-3 has it: m3.m.Main$Oops$35 is Main.Oops. */
+    static String m3Name(String cls) {
+        String s = cls.startsWith("m3.m.") || cls.startsWith("m3.i.") ? cls.substring(5) : cls;
+        String[] p = s.split("\\$");
+        return p.length >= 2 ? p[0] + "." + p[1] : s;
+    }
+
+    /** The argument of the exception x, shown, or null if it has none. */
+    private String argument(ObjectReference x) {
+        com.sun.jdi.Field f = x.referenceType().fieldByName("arg");
+        Value v = f == null ? null : x.getValue(f);
+        if (!(v instanceof ObjectReference o)) {
+            return null;
+        }
+        if (o instanceof StringReference s) {
+            return Values.text(s.value());
+        }
+        com.sun.jdi.Field value = o.referenceType().name().startsWith("java.lang.")
+            ? o.referenceType().fieldByName("value") : null;
+        if (value != null && o.getValue(value) instanceof com.sun.jdi.PrimitiveValue p) {
+            return p.toString();
+        }
+        return values.show("REFANY", new Values.Plain(o));
+    }
+
+    /** The text of the runtime error code. */
+    private static String tag(long code) {
+        try {
+            return m3.i.RuntimeError.Tag((int) code);
+        } catch (RuntimeException e) {
+            return "runtime error " + code;
         }
     }
 
@@ -734,50 +1292,79 @@ public final class Session {
             throw new Failure("the program has ended");
         }
         List<Frame> all = new ArrayList<>();
-        boolean runtime = false;
+        // at an exception, the frames of the runtime above the Modula-3 code
+        // are those of the RAISE: not shown
+        boolean top = exceptions.containsKey(t);
+        int i = 0;
+        List<Run> rs = runs(fs);
+        for (Run r : rs) {
+            if (!top) {
+                runtime(t, fs, i, r.from(), all);
+            }
+            top = false;
+            Location loc = fs.get(r.from()).location();
+            ReferenceType c = loc.declaringType();
+            Info info = r.unit().info();
+            String file = info.generic != null ? info.generic : sourceName(c, info);
+            Path path = sources.find(file);
+            int id = nextFrame++;
+            frames.put(id, new FrameRef(t, r.from(), r.to()));
+            all.add(new Frame(id, r.method().name(), Sources.baseName(file), path, loc.lineNumber(), path == null));
+            i = r.to() + 1;
+        }
+        runtime(t, fs, i, fs.size(), all);
+        return all;
+    }
+
+    /** Adds a frame [runtime] for the frames from..to-1 of t (fs) if any of them is shown. */
+    private void runtime(ThreadReference t, List<StackFrame> fs, int from, int to, List<Frame> all) {
+        for (int i = from; i < to; i++) {
+            if (!dropped(fs.get(i).location().declaringType().name())) {
+                int id = nextFrame++;
+                frames.put(id, new FrameRef(t, i, i));
+                all.add(new Frame(id, "[runtime]", null, null, 0, true));
+                return;
+            }
+        }
+    }
+
+    /** The runs of frames of Modula-3 code in the stack fs, the top one first. */
+    private List<Run> runs(List<StackFrame> fs) {
+        List<Run> out = new ArrayList<>();
         for (int i = 0; i < fs.size(); i++) {
             Location loc = fs.get(i).location();
             ReferenceType c = loc.declaringType();
             String mn = loc.method().name();
             Unit u = units.get(c.name());
             Info.Method im = u == null ? null : u.info().methods.get(mn);
-            if (im != null) {
-                int from = i;
-                String root = rootOf(u.info(), mn);
-                if (!root.equals(mn)) {
-                    // the frames of the chunks of the procedure, up to its own
-                    int j = i + 1;
-                    while (j < fs.size()) {
-                        Location lj = fs.get(j).location();
-                        if (!lj.declaringType().equals(c)) {
-                            break;
-                        }
-                        String nj = lj.method().name();
-                        if (nj.equals(root)) {
-                            j++;
-                            break;
-                        }
-                        if (!u.info().methods.containsKey(nj) || !rootOf(u.info(), nj).equals(root)) {
-                            break;
-                        }
-                        j++;
-                    }
-                    i = j - 1;
-                }
-                String file = u.info().generic != null ? u.info().generic : sourceName(c, u.info());
-                Path path = sources.find(file);
-                int id = nextFrame++;
-                frames.put(id, new FrameRef(t, from, i));
-                all.add(new Frame(id, im.name(), Sources.baseName(file), path, loc.lineNumber(), path == null));
-                runtime = false;
-            } else if (!dropped(c.name()) && !runtime) {
-                int id = nextFrame++;
-                frames.put(id, new FrameRef(t, i, i));
-                all.add(new Frame(id, "[runtime]", null, null, 0, true));
-                runtime = true;
+            if (im == null) {
+                continue;
             }
+            int from = i;
+            String root = rootOf(u.info(), mn);
+            if (!root.equals(mn)) {
+                // the frames of the chunks of the procedure, up to its own
+                int j = i + 1;
+                while (j < fs.size()) {
+                    Location lj = fs.get(j).location();
+                    if (!lj.declaringType().equals(c)) {
+                        break;
+                    }
+                    String nj = lj.method().name();
+                    if (nj.equals(root)) {
+                        j++;
+                        break;
+                    }
+                    if (!u.info().methods.containsKey(nj) || !rootOf(u.info(), nj).equals(root)) {
+                        break;
+                    }
+                    j++;
+                }
+                i = j - 1;
+            }
+            out.add(new Run(from, i, u, im, root));
         }
-        return all;
+        return out;
     }
 
     private FrameRef frameRef(int frame) throws Failure {

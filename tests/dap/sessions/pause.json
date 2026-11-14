@@ -1,0 +1,15 @@
+{
+ "launch": {"args": ["wait"]},
+ "steps": [
+  {"send": {"command": "pause", "arguments": {"threadId": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {"source": {"path": {"$src": "Main.m3"}}, "breakpoints": [{"line": {"$line": ["Main.m3", "(* @wait *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "pause", "arguments": {"threadId": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {"source": {"path": {"$src": "Main.m3"}}, "breakpoints": []}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}},
+  {"send": {"command": "pause", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "threads"}},
+  {"send": {"command": "next", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "terminate"}, "until": "terminated"}
+ ]
+}

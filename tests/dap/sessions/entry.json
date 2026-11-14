@@ -1,0 +1,13 @@
+{
+ "launch": {"stopOnEntry": true},
+ "steps": [
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "next", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "next", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "exceptionInfo", "arguments": {"threadId": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

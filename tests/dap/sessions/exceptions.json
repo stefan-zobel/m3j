@@ -1,0 +1,17 @@
+{
+ "steps": [
+  {"send": {"command": "setExceptionBreakpoints", "arguments": {"filters": ["raise"]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "exceptionInfo", "arguments": {"threadId": 1}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 2}}},
+  {"send": {"command": "scopes", "arguments": {"frameId": 1}}},
+  {"send": {"command": "variables", "arguments": {"variablesReference": 1}}},
+  {"send": {"command": "setExceptionBreakpoints", "arguments": {"filters": ["error"]}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "exceptionInfo", "arguments": {"threadId": 1}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 2}}},
+  {"send": {"command": "exceptionInfo", "arguments": {"threadId": 99}}},
+  {"send": {"command": "setExceptionBreakpoints", "arguments": {"filters": ["unhandled"]}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}
