@@ -1,0 +1,1118 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 85
+    },
+    {
+     "id": 2,
+     "verified": false,
+     "line": 114
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 2,
+    "verified": true,
+    "line": 114
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 85,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "Main",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 219,
+     "column": 1
+    },
+    {
+     "id": 3,
+     "name": "[runtime]",
+     "line": 0,
+     "column": 0,
+     "presentationHint": "subtle"
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "v",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "v"
+    },
+    {
+     "name": "p",
+     "value": "{x := 0, y := 0}",
+     "type": "Main.Point",
+     "variablesReference": 3,
+     "evaluateName": "p"
+    },
+    {
+     "name": "a",
+     "value": "{5, 6}",
+     "type": "ARRAY OF INTEGER",
+     "variablesReference": 4,
+     "indexedVariables": 2,
+     "evaluateName": "a"
+    },
+    {
+     "name": "chars",
+     "value": "{'a', 'b', 'c'}",
+     "type": "ARRAY OF CHAR",
+     "variablesReference": 5,
+     "indexedVariables": 3,
+     "evaluateName": "chars"
+    },
+    {
+     "name": "i",
+     "value": "7",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "i"
+    },
+    {
+     "name": "n",
+     "value": "8",
+     "type": "CARDINAL",
+     "variablesReference": 0,
+     "evaluateName": "n"
+    },
+    {
+     "name": "l",
+     "value": "-9",
+     "type": "LONGINT",
+     "variablesReference": 0,
+     "evaluateName": "l"
+    },
+    {
+     "name": "b",
+     "value": "TRUE",
+     "type": "BOOLEAN",
+     "variablesReference": 0,
+     "evaluateName": "b"
+    },
+    {
+     "name": "c",
+     "value": "'x'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "c"
+    },
+    {
+     "name": "w",
+     "value": "W'y'",
+     "type": "WIDECHAR",
+     "variablesReference": 0,
+     "evaluateName": "w"
+    },
+    {
+     "name": "r",
+     "value": "1.5",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "r"
+    },
+    {
+     "name": "d",
+     "value": "2.5",
+     "type": "LONGREAL",
+     "variablesReference": 0,
+     "evaluateName": "d"
+    },
+    {
+     "name": "e",
+     "value": "3.5",
+     "type": "EXTENDED",
+     "variablesReference": 0,
+     "evaluateName": "e"
+    },
+    {
+     "name": "col",
+     "value": "Blue",
+     "type": "Main.Color",
+     "variablesReference": 0,
+     "evaluateName": "col"
+    },
+    {
+     "name": "s",
+     "value": "4",
+     "type": "Main.Small",
+     "variablesReference": 0,
+     "evaluateName": "s"
+    },
+    {
+     "name": "t",
+     "value": "\"text\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "t"
+    },
+    {
+     "name": "nil",
+     "value": "NIL",
+     "type": "REFANY",
+     "variablesReference": 0,
+     "evaluateName": "nil"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "count",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "count"
+    },
+    {
+     "name": "color",
+     "value": "Green",
+     "type": "Main.Color",
+     "variablesReference": 0,
+     "evaluateName": "color"
+    },
+    {
+     "name": "palette",
+     "value": "{Red, Blue}",
+     "type": "Main.Palette",
+     "variablesReference": 0,
+     "evaluateName": "palette"
+    },
+    {
+     "name": "digits",
+     "value": "{1, 3, 64, 99}",
+     "type": "Main.Digits",
+     "variablesReference": 0,
+     "evaluateName": "digits"
+    },
+    {
+     "name": "greeting",
+     "value": "\"hello\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "greeting"
+    },
+    {
+     "name": "origin",
+     "value": "{x := 0, y := 0}",
+     "type": "Main.Point",
+     "variablesReference": 6,
+     "evaluateName": "origin"
+    },
+    {
+     "name": "grid",
+     "value": "{{...}, {...}}",
+     "type": "Main.Grid",
+     "variablesReference": 7,
+     "indexedVariables": 2,
+     "evaluateName": "grid"
+    },
+    {
+     "name": "list",
+     "value": "NIL",
+     "type": "Main.List",
+     "variablesReference": 0,
+     "evaluateName": "list"
+    },
+    {
+     "name": "counter",
+     "value": "Main.Counter{n := 1}",
+     "type": "Main.Counter",
+     "variablesReference": 8,
+     "evaluateName": "counter"
+    },
+    {
+     "name": "fun",
+     "value": "PROCEDURE Main.Twice",
+     "type": "Main.Fun",
+     "variablesReference": 0,
+     "evaluateName": "fun"
+    },
+    {
+     "name": "ratio",
+     "value": "0.5",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "ratio"
+    },
+    {
+     "name": "precise",
+     "value": "0.25",
+     "type": "LONGREAL",
+     "variablesReference": 0,
+     "evaluateName": "precise"
+    },
+    {
+     "name": "big",
+     "value": "10000000000",
+     "type": "LONGINT",
+     "variablesReference": 0,
+     "evaluateName": "big"
+    },
+    {
+     "name": "initial",
+     "value": "'M'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "initial"
+    },
+    {
+     "name": "wide",
+     "value": "W'\\x20ac'",
+     "type": "WIDECHAR",
+     "variablesReference": 0,
+     "evaluateName": "wide"
+    },
+    {
+     "name": "done",
+     "value": "FALSE",
+     "type": "BOOLEAN",
+     "variablesReference": 0,
+     "evaluateName": "done"
+    },
+    {
+     "name": "small",
+     "value": "3",
+     "type": "Main.Small",
+     "variablesReference": 0,
+     "evaluateName": "small"
+    },
+    {
+     "name": "letter",
+     "value": "'q'",
+     "type": "Main.Letter",
+     "variablesReference": 0,
+     "evaluateName": "letter"
+    },
+    {
+     "name": "v",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "v"
+    },
+    {
+     "name": "chars",
+     "value": "{'a', 'b', 'c'}",
+     "type": "ARRAY [0..2] OF CHAR",
+     "variablesReference": 9,
+     "indexedVariables": 3,
+     "evaluateName": "chars"
+    },
+    {
+     "name": "thread",
+     "value": "NIL",
+     "type": "Thread.T",
+     "variablesReference": 0,
+     "evaluateName": "thread"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "x",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "p.x"
+    },
+    {
+     "name": "y",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "p.y"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[0]",
+     "value": "5",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "a[0]"
+    },
+    {
+     "name": "[1]",
+     "value": "6",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "a[1]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[0]",
+     "value": "'a'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "chars[0]"
+    },
+    {
+     "name": "[1]",
+     "value": "'b'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "chars[1]"
+    },
+    {
+     "name": "[2]",
+     "value": "'c'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "chars[2]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[1]",
+     "value": "{0, 0, 0}",
+     "type": "ARRAY Main.Color OF INTEGER",
+     "variablesReference": 10,
+     "indexedVariables": 3,
+     "evaluateName": "grid[1]"
+    },
+    {
+     "name": "[2]",
+     "value": "{0, 0, 0}",
+     "type": "ARRAY Main.Color OF INTEGER",
+     "variablesReference": 11,
+     "indexedVariables": 3,
+     "evaluateName": "grid[2]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "n",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "counter.n"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[Red]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "grid[1][Red]"
+    },
+    {
+     "name": "[Green]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "grid[1][Green]"
+    },
+    {
+     "name": "[Blue]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "grid[1][Blue]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[1]",
+     "value": "'b'",
+     "type": "CHAR",
+     "variablesReference": 0,
+     "evaluateName": "chars[1]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 16,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 17,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 18,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "x",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "p.x"
+    },
+    {
+     "name": "y",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "p.y"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 19,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 12,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 13,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 20,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 21,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 22,
+  "success": false,
+  "command": "scopes",
+  "message": "no frame 99"
+ },
+ {
+  "type": "response",
+  "request_seq": 23,
+  "success": false,
+  "command": "variables",
+  "message": "no variables 99"
+ },
+ {
+  "type": "response",
+  "request_seq": 24,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    2
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 25,
+  "success": false,
+  "command": "variables",
+  "message": "no variables 3"
+ },
+ {
+  "type": "response",
+  "request_seq": 26,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Structured",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 114,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 27,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 28,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "pt",
+     "value": "{x := 3, y := 4}",
+     "type": "Main.Point",
+     "variablesReference": 3,
+     "evaluateName": "pt"
+    },
+    {
+     "name": "g",
+     "value": "{{...}, {...}}",
+     "type": "Main.Grid",
+     "variablesReference": 4,
+     "indexedVariables": 2,
+     "evaluateName": "g"
+    },
+    {
+     "name": "pal",
+     "value": "{Green}",
+     "type": "Main.Palette",
+     "variablesReference": 0,
+     "evaluateName": "pal"
+    },
+    {
+     "name": "dig",
+     "value": "{0, 70}",
+     "type": "Main.Digits",
+     "variablesReference": 0,
+     "evaluateName": "dig"
+    },
+    {
+     "name": "lst",
+     "value": "Main.List{head := 1, tail := Main.List}",
+     "type": "Main.List",
+     "variablesReference": 5,
+     "evaluateName": "lst"
+    },
+    {
+     "name": "named",
+     "value": "Main.Named{n := 6, name := \"five\"}",
+     "type": "Main.Named",
+     "variablesReference": 6,
+     "evaluateName": "named"
+    },
+    {
+     "name": "shape",
+     "value": "Shapes.T{kind := Circle, size := 2.0}",
+     "type": "Shapes.T",
+     "variablesReference": 7,
+     "evaluateName": "shape"
+    },
+    {
+     "name": "any",
+     "value": "Main.Named{n := 6, name := \"five\"}",
+     "type": "REFANY",
+     "variablesReference": 8,
+     "evaluateName": "any"
+    },
+    {
+     "name": "f",
+     "value": "PROCEDURE Main.Twice",
+     "type": "Main.Fun",
+     "variablesReference": 0,
+     "evaluateName": "f"
+    },
+    {
+     "name": "open",
+     "value": "REF ARRAY OF INTEGER{7, 0, 0}",
+     "type": "REF ARRAY OF INTEGER",
+     "variablesReference": 9,
+     "indexedVariables": 3,
+     "evaluateName": "open"
+    },
+    {
+     "name": "stack",
+     "value": "IntStack.T{items := REF ARRAY OF INTEGER, size := 1}",
+     "type": "IntStack.T",
+     "variablesReference": 10,
+     "evaluateName": "stack"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 29,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[1]",
+     "value": "{10, 11, 12}",
+     "type": "ARRAY Main.Color OF INTEGER",
+     "variablesReference": 11,
+     "indexedVariables": 3,
+     "evaluateName": "g[1]"
+    },
+    {
+     "name": "[2]",
+     "value": "{20, 21, 22}",
+     "type": "ARRAY Main.Color OF INTEGER",
+     "variablesReference": 12,
+     "indexedVariables": 3,
+     "evaluateName": "g[2]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 30,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "head",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "lst.head"
+    },
+    {
+     "name": "tail",
+     "value": "Main.List{head := 2, tail := NIL}",
+     "type": "Main.List",
+     "variablesReference": 13,
+     "evaluateName": "lst.tail"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 31,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "n",
+     "value": "6",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "named.n"
+    },
+    {
+     "name": "name",
+     "value": "\"five\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "named.name"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 32,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "kind",
+     "value": "Circle",
+     "type": "Shapes.Kind",
+     "variablesReference": 0,
+     "evaluateName": "shape.kind"
+    },
+    {
+     "name": "size",
+     "value": "2.0",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "shape.size"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 33,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "n",
+     "value": "6",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "any.n"
+    },
+    {
+     "name": "name",
+     "value": "\"five\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "any.name"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 34,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[0]",
+     "value": "7",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "open[0]"
+    },
+    {
+     "name": "[1]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "open[1]"
+    },
+    {
+     "name": "[2]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "open[2]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 35,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "items",
+     "value": "REF ARRAY OF INTEGER{42, 0, 0, 0}",
+     "type": "REF ARRAY OF INTEGER",
+     "variablesReference": 14,
+     "indexedVariables": 4,
+     "evaluateName": "stack.items"
+    },
+    {
+     "name": "size",
+     "value": "1",
+     "type": "CARDINAL",
+     "variablesReference": 0,
+     "evaluateName": "stack.size"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 36,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "head",
+     "value": "2",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "lst.tail.head"
+    },
+    {
+     "name": "tail",
+     "value": "NIL",
+     "type": "Main.List",
+     "variablesReference": 0,
+     "evaluateName": "lst.tail.tail"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 37,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[0]",
+     "value": "42",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "stack.items[0]"
+    },
+    {
+     "name": "[1]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "stack.items[1]"
+    },
+    {
+     "name": "[2]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "stack.items[2]"
+    },
+    {
+     "name": "[3]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "stack.items[3]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 38,
+  "success": true,
+  "command": "terminate"
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {}
+ },
+ {
+  "exit": 0
+ }
+]

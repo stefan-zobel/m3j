@@ -20,10 +20,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.Bootstrap;
+import com.sun.jdi.ClassType;
 import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.InvalidStackFrameException;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectCollectedException;
+import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadGroupReference;
@@ -60,7 +63,15 @@ import com.sun.jdi.request.ThreadStartRequest;
  *
  * <p>Threads are numbered by the session from 1, in the order it sees
  * them; the threads of the JVM and the thread that only waits for the
- * program to end are not shown. Frames are numbered from 1 at each stop.
+ * program to end are not shown. Frames are numbered from 1 at each stop,
+ * and so are the references to scopes and values whose parts can be
+ * listed.
+ *
+ * <p>The scopes of a frame are its locals (the variables of the procedure
+ * that are in scope at its line, the formals among them), the variables
+ * of each enclosing procedure that its nested procedures use (only those
+ * live in a frame that the nested ones reach), and the variables of its
+ * unit (with those of the interface of the same name).
  */
 public final class Session {
 
@@ -101,6 +112,16 @@ public final class Session {
     /** The frames of a stack, from startFrame, and how many there are in all. */
     public record Stack(List<Frame> frames, int total) {}
 
+    /** A scope of a frame: its variables are listed by ref; locals are those of the procedure itself. */
+    public record Scope(String name, boolean locals, int ref, boolean expensive) {}
+
+    /**
+     * A variable, or a part of a value: its value in one line, its type,
+     * the reference to its parts (0 if it has none), the number of its
+     * elements if it is an array, and the designator that names it.
+     */
+    public record Variable(String name, String value, String type, int ref, int indexed, String designator) {}
+
     /** How to start a program. */
     public record Launch(String java, List<String> classpath, String mainClass, List<String> args, Path cwd,
                          Map<String, String> env, List<String> javaOptions) {}
@@ -118,6 +139,21 @@ public final class Session {
 
     /** A frame of the client: frames from..to of the stack of thread. */
     private record FrameRef(ThreadReference thread, int from, int to) {}
+
+    /** The parts of a scope, read when they are asked for. */
+    private interface Parts {
+        List<Values.Part> get();
+    }
+
+    /** What a reference stands for: a scope, or a value with parts. */
+    private sealed interface Container permits ScopeRef, ValueRef {}
+
+    private record ScopeRef(Parts parts) implements Container {}
+
+    private record ValueRef(Values.Part part) implements Container {}
+
+    /** At most this many elements of an array when the client asks for all of them. */
+    private static final int ELEMENTS = 10000;
 
     private static final class Bp {
         final int id;
@@ -152,8 +188,12 @@ public final class Session {
     private final Map<Integer, FrameRef> frames = new HashMap<>();
     /** The frames of the threads at this stop. */
     private final Map<ThreadReference, List<Frame>> stacks = new HashMap<>();
+    /** The references of this stop. */
+    private final Map<Integer, Container> refs = new HashMap<>();
+    private final TypeTable types = new TypeTable();
+    private final Values values = new Values(types, this::procedure);
     private final List<Thread> drains = new ArrayList<>();
-    private int nextBp = 1, nextThread = 1, nextFrame = 1;
+    private int nextBp = 1, nextThread = 1, nextFrame = 1, nextRef = 1;
     private boolean started, ended, killed;
 
     private Session(VirtualMachine vm, Process process, Sources sources, Listener listener,
@@ -312,7 +352,9 @@ public final class Session {
         }
         frames.clear();
         stacks.clear();
+        refs.clear();
         nextFrame = 1;
+        nextRef = 1;
         try {
             vm.resume();
         } catch (VMDisconnectedException e) {
@@ -568,6 +610,7 @@ public final class Session {
         }
         Unit u = new Unit(t, Info.parse(unit, text));
         units.put(t.name(), u);
+        types.add(u.info());
         for (List<Bp> l : breakpoints.values()) {
             for (Bp b : l) {
                 if (matches(b.file, t.name(), u.info()) && resolve(b, u)) {
@@ -735,6 +778,268 @@ public final class Session {
             }
         }
         return all;
+    }
+
+    private FrameRef frameRef(int frame) throws Failure {
+        if (ended) {
+            throw new Failure("the program has ended");
+        }
+        FrameRef f = frames.get(frame);
+        if (f == null) {
+            throw new Failure("no frame " + frame);
+        }
+        return f;
+    }
+
+    // ---- variables
+
+    /** The scopes of frame. */
+    public synchronized List<Scope> scopes(int frame) throws Failure {
+        FrameRef f = frameRef(frame);
+        try {
+            ThreadReference t = f.thread();
+            Location loc = t.frame(f.from()).location();
+            Unit u = units.get(loc.declaringType().name());
+            if (u == null || !u.info().methods.containsKey(loc.method().name())) {
+                return List.of();
+            }
+            int line = loc.lineNumber();
+            String root = rootOf(u.info(), loc.method().name());
+            List<StackFrame> run = new ArrayList<>();
+            for (int i = f.from(); i <= f.to(); i++) {
+                run.add(t.frame(i));
+            }
+            List<Scope> out = new ArrayList<>();
+            out.add(new Scope("Locals", true, ref(new ScopeRef(() -> locals(u, root, run, line))), false));
+            ObjectReference up = link(run);
+            for (int k = 0; up != null && k < 100; k++) {
+                ObjectReference fo = up;
+                Unit fu = frameUnit(fo);
+                Info.Method fm = fu == null ? null : frameMethod(fu, fo);
+                if (fm == null) {
+                    break;
+                }
+                out.add(new Scope(fm.name(), false,
+                                  ref(new ScopeRef(() -> enclosing(fu, fm.method(), fo, line))), false));
+                Values.Home h = Values.fields(fo);
+                up = h.has("up") && h.get("up") instanceof ObjectReference o ? o : null;
+            }
+            boolean module = u.type().name().startsWith("m3.m.");
+            out.add(new Scope((module ? "Module " : "Interface ") + u.info().unit, false,
+                              ref(new ScopeRef(() -> globals(u))), true));
+            return out;
+        } catch (IncompatibleThreadStateException | InvalidStackFrameException e) {
+            throw new Failure("the thread is running");
+        } catch (VMDisconnectedException | ObjectCollectedException e) {
+            throw new Failure("the program has ended");
+        }
+    }
+
+    private int ref(Container c) {
+        int id = nextRef++;
+        refs.put(id, c);
+        return id;
+    }
+
+    /**
+     * The parts of the scope or value ref: with filter "indexed" the
+     * elements start.. (count of them, 0: all) of an array, with "named"
+     * the parts that are no elements, else all.
+     */
+    public synchronized List<Variable> variables(int ref, String filter, int start, int count) throws Failure {
+        if (ended) {
+            throw new Failure("the program has ended");
+        }
+        Container c = refs.get(ref);
+        if (c == null) {
+            throw new Failure("no variables " + ref);
+        }
+        List<Values.Part> parts;
+        try {
+            switch (c) {
+                case ScopeRef s -> parts = "indexed".equals(filter) ? List.of() : s.parts().get();
+                case ValueRef v -> {
+                    Values.Part p = v.part();
+                    boolean array = values.count(p.type(), p.value()) >= 0;
+                    if (array ? "named".equals(filter) : "indexed".equals(filter)) {
+                        parts = List.of();
+                    } else {
+                        parts = values.parts(p.type(), p.value(), p.designator(), array ? start : 0,
+                                             array && count <= 0 ? ELEMENTS : count);
+                    }
+                }
+            }
+        } catch (InvalidStackFrameException e) {
+            throw new Failure("the thread is running");
+        } catch (VMDisconnectedException | ObjectCollectedException e) {
+            throw new Failure("the program has ended");
+        }
+        List<Variable> out = new ArrayList<>();
+        for (Values.Part p : parts) {
+            int n = values.count(p.type(), p.value());
+            int r = values.expandable(p.type(), p.value()) ? ref(new ValueRef(p)) : 0;
+            out.add(new Variable(p.name(), values.show(p.type(), p.value()), types.show(p.type()), r,
+                                 Math.max(n, 0), p.designator()));
+        }
+        return out;
+    }
+
+    /**
+     * The variables of the procedure root of unit u in scope at line: in
+     * the slots of the frames of run (root and its chunks), in the frame
+     * of the procedure.
+     */
+    private List<Values.Part> locals(Unit u, String root, List<StackFrame> run, int line) {
+        Map<String, StackFrame> byMethod = new HashMap<>();
+        ObjectReference frame = null;
+        for (StackFrame sf : run) {
+            byMethod.putIfAbsent(sf.location().method().name(), sf);
+            if (frame == null && Values.slots(sf).get("$frame") instanceof ObjectReference o) {
+                frame = o;
+            }
+        }
+        Map<String, Values.Part> out = new LinkedHashMap<>();
+        for (Info.Method m : u.info().methods.values()) {
+            if (!rootOf(u.info(), m.method()).equals(root)) {
+                continue;
+            }
+            StackFrame sf = byMethod.get(m.method());
+            for (Info.Var v : m.vars()) {
+                Values.V val;
+                if (v.inSlot()) {
+                    if (sf == null) {
+                        continue;
+                    }
+                    Values.Home h = Values.slots(sf);
+                    if (!h.has(v.name())) {
+                        continue;
+                    }
+                    val = values.read(v.type(), h, v.name());
+                } else if (!covers(v, line)) {
+                    continue;
+                } else if (v.inFrame()) {
+                    if (frame == null) {
+                        continue;
+                    }
+                    val = values.read(v.type(), Values.fields(frame), v.home());
+                } else {
+                    val = new Values.None("an alias, without a value of its own");
+                }
+                out.put(v.name(), new Values.Part(v.name(), v.type(), val, v.name()));
+            }
+        }
+        return new ArrayList<>(out.values());
+    }
+
+    /** The variables of the procedure method of unit u, in scope at line, in its frame fo. */
+    private List<Values.Part> enclosing(Unit u, String method, ObjectReference fo, int line) {
+        Map<String, Values.Part> out = new LinkedHashMap<>();
+        for (Info.Method m : u.info().methods.values()) {
+            if (!rootOf(u.info(), m.method()).equals(method)) {
+                continue;
+            }
+            for (Info.Var v : m.vars()) {
+                if (v.inFrame() && covers(v, line)) {
+                    out.put(v.name(), new Values.Part(v.name(), v.type(),
+                                                      values.read(v.type(), Values.fields(fo), v.home()), v.name()));
+                }
+            }
+        }
+        return new ArrayList<>(out.values());
+    }
+
+    /** The variables of unit u, and of the interface of the same name. */
+    private List<Values.Part> globals(Unit u) {
+        List<Values.Part> out = new ArrayList<>();
+        List<Unit> us = new ArrayList<>();
+        us.add(u);
+        Unit i = units.get("m3.i." + u.info().unit);
+        if (u.type().name().startsWith("m3.m.") && i != null) {
+            us.add(i);
+        }
+        for (Unit x : us) {
+            Values.Home h = Values.statics(x.type());
+            for (Map.Entry<String, String> g : x.info().globals.entrySet()) {
+                out.add(new Values.Part(g.getKey(), g.getValue(), values.read(g.getValue(), h, g.getKey()), g.getKey()));
+            }
+        }
+        return out;
+    }
+
+    private static boolean covers(Info.Var v, int line) {
+        return (v.from() <= 0 || v.from() <= line) && (v.to() <= 0 || line <= v.to());
+    }
+
+    /** The frame of the procedure that encloses that of run: $up, or the field up of $frame. */
+    private static ObjectReference link(List<StackFrame> run) {
+        for (StackFrame sf : run) {
+            if (Values.slots(sf).get("$up") instanceof ObjectReference o) {
+                return o;
+            }
+        }
+        for (StackFrame sf : run) {
+            if (Values.slots(sf).get("$frame") instanceof ObjectReference o) {
+                Values.Home h = Values.fields(o);
+                return h.has("up") && h.get("up") instanceof ObjectReference u ? u : null;
+            }
+        }
+        return null;
+    }
+
+    /** The unit of the frame object fo, of class UNITCLASS$F$METHOD. */
+    private Unit frameUnit(ObjectReference fo) {
+        String n = fo.referenceType().name();
+        int k = n.indexOf("$F$");
+        return k < 0 ? null : units.get(n.substring(0, k));
+    }
+
+    /** The procedure of the frame object fo of unit u. */
+    private static Info.Method frameMethod(Unit u, ObjectReference fo) {
+        String n = fo.referenceType().name();
+        String m = n.substring(n.indexOf("$F$") + 3);
+        for (Info.Method im : u.info().methods.values()) {
+            if ((im.kind() == 'P' || im.kind() == 'B') && im.method().replace('$', '_').equals(m)) {
+                return im;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The name of the procedure of a procedure value of class c, or null:
+     * a closure of a nested procedure is of class UNITCLASS$C$METHOD, a
+     * top-level procedure a lambda whose class calls the method.
+     */
+    private String procedure(ClassType c) {
+        String cls = c.name();
+        int k = cls.indexOf("$C$");
+        if (k > 0) {
+            Unit u = units.get(cls.substring(0, k));
+            if (u != null) {
+                String m = cls.substring(k + 3);
+                for (Info.Method im : u.info().methods.values()) {
+                    if (im.kind() == 'P' && im.method().replace('$', '_').equals(m)) {
+                        return im.name();
+                    }
+                }
+            }
+            return null;
+        }
+        if (!cls.contains("$$Lambda")) {
+            return null;
+        }
+        try {
+            for (String[] r : Values.methodRefs(c)) {
+                Unit u = units.get(r[0]);
+                Info.Method im = u == null ? null : u.info().methods.get(r[1]);
+                if (im != null && im.kind() == 'P') {
+                    return im.name();
+                }
+            }
+        } catch (RuntimeException e) {
+            // no constant pool
+        }
+        return null;
     }
 
     /** The procedure (or body) of the method mn: itself, or the root of the chunk or loop. */

@@ -1,0 +1,1361 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 127
+    },
+    {
+     "id": 2,
+     "verified": false,
+     "line": 140
+    },
+    {
+     "id": 3,
+     "verified": false,
+     "line": 143
+    },
+    {
+     "id": 4,
+     "verified": false,
+     "line": 148
+    },
+    {
+     "id": 5,
+     "verified": false,
+     "line": 155
+    },
+    {
+     "id": 6,
+     "verified": false,
+     "line": 160
+    },
+    {
+     "id": 7,
+     "verified": false,
+     "line": 178
+    },
+    {
+     "id": 8,
+     "verified": false,
+     "line": 193
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 9,
+     "verified": false,
+     "line": 19
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 10,
+     "verified": false,
+     "line": 16
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 10,
+    "verified": true,
+    "line": 16
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 9,
+    "verified": true,
+    "line": 19
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 127
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 2,
+    "verified": true,
+    "line": 140
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 3,
+    "verified": true,
+    "line": 143
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 4,
+    "verified": true,
+    "line": 148
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 5,
+    "verified": true,
+    "line": 155
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 6,
+    "verified": true,
+    "line": 160
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 7,
+    "verified": true,
+    "line": 178
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 8,
+    "verified": true,
+    "line": 193
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    9
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "IntStack.Push",
+     "source": {
+      "name": "Stack.mg",
+      "path": "<src>/Stack.mg"
+     },
+     "line": 19,
+     "column": 1
+    }
+   ],
+   "totalFrames": 4
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module IntStack",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "s",
+     "value": "IntStack.T{items := REF ARRAY OF INTEGER, size := 0}",
+     "type": "IntStack.T",
+     "variablesReference": 3,
+     "evaluateName": "s"
+    },
+    {
+     "name": "e",
+     "value": "42",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "e"
+    },
+    {
+     "name": "bigger",
+     "value": "NIL",
+     "type": "REF ARRAY OF INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "bigger"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "items",
+     "value": "REF ARRAY OF INTEGER{0, 0, 0, 0}",
+     "type": "REF ARRAY OF INTEGER",
+     "variablesReference": 4,
+     "indexedVariables": 4,
+     "evaluateName": "s.items"
+    },
+    {
+     "name": "size",
+     "value": "0",
+     "type": "CARDINAL",
+     "variablesReference": 0,
+     "evaluateName": "s.size"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "[0]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "s.items[0]"
+    },
+    {
+     "name": "[1]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "s.items[1]"
+    },
+    {
+     "name": "[2]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "s.items[2]"
+    },
+    {
+     "name": "[3]",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "s.items[3]"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    10
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Shapes.Area",
+     "source": {
+      "name": "Shapes.m3",
+      "path": "<src>/Shapes.m3"
+     },
+     "line": 16,
+     "column": 1
+    }
+   ],
+   "totalFrames": 4
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Shapes",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 16,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "self",
+     "value": "Shapes.T{kind := Circle, size := 2.0}",
+     "type": "Shapes.T",
+     "variablesReference": 3,
+     "evaluateName": "self"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 17,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "made",
+     "value": "2",
+     "type": "CARDINAL",
+     "variablesReference": 0,
+     "evaluateName": "made"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 18,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "kind",
+     "value": "Circle",
+     "type": "Shapes.Kind",
+     "variablesReference": 0,
+     "evaluateName": "self.kind"
+    },
+    {
+     "name": "size",
+     "value": "2.0",
+     "type": "REAL",
+     "variablesReference": 0,
+     "evaluateName": "self.size"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 19,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 20,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Outer.Inner",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 127,
+     "column": 1
+    }
+   ],
+   "totalFrames": 4
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 21,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Main.Outer",
+     "variablesReference": 2,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 3,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 22,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "m",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "m"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 23,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "captured",
+     "value": "6",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "captured"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 24,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    2
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 25,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 140,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 26,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 27,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "sum",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "sum"
+    },
+    {
+     "name": "any",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "REFANY",
+     "variablesReference": 3,
+     "evaluateName": "any"
+    },
+    {
+     "name": "p",
+     "value": "(an alias, without a value of its own)",
+     "type": "Main.Point",
+     "variablesReference": 0,
+     "evaluateName": "p"
+    },
+    {
+     "name": "q",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "q"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 28,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    3
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 29,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 143,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 30,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 31,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "sum",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "sum"
+    },
+    {
+     "name": "any",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "REFANY",
+     "variablesReference": 3,
+     "evaluateName": "any"
+    },
+    {
+     "name": "i",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "i"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 32,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 11,
+     "verified": true,
+     "line": 148
+    },
+    {
+     "id": 12,
+     "verified": true,
+     "line": 155
+    },
+    {
+     "id": 13,
+     "verified": true,
+     "line": 160
+    },
+    {
+     "id": 14,
+     "verified": true,
+     "line": 178
+    },
+    {
+     "id": 15,
+     "verified": true,
+     "line": 193
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 33,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    11
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 34,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 148,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 35,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 36,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "sum",
+     "value": "7",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "sum"
+    },
+    {
+     "name": "any",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "REFANY",
+     "variablesReference": 3,
+     "evaluateName": "any"
+    },
+    {
+     "name": "l",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "Main.List",
+     "variablesReference": 4,
+     "evaluateName": "l"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 37,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    12
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 38,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 155,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 39,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 40,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "sum",
+     "value": "16",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "sum"
+    },
+    {
+     "name": "any",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "REFANY",
+     "variablesReference": 3,
+     "evaluateName": "any"
+    },
+    {
+     "name": "code",
+     "value": "16",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "code"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 41,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    13
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 42,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Bindings",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 160,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 43,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 44,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "sum",
+     "value": "32",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "sum"
+    },
+    {
+     "name": "any",
+     "value": "Main.List{head := 9, tail := NIL}",
+     "type": "REFANY",
+     "variablesReference": 3,
+     "evaluateName": "any"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 45,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    14
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 46,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Big",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 178,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 47,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 48,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "n",
+     "value": "4",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "n"
+    },
+    {
+     "name": "a",
+     "value": "77",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "a"
+    },
+    {
+     "name": "b",
+     "value": "42",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "b"
+    },
+    {
+     "name": "c",
+     "value": "64",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "c"
+    },
+    {
+     "name": "text",
+     "value": "\"big\"",
+     "type": "TEXT",
+     "variablesReference": 0,
+     "evaluateName": "text"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 49,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 2,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    15
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 50,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Work",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 193,
+     "column": 1
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 51,
+  "success": true,
+  "command": "scopes",
+  "body": {
+   "scopes": [
+    {
+     "name": "Locals",
+     "presentationHint": "locals",
+     "variablesReference": 1,
+     "expensive": false
+    },
+    {
+     "name": "Module Main",
+     "variablesReference": 2,
+     "expensive": true
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 52,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "self",
+     "value": "Main.Worker{steps := 3}",
+     "type": "Main.Worker",
+     "variablesReference": 3,
+     "evaluateName": "self"
+    },
+    {
+     "name": "total",
+     "value": "0",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "total"
+    },
+    {
+     "name": "i",
+     "value": "1",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "i"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 53,
+  "success": true,
+  "command": "variables",
+  "body": {
+   "variables": [
+    {
+     "name": "steps",
+     "value": "3",
+     "type": "INTEGER",
+     "variablesReference": 0,
+     "evaluateName": "self.steps"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 54,
+  "success": true,
+  "command": "terminate"
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {}
+ },
+ {
+  "exit": 0
+ }
+]

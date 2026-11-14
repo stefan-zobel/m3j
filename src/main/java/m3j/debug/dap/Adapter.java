@@ -184,6 +184,8 @@ public final class Adapter implements Session.Listener {
             }
             case "threads" -> threads();
             case "stackTrace" -> stackTrace(args);
+            case "scopes" -> scopes(args);
+            case "variables" -> variables(args);
             case "continue" -> {
                 session().resume();
                 yield obj("allThreadsContinued", true);
@@ -333,6 +335,36 @@ public final class Adapter implements Session.Listener {
             out.add(m);
         }
         return obj("stackFrames", out, "totalFrames", s.total());
+    }
+
+    private Object scopes(Map<?, ?> args) throws Failure {
+        List<Object> out = new ArrayList<>();
+        for (Session.Scope s : session().scopes(integer(args, "frameId", 0))) {
+            Map<String, Object> m = obj("name", s.name());
+            if (s.locals()) {
+                m.put("presentationHint", "locals");
+            }
+            m.put("variablesReference", s.ref());
+            m.put("expensive", s.expensive());
+            out.add(m);
+        }
+        return obj("scopes", out);
+    }
+
+    private Object variables(Map<?, ?> args) throws Failure {
+        List<Object> out = new ArrayList<>();
+        for (Session.Variable v : session().variables(integer(args, "variablesReference", 0),
+                                                      string(args, "filter", null),
+                                                      integer(args, "start", 0), integer(args, "count", 0))) {
+            Map<String, Object> m = obj("name", v.name(), "value", v.value(), "type", v.type(),
+                                        "variablesReference", v.ref());
+            if (v.ref() != 0 && v.indexed() > 0) {
+                m.put("indexedVariables", v.indexed());
+            }
+            m.put("evaluateName", v.designator());
+            out.add(m);
+        }
+        return obj("variables", out);
     }
 
     // ---- events of the session
