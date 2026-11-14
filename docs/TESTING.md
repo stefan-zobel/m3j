@@ -35,7 +35,8 @@ JDK25=/path/to/jdk-25 python3 tools/zip_test.py                 # the library zi
 JDK25=/path/to/jdk-25 python3 tools/regexp_test.py              # the library regexp, against java.util.regex
 JDK25=/path/to/jdk-25 python3 tools/lsp_test.py                 # the language server (and the client of the
                                                                 # extension for Visual Studio Code, with node)
-JDK25=/path/to/jdk-25 python3 tools/dap_test.py                 # the debugger: what the compiler describes for it
+JDK25=/path/to/jdk-25 python3 tools/dap_test.py                 # the debugger: what the compiler describes for it,
+                                                                # sessions of its debug adapter
 JDK25=/path/to/jdk-25 python3 tools/feedreader_test.py          # the example examples/feedreader (needs its
                                                                 # driver of SQLite, see its README)
 JDK25=/path/to/jdk-25 python3 tools/perf.py                     # benchmarks (tests/bench)

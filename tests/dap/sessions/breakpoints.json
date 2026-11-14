@@ -1,0 +1,27 @@
+{
+ "steps": [
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @scalars *)"]}},
+                    {"line": {"$line": ["Main.m3", "(* @inner *)"]}},
+                    {"line": {"$line": ["Main.m3", "(* @bigmiddle *)"]}}]}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Stack.mg"}},
+    "breakpoints": [{"line": {"$line": ["Stack.mg", "(* @push *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "threads"}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "<m3j>/lib/libm3/src/rw/IO.m3"}},
+    "breakpoints": [{"line": {"$line": ["<m3j>/lib/libm3/src/rw/IO.m3", "IF wr = NIL THEN wr := Stdio.stdout"]}}]}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

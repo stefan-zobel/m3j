@@ -1,0 +1,429 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 135
+    },
+    {
+     "id": 2,
+     "verified": false,
+     "line": 62
+    },
+    {
+     "id": 3,
+     "verified": false,
+     "line": 65
+    },
+    {
+     "id": 4,
+     "verified": false,
+     "line": 105
+    },
+    {
+     "id": 5,
+     "verified": false,
+     "line": 85
+    },
+    {
+     "id": 6,
+     "verified": false,
+     "line": 127
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 7,
+     "verified": false,
+     "line": 4
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 8,
+     "verified": false,
+     "line": 17
+    },
+    {
+     "id": 9,
+     "verified": false,
+     "line": 19
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 10,
+     "verified": false,
+     "line": 1,
+     "message": "not a source of Modula-3"
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 8,
+    "verified": true,
+    "line": 17
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 9,
+    "verified": false,
+    "line": 19,
+    "message": "no code at line 19"
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    8
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Shapes",
+     "source": {
+      "name": "Shapes.i3",
+      "path": "<src>/Shapes.i3"
+     },
+     "line": 17,
+     "column": 1
+    },
+    {
+     "id": 2,
+     "name": "[runtime]",
+     "line": 0,
+     "column": 0,
+     "presentationHint": "subtle"
+    }
+   ],
+   "totalFrames": 2
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 7,
+    "verified": false,
+    "line": 4,
+    "message": "the code of this instance is in Stack.mg"
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": false,
+    "line": 135,
+    "message": "no code at line 135"
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 2,
+    "verified": false,
+    "line": 62,
+    "message": "no code at line 62"
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 3,
+    "verified": true,
+    "line": 65
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 4,
+    "verified": true,
+    "line": 106
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 5,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 6,
+    "verified": true,
+    "line": 127
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    5
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Scalars",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 85,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 11,
+     "verified": true,
+     "line": 178
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 12,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    11
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 13,
+  "success": true,
+  "command": "stackTrace",
+  "body": {
+   "stackFrames": [
+    {
+     "id": 1,
+     "name": "Main.Big",
+     "source": {
+      "name": "Main.m3",
+      "path": "<src>/Main.m3"
+     },
+     "line": 178,
+     "column": 1
+    }
+   ],
+   "totalFrames": 3
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 14,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": []
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 15,
+  "success": true,
+  "command": "continue",
+  "body": {
+   "allThreadsContinued": true
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "stdout": "v = 2583, count = 35, shapes = 2\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

@@ -1,0 +1,77 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "setBreakpoints",
+  "body": {
+   "breakpoints": [
+    {
+     "id": 1,
+     "verified": false,
+     "line": 85
+    }
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "breakpoint",
+  "body": {
+   "reason": "changed",
+   "breakpoint": {
+    "id": 1,
+    "verified": true,
+    "line": 85
+   }
+  }
+ },
+ {
+  "type": "event",
+  "event": "stopped",
+  "body": {
+   "reason": "breakpoint",
+   "threadId": 1,
+   "allThreadsStopped": true,
+   "hitBreakpointIds": [
+    1
+   ]
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": true,
+  "command": "disconnect"
+ },
+ {
+  "output": {}
+ },
+ {
+  "exit": 0
+ }
+]

@@ -1,0 +1,9 @@
+{
+ "steps": [
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @scalars *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "disconnect", "arguments": {"terminateDebuggee": true}}}
+ ]
+}

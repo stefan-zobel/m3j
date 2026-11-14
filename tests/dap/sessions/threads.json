@@ -1,0 +1,13 @@
+{
+ "steps": [
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @work *)"]}}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "threads"}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 2}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 2, "startFrame": 1, "levels": 5}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 99}}},
+  {"send": {"command": "terminate"}, "until": "terminated"}
+ ]
+}

@@ -1,0 +1,6 @@
+{
+ "init": true,
+ "steps": [
+  {"send": {"command": "configurationDone"}, "until": "terminated"}
+ ]
+}

@@ -1,0 +1,79 @@
+[
+ {
+  "type": "response",
+  "request_seq": 1,
+  "success": true,
+  "command": "initialize",
+  "body": {
+   "supportsConfigurationDoneRequest": true,
+   "supportsTerminateRequest": true
+  }
+ },
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": 0
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "stdout": "v = 2583, count = 35, shapes = 2\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

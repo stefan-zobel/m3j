@@ -1,0 +1,125 @@
+[
+ {
+  "type": "response",
+  "request_seq": 2,
+  "success": false,
+  "command": "launch",
+  "message": "launch needs the attribute jar"
+ },
+ {
+  "type": "response",
+  "request_seq": 3,
+  "success": false,
+  "command": "launch",
+  "message": "no such jar: <work>/missing.jar"
+ },
+ {
+  "type": "response",
+  "request_seq": 4,
+  "success": false,
+  "command": "launch",
+  "message": "the program ended before it started, exit code 1"
+ },
+ {
+  "type": "response",
+  "request_seq": 5,
+  "success": false,
+  "command": "launch",
+  "message": "the attribute args must be a list of strings"
+ },
+ {
+  "type": "response",
+  "request_seq": 6,
+  "success": false,
+  "command": "stackTrace",
+  "message": "no program: launch first"
+ },
+ {
+  "type": "response",
+  "request_seq": 7,
+  "success": false,
+  "command": "fly",
+  "message": "unknown request fly"
+ },
+ {
+  "type": "response",
+  "request_seq": 8,
+  "success": true,
+  "command": "launch"
+ },
+ {
+  "type": "event",
+  "event": "initialized"
+ },
+ {
+  "type": "response",
+  "request_seq": 9,
+  "success": false,
+  "command": "launch",
+  "message": "a program is running"
+ },
+ {
+  "type": "response",
+  "request_seq": 10,
+  "success": false,
+  "command": "stackTrace",
+  "message": "no thread 1"
+ },
+ {
+  "type": "response",
+  "request_seq": 11,
+  "success": true,
+  "command": "configurationDone"
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "started",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 2
+  }
+ },
+ {
+  "type": "event",
+  "event": "thread",
+  "body": {
+   "reason": "exited",
+   "threadId": 1
+  }
+ },
+ {
+  "type": "event",
+  "event": "exited",
+  "body": {
+   "exitCode": -1
+  }
+ },
+ {
+  "type": "event",
+  "event": "terminated"
+ },
+ {
+  "output": {
+   "stderr": "Unrecognized option: -Xbogus\nError: Could not create the Java Virtual Machine.\nError: A fatal exception has occurred. Program will exit.\nm3j debug adapter: bad JSON at offset 1: a name expected\n\n\n***\n*** runtime error:\n***    An array subscript was out of range.\n***    file \"Main.m3\", line 209\n***\n\n"
+  }
+ },
+ {
+  "exit": 0
+ }
+]

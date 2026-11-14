@@ -1,0 +1,35 @@
+{
+ "steps": [
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* the statements that bind names *)"]}},
+                    {"line": {"$line": ["Main.m3", "PROCEDURE Twice"]}},
+                    {"line": {"$line": ["Main.m3", "END Twice;"]}},
+                    {"line": {"$line": ["Main.m3", "    FOR k := 1 TO 2 DO", -1]}},
+                    {"line": {"$line": ["Main.m3", "(* @scalars *)"]}},
+                    {"line": {"$line": ["Main.m3", "(* @inner *)"]}}]}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "IntStack.m3"}},
+    "breakpoints": [{"line": 4}]}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Shapes.i3"}},
+    "breakpoints": [{"line": {"$line": ["Shapes.i3", "VAR made"]}},
+                    {"line": {"$line": ["Shapes.i3", "PROCEDURE Circle"]}}]}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "notes.txt"}},
+    "breakpoints": [{"line": 1}]}}},
+  {"send": {"command": "configurationDone"}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": [{"line": {"$line": ["Main.m3", "(* @bigmiddle *)"]}}]}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "stopped"},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1, "levels": 1}}},
+  {"send": {"command": "setBreakpoints", "arguments": {
+    "source": {"path": {"$src": "Main.m3"}},
+    "breakpoints": []}}},
+  {"send": {"command": "continue", "arguments": {"threadId": 1}}, "until": "terminated"}
+ ]
+}

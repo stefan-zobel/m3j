@@ -1,0 +1,16 @@
+{
+ "launch": {"jar": null},
+ "launches": false,
+ "steps": [
+  {"send": {"command": "launch", "arguments": {"jar": "missing.jar"}}},
+  {"send": {"command": "launch", "arguments": {"jar": {"$program": true}, "javaOptions": ["-Xbogus"]}}},
+  {"send": {"command": "launch", "arguments": {"jar": {"$program": true}, "args": "raise"}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "fly"}},
+  {"raw": "{not json"},
+  {"send": {"command": "launch", "arguments": {"jar": {"$program": true}, "args": ["fail"]}}, "until": "initialized"},
+  {"send": {"command": "launch", "arguments": {"jar": {"$program": true}}}},
+  {"send": {"command": "stackTrace", "arguments": {"threadId": 1}}},
+  {"send": {"command": "configurationDone"}, "until": "terminated"}
+ ]
+}
