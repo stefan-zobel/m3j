@@ -1150,15 +1150,16 @@ def case_client(env):
 def case_together(env):
     t = certificates(env)
     out = env.run("together", str(t.certs / "server.p12"), str(t.certs / "ca.pem")).replace("\r\n", "\n")
-    # /fail-late over TLS: the server ends the connection without close_notify
-    # after a part of the body. When the end and the data reach the client of
-    # the JDK together, its TLS layer may report the end before the response,
-    # so the client sees the connection failed instead of an incomplete
-    # response; a failure either way. Over plain HTTP the order is fixed.
-    head, sep, tls = out.partition("\nhttps\n")
-    tls = tls.replace("  HTTP.Unreachable (the connection failed)\n  end\n",
+    # /fail-late: the server ends the connection after a part of the body
+    # (over TLS without close_notify). The client of the JDK reads the body
+    # in a task of its executor and hands out the response in another one;
+    # when the end has arrived before the first task runs, as on a busy
+    # machine, the failure of the body also fails the response, so the
+    # client sees the connection failed instead of an incomplete response.
+    # It is a failure either way, over HTTP and over TLS.
+    out = out.replace("  HTTP.Unreachable (the connection failed)\n  end\n",
                       "  200 Rd.Failure HTTP.BadMessage (the response is incomplete)\n  end\n")
-    compare("together", head + sep + tls, (TESTS / "expected" / "together.txt").read_text())
+    compare("together", out, (TESTS / "expected" / "together.txt").read_text())
 
 
 def noise(n):
